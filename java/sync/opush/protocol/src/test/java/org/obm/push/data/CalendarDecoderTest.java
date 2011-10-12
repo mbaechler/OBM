@@ -1,7 +1,8 @@
 package org.obm.push.data;
 
 
-import java.io.ByteArrayInputStream;
+import static org.obm.push.TestUtils.getXml;
+
 import java.io.IOException;
 
 import javax.xml.parsers.FactoryConfigurationError;
@@ -16,7 +17,6 @@ import org.obm.push.bean.IApplicationData;
 import org.obm.push.bean.MSAttendee;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.protocol.data.CalendarDecoder;
-import org.obm.push.utils.DOMUtils;
 import org.obm.sync.calendar.EventExtId;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -99,10 +99,6 @@ public class CalendarDecoderTest {
 		Assert.assertEquals(email, att.getEmail());
 		Assert.assertEquals(status, att.getAttendeeStatus());
 		Assert.assertEquals(type, att.getAttendeeType());
-	}
-	
-	private Document getXml(String data) throws SAXException, IOException, FactoryConfigurationError{
-		return DOMUtils.parse(new ByteArrayInputStream(data.getBytes()));
 	}
 	
 	@Test
