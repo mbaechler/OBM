@@ -33,7 +33,7 @@ public class ContactToVcard extends BaseConverter {
 	// ------------------------------------------------------------- Constructor
 
 	public ContactToVcard(TimeZone timezone, String charset) {
-		super(timezone, charset);
+		super(timezone, charset, false);
 	}
 
 	// ---------------------------------------------------------- Public methods
@@ -104,7 +104,7 @@ public class ContactToVcard extends BaseConverter {
 		output.append(composeFieldCategories(contact.getCategories()));
 		output
 				.append(composeFieldPhoto(contact.getPersonalDetail()
-						.getPhoto()));
+						.getPhotoObject()));
 		output.append(composeFieldUid(contact.getUid()));
 		output.append(composeFieldFolder(contact.getFolder()));
 
@@ -147,7 +147,7 @@ public class ContactToVcard extends BaseConverter {
 		}
 
 		StringBuffer output = new StringBuffer(120); // Estimate 120 as needed
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		if (name.getLastName().getPropertyValue() != null) {
 			output.append(escapeSeparator((String) name.getLastName()
@@ -189,7 +189,7 @@ public class ContactToVcard extends BaseConverter {
 			throws ConverterException {
 		if (displayName.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(displayName);
 
 			return composeVCardComponent(escapeSeparator((String) displayName
@@ -206,7 +206,7 @@ public class ContactToVcard extends BaseConverter {
 
 		if (nickname.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(nickname);
 
 			return composeVCardComponent(escapeSeparator((String) nickname
@@ -235,7 +235,7 @@ public class ContactToVcard extends BaseConverter {
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		if (address.getPostOfficeAddress().getPropertyValue() != null) {
 			output.append(escapeSeparator((String) address
@@ -297,9 +297,9 @@ public class ContactToVcard extends BaseConverter {
 	 */
 	private StringBuffer composeFieldPhoto(Property photo)
 			throws ConverterException {
-		if (photo.getPropertyValue() != null) {
+		if (photo !=null && photo.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(photo);
 
 			//
@@ -336,14 +336,14 @@ public class ContactToVcard extends BaseConverter {
 	/**
 	 * @return a representation of the v-card field TEL:
 	 */
-	private String composeFieldTelephone(List phones) throws ConverterException {
+	private String composeFieldTelephone(List<Phone> phones) throws ConverterException {
 
 		if ((phones == null) || phones.isEmpty()) {
 			return "";
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		Phone telephone = null;
 		String phoneType = null;
@@ -351,7 +351,7 @@ public class ContactToVcard extends BaseConverter {
 		int size = phones.size();
 		for (int i = 0; i < size; i++) {
 
-			telephone = (Phone) phones.get(i);
+			telephone = phones.get(i);
 			phoneType = composePhoneType(telephone.getPhoneType());
 
 			properties.clear();
@@ -472,14 +472,14 @@ public class ContactToVcard extends BaseConverter {
 	/**
 	 * @return a representation of the v-card field EMAIL:
 	 */
-	private String composeFieldEmail(List emails) throws ConverterException {
+	private String composeFieldEmail(List<Email> emails) throws ConverterException {
 
 		if ((emails == null) || emails.isEmpty()) {
 			return "";
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		Email email = null;
 		String emailType = null;
@@ -487,7 +487,7 @@ public class ContactToVcard extends BaseConverter {
 		int size = emails.size();
 		for (int i = 0; i < size; i++) {
 
-			email = (Email) emails.get(i);
+			email = emails.get(i);
 			emailType = composeEmailType(email.getEmailType());
 
 			properties.clear();
@@ -532,14 +532,14 @@ public class ContactToVcard extends BaseConverter {
 		return "";
 	}
 
-	private String composeFieldWebPage(List webpages) throws ConverterException {
+	private String composeFieldWebPage(List<WebPage> webpages) throws ConverterException {
 
 		if ((webpages == null) || webpages.isEmpty()) {
 			return "";
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		WebPage address = null;
 		String webpageType = null;
@@ -547,7 +547,7 @@ public class ContactToVcard extends BaseConverter {
 		int size = webpages.size();
 		for (int i = 0; i < size; i++) {
 
-			address = (WebPage) webpages.get(i);
+			address = webpages.get(i);
 			webpageType = composeWebPageType(address.getWebPageType());
 
 			properties.add(0, address);
@@ -595,7 +595,7 @@ public class ContactToVcard extends BaseConverter {
 
 		if (label.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(label);
 
 			return composeVCardComponent(escapeSeparator((String) label
@@ -612,7 +612,7 @@ public class ContactToVcard extends BaseConverter {
 
 		if (label.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(label);
 
 			return composeVCardComponent(escapeSeparator((String) label
@@ -629,7 +629,7 @@ public class ContactToVcard extends BaseConverter {
 
 		if (label.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(label);
 
 			return composeVCardComponent(escapeSeparator((String) label
@@ -646,7 +646,7 @@ public class ContactToVcard extends BaseConverter {
 
 		if (role.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(role);
 
 			return composeVCardComponent(escapeSeparator((String) role
@@ -658,20 +658,20 @@ public class ContactToVcard extends BaseConverter {
 	/**
 	 * @return a representation of the v-card field TITLE:
 	 */
-	private String composeFieldTitle(List titles) throws ConverterException {
+	private String composeFieldTitle(List<Title> titles) throws ConverterException {
 		if ((titles == null) || titles.isEmpty()) {
 			return "";
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		Title title = null;
 
 		int size = titles.size();
 		for (int i = 0; i < size; i++) {
 
-			title = (Title) titles.get(i);
+			title = titles.get(i);
 			properties.add(0, title);
 
 			output.append(composeVCardComponent(escapeSeparator((String) title
@@ -692,7 +692,7 @@ public class ContactToVcard extends BaseConverter {
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		if (company.getPropertyValue() != null) {
 			output.append(escapeSeparator((String) company.getPropertyValue()));
@@ -711,20 +711,20 @@ public class ContactToVcard extends BaseConverter {
 	/**
 	 * @return a representation of the v-card field XTag:
 	 */
-	private String composeFieldXTag(List xTags) throws ConverterException {
+	private String composeFieldXTag(List<XTag> xTags) throws ConverterException {
 		if ((xTags == null) || xTags.isEmpty()) {
 			return "";
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		Property xtag = null;
 
 		int size = xTags.size();
 		for (int i = 0; i < size; i++) {
 
-			XTag xtagObj = (XTag) xTags.get(i);
+			XTag xtagObj = xTags.get(i);
 
 			xtag = xtagObj.getXTag();
 
@@ -732,7 +732,7 @@ public class ContactToVcard extends BaseConverter {
 			properties.add(0, xtag);
 
 			output.append(composeVCardComponent(escapeSeparator((String) xtag
-					.getPropertyValue()), properties, (String) xtagObj
+					.getPropertyValue()), properties, xtagObj
 					.getXTagValue()));
 		}
 		return output.toString();
@@ -741,21 +741,21 @@ public class ContactToVcard extends BaseConverter {
 	/**
 	 * @return a representation of the v-card field NOTE:
 	 */
-	private String composeFieldNote(List notes) throws ConverterException {
+	private String composeFieldNote(List<Note> notes) throws ConverterException {
 
 		if ((notes == null) || notes.isEmpty()) {
 			return "";
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList properties = new ArrayList();
+		ArrayList<Property> properties = new ArrayList<Property>();
 
 		Note note = null;
 
 		int size = notes.size();
 		for (int i = 0; i < size; i++) {
 
-			note = (Note) notes.get(i);
+			note = notes.get(i);
 			properties.add(0, note);
 
 			output.append(composeVCardComponent(escapeSeparator((String) note
@@ -771,16 +771,6 @@ public class ContactToVcard extends BaseConverter {
 	private String composeFieldUid(String uid) {
 		if (uid != null) {
 			return "UID:" + uid + newLine;
-		}
-		return "";
-	}
-
-	/**
-	 * @return a representation of the v-card field TZ:
-	 */
-	private String composeFieldTimezone(String tz) {
-		if (tz != null) {
-			return "TZ:" + tz + newLine;
 		}
 		return "";
 	}
@@ -803,7 +793,7 @@ public class ContactToVcard extends BaseConverter {
 
 		if (categories.getPropertyValue() != null) {
 
-			ArrayList properties = new ArrayList();
+			ArrayList<Property> properties = new ArrayList<Property>();
 			properties.add(categories);
 
 			return composeVCardComponent(escapeSeparator((String) categories

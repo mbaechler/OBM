@@ -474,9 +474,14 @@ public class EventHandler extends SecureSyncHandler {
 			AccessToken at, ParametersSource params, XmlResponder responder) 
 	throws ServerFault {
 		final Date after = DateHelper.asDate(params.getParameter("syncRangeAfter"));
-		final Date before = DateHelper.asDate(params.getParameter("syncRangeBefore"));
+		
+		Date before = null;
+		String syncRangeBefore = params.getParameter("syncRangeBefore");
+		if(!StringUtils.isBlank(syncRangeBefore)){
+			before = DateHelper.asDate(params.getParameter("syncRangeBefore"));
+		}
 		SyncRange syncRange = null;
-		if(after != null || before != null){
+		if(after != null){
 			syncRange = new SyncRange(before, after);
 		}
 		EventChanges ret = binding.getSyncInRange(at, 

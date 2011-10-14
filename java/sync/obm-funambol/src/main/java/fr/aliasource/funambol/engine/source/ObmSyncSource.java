@@ -14,7 +14,6 @@ import com.funambol.framework.engine.source.SyncContext;
 import com.funambol.framework.engine.source.SyncSource;
 import com.funambol.framework.engine.source.SyncSourceException;
 import com.funambol.framework.engine.source.SyncSourceInfo;
-import com.funambol.framework.security.Sync4jPrincipal;
 import com.funambol.framework.server.Sync4jDevice;
 import com.funambol.framework.server.store.PersistentStore;
 import com.funambol.framework.server.store.PersistentStoreException;
@@ -115,7 +114,7 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 		this.principal = context.getPrincipal();
 
 		String deviceId = null;
-		deviceId = ((Sync4jPrincipal) context.getPrincipal()).getDeviceId();
+		deviceId = context.getPrincipal().getDeviceId();
 		try {
 			device = getDevice(deviceId);
 			String timezone = device.getTimeZone();
@@ -154,12 +153,13 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 
 	public SyncItemKey[] getSyncItemKeysFromKeys(List<String> keys) {
 		int nb = 0;
+		SyncItemKey[] syncKeys = null;
 		if (keys != null) {
 			nb = keys.size();
-		}
-		SyncItemKey[] syncKeys = new SyncItemKey[nb];
-		for (int i = 0; i < nb; i++) {
-			syncKeys[i] = new SyncItemKey(keys.get(i));
+			syncKeys = new SyncItemKey[nb];
+			for (int i = 0; i < nb; i++) {
+				syncKeys[i] = new SyncItemKey(keys.get(i));
+			}
 		}
 
 		return syncKeys;
@@ -237,8 +237,5 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 	}
 	@Override
 	public void init() throws BeanInitializationException {
-		// TODO Auto-generated method stub
-		
 	}
-
 }

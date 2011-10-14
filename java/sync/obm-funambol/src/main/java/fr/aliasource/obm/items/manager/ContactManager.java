@@ -29,13 +29,6 @@ import org.obm.sync.locators.Locator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.funambol.common.pim.common.Property;
-import com.funambol.common.pim.contact.BusinessDetail;
-import com.funambol.common.pim.contact.PersonalDetail;
-import com.funambol.common.pim.contact.Phone;
-import com.funambol.common.pim.contact.Title;
-import com.funambol.common.pim.contact.WebPage;
-
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.utils.ContactHelper;
 
@@ -50,10 +43,10 @@ public class ContactManager extends ObmManager {
 	private static final Logger logger = LoggerFactory.getLogger(ContactManager.class);
 	private TimeZone deviceTimeZone;
 
-	public ContactManager(BookClient binding) {
+	public ContactManager(BookClient binding, ObmContactConverter contactConverter) {
 		this.binding = binding;
 	}
-
+	
 	public List<String> getAllItemKeys() throws OBMException {
 
 		if (!syncReceived) {
@@ -111,8 +104,7 @@ public class ContactManager extends ObmManager {
 		return keys;
 	}
 
-	public com.funambol.common.pim.contact.Contact getItemFromId(String key,
-			String type) throws OBMException {
+	public com.funambol.common.pim.contact.Contact getItemFromId(String key) throws OBMException {
 
 		Contact contact = null;
 
@@ -144,8 +136,8 @@ public class ContactManager extends ObmManager {
 		}
 	}
 
-	public com.funambol.common.pim.contact.Contact updateItem(String key,
-			com.funambol.common.pim.contact.Contact contact, String type)
+	public com.funambol.common.pim.contact.Contact updateItem(
+			com.funambol.common.pim.contact.Contact contact)
 			throws OBMException {
 
 		Contact c = null;
@@ -160,7 +152,7 @@ public class ContactManager extends ObmManager {
 	}
 
 	public com.funambol.common.pim.contact.Contact addItem(
-			com.funambol.common.pim.contact.Contact contact, String type)
+			com.funambol.common.pim.contact.Contact contact)
 			throws OBMException {
 
 		Contact c = null;
@@ -176,7 +168,7 @@ public class ContactManager extends ObmManager {
 	}
 
 	public List<String> getContactTwinKeys(
-			com.funambol.common.pim.contact.Contact contact, String type)
+			com.funambol.common.pim.contact.Contact contact)
 			throws OBMException {
 
 		Contact c = foundationContactToObm(contact, type);

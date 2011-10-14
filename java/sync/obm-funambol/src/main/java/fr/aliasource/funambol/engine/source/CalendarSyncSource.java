@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.sql.Timestamp;
 import java.util.List;
 
+import org.obm.sync.client.calendar.CalendarClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,34 +16,46 @@ import com.funambol.common.pim.converter.VComponentWriter;
 import com.funambol.common.pim.icalendar.ICalendarParser;
 import com.funambol.common.pim.model.VCalendar;
 import com.funambol.common.pim.xvcalendar.XVCalendarParser;
+import com.funambol.framework.engine.InMemorySyncItem;
 import com.funambol.framework.engine.SyncItem;
-import com.funambol.framework.engine.SyncItemImpl;
 import com.funambol.framework.engine.SyncItemKey;
 import com.funambol.framework.engine.SyncItemState;
 import com.funambol.framework.engine.source.SyncContext;
 import com.funambol.framework.engine.source.SyncSource;
 import com.funambol.framework.engine.source.SyncSourceException;
 import com.funambol.framework.tools.Base64;
+import com.google.inject.Injector;
 
 import fr.aliasource.funambol.OBMException;
+import fr.aliasource.funambol.ObmFunambolGuiceInjector;
 import fr.aliasource.funambol.utils.FunisHelper;
 import fr.aliasource.funambol.utils.Helper;
+import fr.aliasource.obm.items.converter.ObmEventConverter;
 import fr.aliasource.obm.items.manager.CalendarManager;
 
 public class CalendarSyncSource extends ObmSyncSource {
 
 	private static final long serialVersionUID = 8820543271150832304L;
 
-	public CalendarSyncSource(CalendarManager calendarManager){
-		manager = calendarManager;
-	}
-	
-	private CalendarManager manager;
 	private static final Logger logger = LoggerFactory.getLogger(CalendarSyncSource.class);
+	
+	private CalendarClient binding;
+	private ObmEventConverter obmEventConverter;
+	private CalendarManager manager;
+	
+	public CalendarSyncSource(){
+		super();
+		Injector injector = ObmFunambolGuiceInjector.getInjector();
+		binding = injector.getProvider(CalendarClient.class).get();
+		obmEventConverter = injector.getProvider(ObmEventConverter.class).get();
+
+	}
 
 	public void beginSync(SyncContext context) throws SyncSourceException {
 		logger.info("Begin an OBM-Funambol Calendar sync");
-		logger.info("context.getSourceQuery():" + context.getSourceQuery());
+		logger.info("context.getSourceQuery():" + context);
+		
+		manager = new CalendarManager(binding, obmEventConverter);
 		manager.initSyncRange(context.getSourceQuery());
 		
 		try {
@@ -73,7 +86,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 			com.funambol.common.pim.calendar.Calendar calendar = getFoundationFromSyncItem(syncItem);
 
 			if (calendar != null) {
-				created = manager.addItem(calendar, getSourceType());
+				created = manager.addItem(calendar);
 			}
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
@@ -159,7 +172,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 			Calendar event = getFoundationFromSyncItem(syncItem);
 
 			if (event != null) {
-				keys = manager.getEventTwinKeys(event, getSourceType());
+				keys = manager.getEventTwinKeys(event);
 			}
 		} catch (OBMException e) {
 			logger.error(e.getMessage(), e);
@@ -219,8 +232,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 		try {
 			Calendar calendar = getFoundationFromSyncItem(syncItem);
 
-			event = manager.updateItem(syncItem.getKey().getKeyAsString(),
-					calendar, getSourceType());
+			event = manager.updateItem(calendar);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -247,7 +259,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 
 		Calendar calendar = null;
 		try {
-			calendar = manager.getItemFromId(key, getSourceType());
+			calendar = manager.getItemFromId(key);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -317,7 +329,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 //				XVCalendarParser parser = new XVCalendarParser(buffer,
 //						deviceCharset);
 				XVCalendarParser parser = new XVCalendarParser(buffer);
-				vcal = (VCalendar) parser.XVCalendar();
+				vcal = parser.XVCalendar();
 			} else {
 				logger.info("Parsing version 2.0 as icalendar");
 				ICalendarParser parser = new ICalendarParser(buffer);
@@ -335,10 +347,10 @@ public class CalendarSyncSource extends ObmSyncSource {
 	}
 
 	private Calendar getFoundationFromSyncItem(SyncItem item)
-			throws OBMException, SyncSourceException {
+			throws OBMException {
 		Calendar foundationCalendar = null;
 
-		String content = Helper.getContentOfSyncItem(item, this.isEncode());
+		String content = Helper.getContentOfSyncItem(item);
 		logger.info("foundFromSync:\n" + content);
 		logger.info(" ===> syncItemKey: " + item.getKey());
 
@@ -348,15 +360,14 @@ public class CalendarSyncSource extends ObmSyncSource {
 
 		if (MSG_TYPE_ICAL.equals(getSourceType())) {
 			foundationCalendar = getFoundationCalendarFromICal(content);
+			logger.info("calContent.uid: "
+					+ foundationCalendar.getCalendarContent().getUid());
+
+			foundationCalendar.getCalendarContent().setUid(
+					new Property(item.getKey().getKeyAsString()));
 		} else {
 			logger.error("Only Ical is supported");
 		}
-
-		logger.info("calContent.uid: "
-				+ foundationCalendar.getCalendarContent().getUid());
-
-		foundationCalendar.getCalendarContent().setUid(
-				new Property(item.getKey().getKeyAsString()));
 
 		return foundationCalendar;
 	}
@@ -369,21 +380,20 @@ public class CalendarSyncSource extends ObmSyncSource {
 
 		if (MSG_TYPE_ICAL.equals(getSourceType())) {
 			content = getICalFromFoundationCalendar(calendar);
+			syncItem = new InMemorySyncItem(this, calendar.getCalendarContent()
+					.getUid().getPropertyValueAsString(), status);
+
+			logger.info("sending syncitem to pda:\n" + content);
+			if (isEncode()) {
+				syncItem.setContent(Base64.encode(content.getBytes()));
+				syncItem.setType(getSourceType());
+				syncItem.setFormat("b64");
+			} else {
+				syncItem.setContent(content.getBytes());
+				syncItem.setType(getSourceType());
+			}
 		} else {
 			logger.error("Only Ical is supported");
-		}
-
-		syncItem = new SyncItemImpl(this, calendar.getCalendarContent()
-				.getUid().getPropertyValueAsString(), status);
-
-		logger.info("sending syncitem to pda:\n" + content);
-		if (isEncode()) {
-			syncItem.setContent(Base64.encode(content.getBytes()));
-			syncItem.setType(getSourceType());
-			syncItem.setFormat("b64");
-		} else {
-			syncItem.setContent(content.getBytes());
-			syncItem.setType(getSourceType());
 		}
 
 		return syncItem;

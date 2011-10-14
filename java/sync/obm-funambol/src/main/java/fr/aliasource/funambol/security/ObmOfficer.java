@@ -2,6 +2,8 @@ package fr.aliasource.funambol.security;
 
 import java.security.Principal;
 
+import org.obm.sync.auth.AccessToken;
+import org.obm.sync.client.calendar.CalendarClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +17,10 @@ import com.funambol.framework.server.store.PersistentStore;
 import com.funambol.framework.server.store.PersistentStoreException;
 import com.funambol.framework.tools.Base64;
 import com.funambol.server.config.Configuration;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
 
-import fr.aliasource.funambol.OBMException;
-import fr.aliasource.funambol.engine.source.TaskSyncSource;
-import fr.aliasource.obm.items.manager.CalendarManager;
+import fr.aliasource.funambol.ObmFunambolGuiceInjector;
 
 public class ObmOfficer implements Officer, java.io.Serializable {
 
@@ -28,13 +30,15 @@ public class ObmOfficer implements Officer, java.io.Serializable {
 	private String clientAuth = Cred.AUTH_TYPE_BASIC;
 
 	private String serverAuth = Cred.AUTH_NONE;
-
-	private CalendarManager manager; 
+	
+	private CalendarClient client; 
 
 	private static final Logger logger = LoggerFactory.getLogger(ObmOfficer.class);
 	
-	public ObmOfficer(CalendarManager calendarManager){
-		this.manager = calendarManager;
+	public ObmOfficer(){
+		Injector injector = ObmFunambolGuiceInjector.getInjector();
+		Provider<CalendarClient> p = injector.getProvider(CalendarClient.class);
+		client =  p.get();
 	}
 
 	public String getClientAuth() {
@@ -176,17 +180,13 @@ public class ObmOfficer implements Officer, java.io.Serializable {
 
 	private boolean checkObmCredentials(String login,
 			String password) {
-		
-		// using cal manager is somewhat crappy as we cannot share token between
-		// book & cal
-		// with this architecture
 
 		boolean ret = false;
 		try {
-			manager.logIn(login, password);
+			AccessToken token = client.login(login, password, "funis");
 			ret = true;
-			manager.logout();
-		} catch (OBMException e) {
+			client.logout(token);
+		} catch (Throwable e) {
 			logger.error("Error on obm login: " + e);
 			ret = false;
 		}

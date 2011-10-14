@@ -251,7 +251,7 @@ public class ObmSyncSourceConfigPanel
         if ((syncSource instanceof ContactSyncSource) ||
             (syncSource instanceof CalendarSyncSource)) {
 
-            String cType = ((ObmSyncSource) syncSource).getSourceType();
+            String cType = syncSource.getSourceType();
 
             if (VCARD_TYPE.equals(cType) || ICAL_TYPE.equals(cType)) {
                 typeValue.setSelectedIndex(1);
@@ -351,31 +351,31 @@ public class ObmSyncSourceConfigPanel
             types = new StringTokenizer(VCARD_TYPES       , "," ) ;
             versions = new StringTokenizer(VCARD_VERSIONS , "," ) ;
         }
+        if(types != null && versions != null){
+			ContentType[] contentTypes = new ContentType[types.countTokens()];
 
-        ContentType[] contentTypes= new ContentType[types.countTokens()];
+			for (int i = 0, l = contentTypes.length; i < l; ++i) {
+				contentTypes[i] = new ContentType(types.nextToken().trim(),
+						versions.nextToken().trim());
+			}
 
-        for(int i = 0, l = contentTypes.length; i < l; ++i) {
-          contentTypes[i] = new ContentType(types.nextToken().trim()    ,
-                                            versions.nextToken().trim() );
-        }
+			syncSource.setInfo(new SyncSourceInfo(contentTypes, 0));
 
-        syncSource.setInfo(new SyncSourceInfo(contentTypes, 0));
-        
-        if (syncSource instanceof ContactSyncSource) {
-	        int rs = 0;
-	        if (restrictPrivateValue.isSelected()) {
-	        	rs += Helper.RESTRICT_PRIVATE;
-	        }
-	        if (restrictPublicRValue.isSelected()
-	        		||restrictPublicWValue.isSelected()) {
-	        	rs += Helper.RESTRICT_PUBLIC_R;
-	        }
-	        if (restrictPublicWValue.isSelected()) {
-	        	rs += Helper.RESTRICT_PUBLIC_W;
-	        }
-	        syncSource.setRestrictions(rs);
-        }
-        
+			if (syncSource instanceof ContactSyncSource) {
+				int rs = 0;
+				if (restrictPrivateValue.isSelected()) {
+					rs += Helper.RESTRICT_PRIVATE;
+				}
+				if (restrictPublicRValue.isSelected()
+						|| restrictPublicWValue.isSelected()) {
+					rs += Helper.RESTRICT_PUBLIC_R;
+				}
+				if (restrictPublicWValue.isSelected()) {
+					rs += Helper.RESTRICT_PUBLIC_W;
+				}
+				syncSource.setRestrictions(rs);
+			}
+		}
         syncSource.setObmAddress(obmAddressValue.getText().trim());
     }
 

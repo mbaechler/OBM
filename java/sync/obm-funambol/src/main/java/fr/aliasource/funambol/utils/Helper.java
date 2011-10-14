@@ -44,7 +44,7 @@ public class Helper {
 	}
 
 
-	public static String getContentOfSyncItem(SyncItem item, boolean encode) {
+	public static String getContentOfSyncItem(SyncItem item) {
 		
 		String result = null;
 		
@@ -82,13 +82,13 @@ public class Helper {
 	}
 
 	public static String[] listToTab(List<String> list) {
-		String[] result = (String[]) list.toArray(new String[list.size()]);
+		String[] result = list.toArray(new String[list.size()]);
 		return result;
 	}
 
 
 	public static String[] setToTab(Set<String> set) {
-		String[] result = (String[]) set.toArray(new String[set.size()]);
+		String[] result = set.toArray(new String[set.size()]);
 		return result;
 	}
 

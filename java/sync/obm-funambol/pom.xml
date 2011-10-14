@@ -18,7 +18,6 @@
                 <funambol.version>9.0.0</funambol.version>
 	</properties>
 	
-
         <build>
           <plugins>
             <!--
@@ -32,6 +31,26 @@
                 <version>1.1.0-SNAPSHOT</version>
                 <extensions>true</extensions>
             </plugin>
+      	    <plugin>
+            	<groupId>org.apache.maven.plugins</groupId>
+        	<artifactId>maven-dependency-plugin</artifactId>
+        	<version>2.3</version>
+        	<executions>
+          		<execution>
+            		<id>copy-dependencies</id>
+            		<phase>package</phase>
+            		<goals>
+              			<goal>copy-dependencies</goal>
+            		</goals>
+		       	<configuration>
+              			<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+              			<overWriteReleases>false</overWriteReleases>
+              			<overWriteSnapshots>false</overWriteSnapshots>
+              			<overWriteIfNewer>true</overWriteIfNewer>
+            		</configuration>
+          		</execution>
+        	</executions>
+      	    </plugin>
           </plugins>
         </build> 
 
@@ -46,6 +65,21 @@
                         <artifactId>client</artifactId>
                 	<version>${obm.version}</version>
 		</dependency>
+		<dependency>
+                	<groupId>com.linagora.obm</groupId>
+        	        <artifactId>utils</artifactId>
+                	<version>${obm.version}</version>
+		</dependency>
+                <dependency>
+                        <groupId>com.linagora.obm</groupId>
+                        <artifactId>configuration</artifactId>
+                	<version>${obm.version}</version>
+                </dependency>
+                <dependency>
+                        <groupId>com.linagora.obm</groupId>
+                        <artifactId>locator</artifactId>
+                	<version>${obm.version}</version>
+                </dependency>
                 <dependency>
 			<groupId>funambol</groupId>
 			<artifactId>core-framework</artifactId>
@@ -84,6 +118,11 @@
                 <dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+		</dependency>
+		<dependency>
+                        <groupId>com.google.guava</groupId>
+                	<artifactId>guava</artifactId>
+                	<version>${guava.version}</version>
 		</dependency>
 	</dependencies>
         <repositories>

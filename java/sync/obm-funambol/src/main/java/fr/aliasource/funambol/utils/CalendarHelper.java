@@ -287,7 +287,7 @@ public class CalendarHelper extends Helper {
 	 * @return
 	 */
 	public static EventRecurrence getRecurrenceFromFoundation(
-			RecurrencePattern rec, Date dend, boolean allDay) {
+			RecurrencePattern rec, boolean allDay) {
 		EventRecurrence recurrence = new EventRecurrence();
 
 		recurrence.setFrequence(rec.getInterval());

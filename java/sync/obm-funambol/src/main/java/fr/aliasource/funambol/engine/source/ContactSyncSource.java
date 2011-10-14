@@ -6,43 +6,52 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.obm.sync.book.BookType;
+import org.obm.sync.client.book.BookClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.funambol.common.pim.contact.Contact;
 import com.funambol.common.pim.converter.ConverterException;
 import com.funambol.common.pim.vcard.VcardParser;
+import com.funambol.framework.engine.InMemorySyncItem;
 import com.funambol.framework.engine.SyncItem;
-import com.funambol.framework.engine.SyncItemImpl;
 import com.funambol.framework.engine.SyncItemKey;
 import com.funambol.framework.engine.SyncItemState;
 import com.funambol.framework.engine.source.SyncContext;
 import com.funambol.framework.engine.source.SyncSource;
 import com.funambol.framework.engine.source.SyncSourceException;
 import com.funambol.framework.tools.beans.LazyInitBean;
+import com.google.inject.Injector;
 
 import fr.aliasource.funambol.OBMException;
+import fr.aliasource.funambol.ObmFunambolGuiceInjector;
 import fr.aliasource.funambol.utils.ContactToVcard;
 import fr.aliasource.funambol.utils.Helper;
+import fr.aliasource.obm.items.converter.ObmContactConverter;
 import fr.aliasource.obm.items.manager.ContactManager;
 
 public final class ContactSyncSource extends ObmSyncSource implements
 		SyncSource, Serializable, LazyInitBean {
 
-	private static final long serialVersionUID = -6493492575094388992L;
 	private ContactManager manager;
+	private BookClient binding;
+	private ObmContactConverter contactConverter;
 	private static final Logger logger = LoggerFactory.getLogger(ContactSyncSource.class);
 
-	public ContactSyncSource(ContactManager contactManager) {
+	public ContactSyncSource() {
 		super();
-		this.manager = contactManager;
+		
+		Injector injector = ObmFunambolGuiceInjector.getInjector();
+		binding = injector.getProvider(BookClient.class).get();
+		contactConverter = injector.getProvider(ObmContactConverter.class).get();
 	}
 
 	public void beginSync(SyncContext context) throws SyncSourceException {
 		super.beginSync(context);
 
 		logger.info("- Begin an OBM Contact sync -");
-
+		this.manager = new ContactManager(binding, contactConverter);
+		
 		try {
 			manager.logIn(context.getPrincipal().getUser().getUsername(),
 					context.getPrincipal().getUser().getPassword());
@@ -71,7 +80,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		try {
 			contact = getFoundationFromSyncItem(syncItem);
 			contact.setUid(null);
-			created = manager.addItem(contact, getSourceType());
+			created = manager.addItem(contact);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -139,7 +148,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		try {
 			syncItem.getKey().setKeyValue("");
 			contact = getFoundationFromSyncItem(syncItem);
-			keys = manager.getContactTwinKeys(contact, getSourceType());
+			keys = manager.getContactTwinKeys(contact);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -197,8 +206,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		Contact contact = null;
 		try {
 			contact = getFoundationFromSyncItem(syncItem);
-			contact = manager.updateItem(syncItem.getKey().getKeyAsString(),
-					contact, getSourceType());
+			contact = manager.updateItem(contact);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -216,7 +224,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		try {
 			com.funambol.common.pim.contact.Contact contact = null;
 			String key = syncItemKey.getKeyAsString();
-			contact = manager.getItemFromId(key, getSourceType());
+			contact = manager.getItemFromId(key);
 			SyncItem ret = getSyncItemFromFoundation(contact,
 					SyncItemState.UNKNOWN);
 			return ret;
@@ -227,8 +235,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 
 	// -------------------- Private methods ----------------------
 
-	private SyncItem getSyncItemFromFoundation(Contact contact, char state)
-			throws SyncSourceException {
+	private SyncItem getSyncItemFromFoundation(Contact contact, char state) {
 
 		SyncItem syncItem = null;
 		String content = null;
@@ -236,22 +243,20 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		if (MSG_TYPE_VCARD.equals(getSourceType())) {
 			content = getVCardFromFoundationContact(contact);
 			logger.info("vcardFromFoundation:\n"+content);
+			syncItem = new InMemorySyncItem(this, contact.getUid(), state);
+
+			if (this.isEncode()) {
+				syncItem.setContent(com.funambol.framework.tools.Base64
+						.encode(content.getBytes()));
+				syncItem.setType(getSourceType());
+				syncItem.setFormat("b64");
+			} else {
+				syncItem.setContent(content.getBytes());
+				syncItem.setType(getSourceType());
+			}
 		} else {
 			logger.error("Only vcard type is supported");
 		}
-
-		syncItem = new SyncItemImpl(this, contact.getUid(), state);
-
-		if (this.isEncode()) {
-			syncItem.setContent(com.funambol.framework.tools.Base64
-					.encode(content.getBytes()));
-			syncItem.setType(getSourceType());
-			syncItem.setFormat("b64");
-		} else {
-			syncItem.setContent(content.getBytes());
-			syncItem.setType(getSourceType());
-		}
-
 		return syncItem;
 	}
 
@@ -274,15 +279,14 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		Contact contact = null;
 		String content = null;
 
-		content = Helper.getContentOfSyncItem(item, this.isEncode());
+		content = Helper.getContentOfSyncItem(item);
 
 		if (MSG_TYPE_VCARD.equals(getSourceType())) {
 			contact = getFoundationContactFromVCard(content);
+			contact.setUid(item.getKey().getKeyAsString());
 		} else {
 			logger.error("Only vcard type is supported");
 		}
-
-		contact.setUid(item.getKey().getKeyAsString());
 
 		return contact;
 	}
