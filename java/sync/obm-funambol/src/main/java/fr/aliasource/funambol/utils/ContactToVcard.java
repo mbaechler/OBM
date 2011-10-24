@@ -18,6 +18,7 @@ import com.funambol.common.pim.contact.WebPage;
 import com.funambol.common.pim.converter.BaseConverter;
 import com.funambol.common.pim.converter.ConverterException;
 import com.funambol.common.pim.utility.TimeUtils;
+import com.google.common.collect.Lists;
 
 /**
  * This object is a converter from a Contact object model to a vCard string
@@ -539,16 +540,12 @@ public class ContactToVcard extends BaseConverter {
 		}
 
 		StringBuffer output = new StringBuffer();
-		ArrayList<Property> properties = new ArrayList<Property>();
+		
+		ArrayList<Property> properties = Lists.newArrayList();
 
-		WebPage address = null;
-		String webpageType = null;
+		for (WebPage address : webpages) {
 
-		int size = webpages.size();
-		for (int i = 0; i < size; i++) {
-
-			address = webpages.get(i);
-			webpageType = composeWebPageType(address.getWebPageType());
+			String webpageType = composeWebPageType(address.getWebPageType());
 
 			properties.add(0, address);
 

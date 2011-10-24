@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.funambol.common.pim.contact.Contact;
+import com.funambol.common.pim.converter.ContactToVcard;
 import com.funambol.common.pim.converter.ConverterException;
 import com.funambol.common.pim.vcard.VcardParser;
 import com.funambol.framework.engine.InMemorySyncItem;
@@ -25,7 +26,6 @@ import com.google.inject.Injector;
 
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.ObmFunambolGuiceInjector;
-import fr.aliasource.funambol.utils.ContactToVcard;
 import fr.aliasource.funambol.utils.Helper;
 import fr.aliasource.obm.items.converter.ObmContactConverter;
 import fr.aliasource.obm.items.manager.ContactManager;
@@ -202,7 +202,6 @@ public final class ContactSyncSource extends ObmSyncSource implements
 			throws SyncSourceException {
 		logger.info("updateSyncItem(" + principal + " , "
 				+ syncItem.getKey().getKeyAsString() + "("+syncItem.getKey()+"))");
-
 		Contact contact = null;
 		try {
 			contact = getFoundationFromSyncItem(syncItem);

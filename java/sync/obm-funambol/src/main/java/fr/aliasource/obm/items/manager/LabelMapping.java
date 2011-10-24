@@ -3,6 +3,10 @@ package fr.aliasource.obm.items.manager;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.obm.sync.book.Contact;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Maps funis labels to OBM entity labels
  * 
@@ -11,6 +15,8 @@ import java.util.Map;
  */
 public class LabelMapping {
 
+	private static final Logger logger = LoggerFactory.getLogger(LabelMapping.class);
+	
 	private Map<String, String> clientToObm;
 	private Map<String, String> obmToClient;
 
@@ -27,19 +33,20 @@ public class LabelMapping {
 		addMapping("Business3TelephoneNumber", "WORK;VOICE;X-OBM-Ref3"); // assistanttel
 		addMapping("BusinessFaxNumber", "WORK;FAX;X-OBM-Ref1"); // workfax
 		addMapping("HomeTelephoneNumber", "HOME;VOICE;X-OBM-Ref1"); // homephone
-		addMapping("Home2TelephoneNumber", "HOME;VOICE;X-OBM-Ref2"); // homephone
-		addMapping("Home3TelephoneNumber", "HOME;VOICE;X-OBM-Ref3"); // homephone
+		addMapping("Home2TelephoneNumber", "HOME;VOICE;X-OBM-Ref2"); // homephone2
+		addMapping("Home3TelephoneNumber", "HOME;VOICE;X-OBM-Ref3"); // homephone3
 		addMapping("OtherTelephoneNumber", "OTHER;VOICE;X-OBM-Ref1"); // telnokia
 		addMapping("HomeFaxNumber", "HOME;FAX;X-OBM-Ref1"); // homefax
-		addMapping("Email1Address", "INTERNET;X-OBM-Ref1"); // email
-		addMapping("Email2Address", "INTERNET;X-OBM-Ref2"); // email
-		addMapping("Email3Address", "INTERNET;X-OBM-Ref3"); // email
-		addMapping("OtherEmail2Address", "INTERNET;X-OBM-Ref2"); // email2
-		addMapping("OtherEmail3Address", "INTERNET;X-OBM-Ref3"); // email3
+		addMapping("EmailAddress", "INTERNET;X-OBM-Ref1"); // email
+		addMapping("Email2Address", "INTERNET;X-OBM-Ref2"); // email2
+		addMapping("Email3Address", "INTERNET;X-OBM-Ref3"); // email3
 		addMapping("WebPage", "URL;X-OBM-Ref1"); // webpage
 		addMapping("work", "WORK;X-OBM-Ref1"); // workaddr
 		addMapping("home", "HOME;X-OBM-Ref1"); // homeaddr
 		addMapping("other", "OTHER;X-OBM-Ref1"); // otheraddr
+		addMapping("IMAddress", Contact.OBM_REF_IM_XMPP+"1"); //xmpp1
+		addMapping("IM2Address", Contact.OBM_REF_IM_XMPP+"2");//xmpp2
+		addMapping("IM3Address", Contact.OBM_REF_IM_XMPP+"3");//xmpp3
 	}
 
 	private void addMapping(String client, String obm) {
@@ -51,7 +58,8 @@ public class LabelMapping {
 		if (clientToObm.containsKey(clientLabel)) {
 			return clientToObm.get(clientLabel);
 		} else {
-			return clientLabel;
+			logger.warn("No mapping found for label["+clientLabel+"]");
+			return null;
 		}
 	}
 
@@ -60,7 +68,15 @@ public class LabelMapping {
 		if (obmToClient.containsKey(lbl)) {
 			return obmToClient.get(lbl);
 		} else {
-			return obmLabel;
+			logger.warn("No mapping found for label["+obmLabel+"]");
+			return null;
 		}
+	}
+	
+	public String getFunisIMLabel(int num){
+		final String prefix = "IM";
+		final String sufix = "Address";
+		final String number = num > 0 ? Integer.toString(num) : "";
+		return prefix + number + sufix;
 	}
 }

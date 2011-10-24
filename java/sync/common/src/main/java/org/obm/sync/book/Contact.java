@@ -35,14 +35,27 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.utils.DisplayNameUtils;
 import com.google.common.base.Objects;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
+
 public class Contact {
 
+	public static String OBM_REF_PHONE_WORK = "WORK;VOICE;X-OBM-Ref";
+	public static String OBM_REF_PHONE_HOME = "HOME;VOICE;X-OBM-Ref";
+	public static String OBM_REF_PHONE_CELL = "CELL;VOICE;X-OBM-Ref";
+	public static String OBM_REF_FAX_WORK = "WORK;FAX;X-OBM-Ref";
+	public static String OBM_REF_FAX_HOME = "HOME;FAX;X-OBM-Ref";
+	public static String OBM_REF_PAGER = "PAGER;X-OBM-Ref";
+	
+	public static String OBM_REF_IM_XMPP = "XMPP;X-OBM-Ref";
+	
 	private Integer uid;
 
 	private String commonname;
@@ -174,6 +187,38 @@ public class Contact {
 		return phones;
 	}
 
+	public Map<String, Phone> getWorkPhones() {
+		return filterMap(phones, OBM_REF_PHONE_WORK, OBM_REF_FAX_WORK);
+	}
+	
+	public Map<String, Phone> getHomePhones() {
+		return filterMap(phones, OBM_REF_PHONE_HOME, OBM_REF_FAX_HOME);
+	}
+	
+	public Map<String, Phone> getCellPhones() {
+		return filterMap(phones, OBM_REF_PHONE_CELL);
+	}
+	
+	public Map<String, Phone> getPagers() {
+		return filterMap(phones, OBM_REF_PAGER);
+	}
+	
+	private <T, V> Map<String, V> filterMap(Map<String, V> unfiltered, final String... obmRef){
+		return Maps.filterEntries(unfiltered, new Predicate<Entry<String, V>>() {
+			@Override
+			public boolean apply(Entry<String, V> input) {
+				Boolean find = false;
+				for(String ref : obmRef){
+					if(input.getKey().startsWith(ref)){
+						find = true;
+						break;
+					}
+				}
+				return find;
+			}
+		});
+	}
+	
 	public HashSet<Website> getWebsites() {
 		return websites;
 	}

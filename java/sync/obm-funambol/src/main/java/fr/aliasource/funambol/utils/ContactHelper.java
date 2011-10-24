@@ -121,20 +121,6 @@ public class ContactHelper extends Helper {
 		}
 	}
 
-	public static String getNote(List<Note> notes, String type) {
-		String result = "";
-
-		if (notes != null) {
-			for (int i = 0; i < notes.size(); i++) {
-				if (notes.get(i).getNoteType().equalsIgnoreCase(type)) {
-					result = notes.get(i).getPropertyValueAsString();
-					break;
-				}
-			}
-		}
-		return result;
-	}
-
 	public static String getCountry(Address addr) {
 		return nullToEmptyString(addr.getCountry().getPropertyValueAsString());
 	}
@@ -144,17 +130,5 @@ public class ContactHelper extends Helper {
 		String result = nullToEmptyString(foundation.getName().getLastName()
 				.getPropertyValueAsString());
 		return result;
-	}
-
-	public static String constructDisplayName(String firstName, String lastName) {
-		if (lastName == null || lastName.equals("") || lastName.equals("-")) {
-			return firstName;
-		} else {
-			if (firstName == null || firstName.equals("")) {
-				return lastName;
-			} else {
-				return lastName + "," + firstName;
-			}
-		}
 	}
 }

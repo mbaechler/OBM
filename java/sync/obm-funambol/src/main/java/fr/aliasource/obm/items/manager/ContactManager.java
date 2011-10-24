@@ -1,8 +1,6 @@
 package fr.aliasource.obm.items.manager;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -14,23 +12,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.obm.sync.auth.AuthFault;
 import org.obm.sync.auth.ContactNotFoundException;
 import org.obm.sync.auth.ServerFault;
-import org.obm.sync.book.Address;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
-import org.obm.sync.book.Email;
-import org.obm.sync.book.Website;
 import org.obm.sync.client.ISyncClient;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.items.ContactChangesResponse;
-import org.obm.sync.locators.Locator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.aliasource.funambol.OBMException;
-import fr.aliasource.funambol.utils.ContactHelper;
+import fr.aliasource.obm.items.converter.ObmContactConverter;
 
 public class ContactManager extends ObmManager {
 
@@ -38,6 +31,7 @@ public class ContactManager extends ObmManager {
 	protected List<String> deletedRest = null;
 
 	private BookClient binding;
+	private ObmContactConverter contactConverter;
 	private BookType book;
 
 	private static final Logger logger = LoggerFactory.getLogger(ContactManager.class);
@@ -45,6 +39,7 @@ public class ContactManager extends ObmManager {
 
 	public ContactManager(BookClient binding, ObmContactConverter contactConverter) {
 		this.binding = binding;
+		this.contactConverter = contactConverter;
 	}
 	
 	public List<String> getAllItemKeys() throws OBMException {
@@ -71,7 +66,7 @@ public class ContactManager extends ObmManager {
 		return binding;
 	}
 
-	public String[] getNewItemKeys(Timestamp since) throws OBMException {
+	public String[] getNewItemKeys(Timestamp since) {
 
 		Calendar d = Calendar.getInstance();
 		d.setTime(since);
@@ -106,9 +101,7 @@ public class ContactManager extends ObmManager {
 
 	public com.funambol.common.pim.contact.Contact getItemFromId(String key) throws OBMException {
 
-		Contact contact = null;
-
-		contact = (Contact) updatedRest.get(key);
+		Contact contact = updatedRest.get(key);
 
 		if (contact == null) {
 			logger.info(" item " + key
@@ -120,7 +113,7 @@ public class ContactManager extends ObmManager {
 			}
 		}
 
-		com.funambol.common.pim.contact.Contact ret = obmContactTofoundation(contact);
+		com.funambol.common.pim.contact.Contact ret = contactConverter.obmContactTofoundation(contact);
 
 		return ret;
 	}
@@ -142,13 +135,12 @@ public class ContactManager extends ObmManager {
 
 		Contact c = null;
 		try {
-			c = binding.modifyContact(token, book, foundationContactToObm(
-					contact, type));
+			c = binding.modifyContact(token, book, contactConverter.foundationContactToObm(contact));
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
 
-		return obmContactTofoundation(c);
+		return contactConverter.obmContactTofoundation(c);
 	}
 
 	public com.funambol.common.pim.contact.Contact addItem(
@@ -159,19 +151,19 @@ public class ContactManager extends ObmManager {
 
 		try {
 			c = binding.createContactWithoutDuplicate(token, book,
-					foundationContactToObm(contact, type));
+					contactConverter.foundationContactToObm(contact));
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
 
-		return obmContactTofoundation(c);
+		return contactConverter.obmContactTofoundation(c);
 	}
 
 	public List<String> getContactTwinKeys(
 			com.funambol.common.pim.contact.Contact contact)
 			throws OBMException {
 
-		Contact c = foundationContactToObm(contact, type);
+		Contact c = contactConverter.foundationContactToObm(contact);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(" look twin of : " + c.getFirstname() + ","
@@ -225,214 +217,7 @@ public class ContactManager extends ObmManager {
 
 		syncReceived = true;
 	}
-
-	private com.funambol.common.pim.contact.Contact obmContactTofoundation(
-			Contact obmcontact) {
-		LabelMapping lm = new LabelMapping();
-		com.funambol.common.pim.contact.Contact contact = new com.funambol.common.pim.contact.Contact();
-
-		contact.setUid("" + obmcontact.getUid());
-
-		contact.getName().getFirstName().setPropertyValue(
-				obmcontact.getFirstname());
-		contact.getName().getLastName().setPropertyValue(
-				obmcontact.getLastname());
-		contact.getName().getDisplayName().setPropertyValue(
-				ContactHelper.constructDisplayName(obmcontact.getFirstname(),
-						obmcontact.getLastname()));
-		contact.getName().getNickname().setPropertyValue(obmcontact.getAka());
-
-		contact.getName().getMiddleName().setPropertyValue(obmcontact.getMiddlename());
-		contact.getName().getSuffix().setPropertyValue(obmcontact.getSuffix());
-
-		BusinessDetail bd = contact.getBusinessDetail();
-		PersonalDetail pd = contact.getPersonalDetail();
-
-		pd.setSpouse(obmcontact.getSpouse());
-		
-		bd.setAssistant(obmcontact.getAssistant());
-		bd.setManager(obmcontact.getManager());
-		bd.getCompany().setPropertyValue(obmcontact.getCompany());
-		bd.getDepartment().setPropertyValue(obmcontact.getService());
-		if (obmcontact.getTitle() != null) {
-			List<Title> lt = new ArrayList<Title>();
-			Title t = new Title();
-			t.setTitleType("JobTitle");
-			t.setPropertyValue(obmcontact.getTitle());
-			lt.add(t);
-			bd.setTitles(lt);
-		}
-
-		for (String label : obmcontact.getEmails().keySet()) {
-			Email e = obmcontact.getEmails().get(label);
-			com.funambol.common.pim.contact.Email funisMail = new com.funambol.common.pim.contact.Email(
-					e.getEmail());
-			funisMail.setEmailType(lm.toFunis(label));
-			bd.addEmail(funisMail);
-		}
-
-		obmToFunis(bd.getAddress(), obmcontact.getAddresses().get(
-				lm.toOBM("work")));
-
-		for (String label : obmcontact.getPhones().keySet()) {
-			Phone p = new Phone(obmcontact.getPhones().get(label).getNumber());
-			p.setPhoneType(lm.toFunis(label));
-			bd.addPhone(p);
-		}
-
-		for (Website ws : obmcontact.getWebsites()) {
-			WebPage wp = new WebPage(ws.getUrl());
-			wp.setWebPageType(lm.toFunis(ws.getLabel()));
-			bd.addWebPage(wp);
-		}
-
-		obmToFunis(pd.getAddress(), obmcontact.getAddresses().get(
-				lm.toOBM("home")));
-		obmToFunis(pd.getOtherAddress(), obmcontact.getAddresses().get(
-				lm.toOBM("other")));
-
-		ContactHelper.setFoundationNote(contact, obmcontact.getComment(),
-				ContactHelper.COMMENT);
-
-		contact.setSensitivity(new Short((short) 2)); // olPrivate
-
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-		Date bday = obmcontact.getBirthday();
-		if (bday != null) {
-			sdf.setTimeZone(deviceTimeZone);
-			pd.setBirthday(sdf.format(bday));
-		}
-		Date anniv = obmcontact.getAnniversary();
-		if (anniv != null) {
-			sdf.setTimeZone(deviceTimeZone);
-			pd.setAnniversary(sdf.format(anniv));
-		}
-
-		return contact;
-	}
-
-	private void obmToFunis(com.funambol.common.pim.contact.Address target,
-			Address source) {
-		if (target == null) {
-			logger.warn("target addr is null");
-			return;
-		}
-		if (source != null) {
-			target.getStreet().setPropertyValue(source.getStreet());
-			target.getCity().setPropertyValue(source.getTown());
-			target.getCountry().setPropertyValue(source.getCountry());
-			target.getState().setPropertyValue(source.getState());
-			target.getPostalCode().setPropertyValue(source.getZipCode());
-			target.getPostOfficeAddress().setPropertyValue(
-					source.getExpressPostal());
-			logger.info("copied address with street: " + source.getStreet()
-					+ " to " + target);
-		}
-	}
-
-	private String s(Property p) {
-		return p.getPropertyValueAsString();
-	}
-
-	private Address funisToObm(com.funambol.common.pim.contact.Address funis) {
-		org.obm.sync.book.Address obm = new org.obm.sync.book.Address(s(funis
-				.getStreet()), s(funis.getPostalCode()), s(funis
-				.getPostOfficeAddress()), s(funis.getCity()), s(funis
-				.getCountry()), s(funis.getState()));
-		return obm;
-	}
-
-	@SuppressWarnings("unchecked")
-	private Contact foundationContactToObm(
-			com.funambol.common.pim.contact.Contact funis, String type) {
-		LabelMapping lm = new LabelMapping();
-
-		Contact contact = new Contact();
-
-		if (funis.getUid() != null && funis.getUid() != "") {
-			contact.setUid(new Integer(funis.getUid()));
-		}
-
-		BusinessDetail bd = funis.getBusinessDetail();
-		PersonalDetail pd = funis.getPersonalDetail();
-
-		contact.setFirstname(ContactHelper.nullToEmptyString(funis.getName()
-				.getFirstName().getPropertyValueAsString()));
-		contact.setLastname(ContactHelper.getLastName(funis));
-
-		contact.setAka(ContactHelper.nullToEmptyString(s(funis.getName()
-				.getNickname())));
-		contact.setCompany(s(bd.getCompany()));
-		contact.setService(s(bd.getDepartment()));
-
-		if (bd.getTitles() != null && bd.getTitles().size() > 0) {
-			contact.setTitle(((Title) bd.getTitles().get(0))
-					.getPropertyValueAsString());
-		}
-
-		// addresses
-		if (bd.getAddress() != null) {
-			contact.addAddress(lm.toOBM("work"), funisToObm(bd.getAddress()));
-		}
-
-		if (pd.getAddress() != null) {
-			contact.addAddress(lm.toOBM("home"), funisToObm(pd.getAddress()));
-		}
-		if (pd.getOtherAddress() != null) {
-			contact.addAddress(lm.toOBM("other"), funisToObm(pd
-					.getOtherAddress()));
-		}
-
-		// phones
-		List<Phone> lph = new LinkedList<Phone>();
-		lph.addAll(bd.getPhones());
-		lph.addAll(pd.getPhones());
-		for (Phone p : lph) {
-			if (p != null && s(p) != null && s(p).length() > 0)
-				contact.addPhone(lm.toOBM(p.getPhoneType()),
-						new org.obm.sync.book.Phone(s(p)));
-		}
-
-		// emails
-		List<com.funambol.common.pim.contact.Email> lem = new LinkedList<com.funambol.common.pim.contact.Email>();
-		lem.addAll(bd.getEmails());
-		lem.addAll(pd.getEmails());
-		for (com.funambol.common.pim.contact.Email em : lem) {
-			if (em != null && s(em) != null && s(em).length() > 0) {
-				contact.addEmail(lm.toOBM(em.getEmailType()), new Email(s(em)));
-			}
-		}
-
-		// websites
-		List<WebPage> lwp = new LinkedList<WebPage>();
-		lwp.addAll(bd.getWebPages());
-		lwp.addAll(pd.getWebPages());
-		for (WebPage wp : lwp) {
-			if (wp != null && s(wp) != null && s(wp).length() > 0) {
-				contact.addWebsite(new Website(lm.toOBM(wp.getWebPageType()),
-						s(wp)));
-			}
-		}
-
-		contact.setComment(ContactHelper.nullToEmptyString(ContactHelper
-				.getNote(funis.getNotes(), ContactHelper.COMMENT)));
-
-		String bday = pd.getBirthday();
-		if (bday != null && bday.length() > 0) {
-			logger.info("contact bday: " + bday);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			sdf.setTimeZone(deviceTimeZone);
-			try {
-				Date d = sdf.parse(bday);
-				contact.setBirthday(d);
-			} catch (ParseException e) {
-				logger.error("cannot parse bday: " + bday, e);
-			}
-		}
-
-		return contact;
-	}
-
+	
 	@Override
 	protected ISyncClient getSyncClient() {
 		return binding;
