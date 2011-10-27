@@ -1,0 +1,30 @@
+#!/bin/sh
+
+DIR=`dirname $0`
+
+my_rootcmd() {
+    echo -n "$1..."
+    [ "x${MYSQL_ROOTPASS}" = "x" ] || passopt="-p${MYSQL_ROOTPASS}"
+    echo "$1" | /usr/bin/mysql -u ${MYSQL_ROOTUSER} ${passopt} -h ${MYSQL_HOST} mysql 
+    result=$?
+    test $result = 0 && echo "[OK]"
+    test $result = 0 || echo "[FAILED]"
+}
+
+my_usercmd() {
+    echo "$1" | /usr/bin/mysql -u ${MYSQL_USER} -p${MYSQL_PASS} -h ${MYSQL_HOST} ${MYSQL_DB}
+}
+
+my_userscript() {
+    echo -n "$1..."
+    /usr/bin/mysql -u ${MYSQL_USER} -p${MYSQL_PASS} -h ${MYSQL_HOST} ${MYSQL_DB} < ${DIR}/$1 || echo "[FAILED]"
+}
+
+create_db() {
+    echo "create db..."
+    my_rootcmd "drop database if exists ${MYSQL_DB}"
+    my_rootcmd "create database ${MYSQL_DB}"
+    my_rootcmd "grant all privileges on ${MYSQL_DB}.* to ${MYSQL_USER}@localhost identified by \"${MYSQL_PASS}\" with grant option"
+    my_rootcmd "grant all privileges on ${MYSQL_DB}.* to ${MYSQL_USER}@\"%\" identified by \"${MYSQL_PASS}\" with grant option"
+}
+

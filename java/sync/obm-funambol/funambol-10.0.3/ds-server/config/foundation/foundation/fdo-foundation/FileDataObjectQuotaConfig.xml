@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java class="java.beans.XMLDecoder" version="1.5.0_11"> 
+ <object class="com.funambol.foundation.engine.source.FileDataObjectQuotaConfig"> 
+  <void property="roleQuota">
+   <object class="java.util.HashMap">
+    <void method="put">
+    <!-- 'demo' role has 150Mb of Storage Quota -->
+     <string>demo</string>
+     <string>150M</string>
+    </void>
+    <!-- 'standard' role has 1Gb of Storage Quota -->
+    <void method="put">
+     <string>standard</string>
+     <string>1G</string>
+    </void>
+    <!-- 'premium' role has 5Gb of Storage Quota -->
+    <void method="put">
+     <string>premium</string>
+     <string>5G</string>
+    </void>
+    <!-- 'premiumplus' role has 10Gb of Storage Quota -->
+    <void method="put">
+     <string>premiumplus</string>
+     <string>10G</string>
+    </void>
+    <!-- 'ultimate' role has 50Gb of Storage Quota -->
+    <void method="put">
+     <string>ultimate</string>
+     <string>50G</string>
+    </void>
+   </object>
+  </void>
+ </object> 
+</java>

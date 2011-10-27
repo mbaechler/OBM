@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+ <globalConfiguration>
+  <parameter name="adminPassword" value="admin"/>
+  <parameter name="enableNamespacePrefixOptimization" value="true"/>
+  <parameter name="disablePrettyXML" value="true"/>
+  <parameter name="sendMultiRefs" value="true"/>
+  <parameter name="sendXsiTypes" value="true"/>
+  <parameter name="attachments.implementation" value="org.apache.axis.attachments.AttachmentsImpl"/>
+  <parameter name="sendXMLDeclaration" value="true"/>
+  <requestFlow>
+   <handler type="java:org.apache.axis.handlers.JWSHandler">
+    <parameter name="scope" value="session"/>
+   </handler>
+   <handler type="java:org.apache.axis.handlers.JWSHandler">
+    <parameter name="scope" value="request"/>
+    <parameter name="extension" value=".jwr"/>
+   </handler>
+  </requestFlow>
+ </globalConfiguration>
+ <handler name="URLMapper" type="java:org.apache.axis.handlers.http.URLMapper"/>
+ <handler name="LocalResponder" type="java:org.apache.axis.transport.local.LocalResponder"/>
+ <handler name="Authenticate" type="java:org.apache.axis.handlers.SimpleAuthenticationHandler"/>
+ <service name="email" provider="java:RPC">
+  <parameter name="allowedMethods" value="*"/>
+  <parameter name="className" value="com.funambol.email.console.ws.EmailWS"/>
+  <beanMapping languageSpecificType="java:com.funambol.email.model.MailServerAccount" qname="ns1:MailServerAccount" xmlns:ns1="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.email.model.MailServer" qname="ns2:MailServer" xmlns:ns2="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.pushlistener.service.registry.RegistryEntry" qname="ns3:RegistryEntry" xmlns:ns3="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.email.model.SyncItemInfoAdmin" qname="ns4:SyncItemInfoAdmin" xmlns:ns4="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.email.transport.MailServerError" qname="ns5:MailServerError" xmlns:ns5="urn:BeanService"/>
+ </service>
+ <service name="admin" provider="java:RPC">
+  <parameter name="allowedMethods" value="*"/>
+  <parameter name="className" value="com.funambol.server.admin.ws.AdminWS"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.security.Sync4jPrincipal" qname="ns6:Sync4jPrincipal" xmlns:ns6="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.server.Sync4jUser" qname="ns7:Sync4jUser" xmlns:ns7="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.server.LastTimestamp" qname="ns8:LastTimestamp" xmlns:ns8="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.server.Sync4jDevice" qname="ns9:Sync4jDevice" xmlns:ns9="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.server.Sync4jModule" qname="ns10:Sync4jModule" xmlns:ns10="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.server.Sync4jConnector" qname="ns11:Sync4jConnector" xmlns:ns11="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.server.Sync4jSource" qname="ns12:Sync4jSource" xmlns:ns12="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.config.LoggingConfiguration" qname="ns13:Sync4jLoggingConfig" xmlns:ns13="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.config.LoggerConfiguration" qname="ns14:Sync4jLoggerConfig" xmlns:ns14="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.server.config.ServerConfiguration" qname="ns15:ServerConfiguration" xmlns:ns15="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.DevInf" qname="ns16:DevInf" xmlns:ns16="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.VerDTD" qname="ns17:VerDTD" xmlns:ns17="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.DataStore" qname="ns18:DataStore" xmlns:ns18="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.CTCap" qname="ns19:CTCap" xmlns:ns19="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.Ext" qname="ns20:Ext" xmlns:ns20="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.server.config.EngineConfiguration" qname="ns21:EngineConfiguration" xmlns:ns21="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.SourceRef" qname="ns22:SourceRef" xmlns:ns22="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.CTInfo" qname="ns23:CTInfo" xmlns:ns23="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.SyncCap" qname="ns24:SyncCap" xmlns:ns24="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.server.Capabilities" qname="ns25:Capabilities" xmlns:ns25="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.SyncType" qname="ns26:SyncType" xmlns:ns26="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.DSMem" qname="ns27:DSMem" xmlns:ns27="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.FilterCap" qname="ns28:FilterCap" xmlns:ns28="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.Property" qname="ns29:Property" xmlns:ns29="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.core.PropParam" qname="ns30:PropParam" xmlns:ns30="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.server.update.Component" qname="ns31:Component" xmlns:ns31="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.security.Credential" qname="ns32:Credential" xmlns:ns32="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.security.AuthorizationResponse" qname="ns33:AuthorizationResponse" xmlns:ns33="urn:BeanService"/>
+  <beanMapping languageSpecificType="java:com.funambol.framework.notification.Message" qname="ns34:Message" xmlns:ns34="urn:BeanService"/>
+ </service>
+ <service name="AdminService" provider="java:MSG">
+  <parameter name="allowedMethods" value="AdminService"/>
+  <parameter name="enableRemoteAdmin" value="false"/>
+  <parameter name="className" value="org.apache.axis.utils.Admin"/>
+  <namespace>http://xml.apache.org/axis/wsdd/</namespace>
+ </service>
+ <service name="Version" provider="java:RPC">
+  <parameter name="allowedMethods" value="getVersion"/>
+  <parameter name="className" value="org.apache.axis.Version"/>
+ </service>
+ <transport name="http">
+  <requestFlow>
+   <handler type="URLMapper"/>
+   <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+   <handler type="java:com.funambol.server.admin.ws.axis.AdminAuthHandler"/>
+  </requestFlow>
+  <parameter name="qs:list" value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs:wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <parameter name="qs:method" value="org.apache.axis.transport.http.QSMethodHandler"/>
+ </transport>
+ <transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport>
+</deployment>
