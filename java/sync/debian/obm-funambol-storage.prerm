@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+#set -x
+
+. /usr/share/debconf/confmodule
+
+db_get obm-conf/dbtype
+FUNAMBOL_DBTYPE=$RET
+
+. /usr/share/dbconfig-common/dpkg/prerm
+if  [ ${FUNAMBOL_DBTYPE} = "MYSQL" ] ; then
+  dbc_hardcoded_dbtype="mysql"
+elif  [ ${FUNAMBOL_DBTYPE} = "PGSQL" ] ; then
+  dbc_hardcoded_dbtype="pgsql"
+fi
+
+dbc_go obm-funambol-storage $@
+
+#DEBHELPER#
+exit 0
+

@@ -10,7 +10,7 @@ test -d /usr/lib/jvm/java-openjdk && {
     JAVA_HOME=/usr/lib/jvm/java-openjdk
 }
 
-FNBL_HOME=/usr/share/funambol-8.0.2
+FNBL_HOME=/usr/share/funambol-10.0.3
 
 #
 # Apply correct funambol server uri
@@ -38,27 +38,76 @@ sed -e "s%#funambol_uri#%${funambol_uri}%"\
 
 
 funambol_conf="/etc/obm/funambol_conf.ini"
+dbtype=`cat ${funambol_conf} | grep "^dbtype *=" | cut -d"=" -f2| sed -e 's/ //g'`
 user=`cat ${funambol_conf} | grep "^user *=" | cut -d"=" -f2| sed -e 's/ //g'`
 password=`cat ${funambol_conf} | grep "^password *=" | cut -d"=" -f2| sed -e 's/ //g'| sed -e 's/"//g'`
 db=`cat ${funambol_conf} | grep "^db *=" | cut -d"=" -f2| sed -e 's/ //g'`
 host=`cat ${funambol_conf} | grep "^host *=" | cut -d"=" -f2| sed -e 's/ //g'`
 
+if [ ${dbtype} = 'MYSQL' ]; then
+cat ${FNBL_HOME}/db.xml.template | \
+sed -e "s%#db_funambol_uri#%jdbc:mysql://${host:-localhost}/${db}?relaxAutocommit=true&amp;zeroDateTimeBehavior=convertToNull&amp;jdbcCompliantTruncation=false&amp;interactiveClient=true%" | \
+sed -e "s%#db_funambol_driver_class#%com.mysql.jdbc.Driver%" | \
+sed -e "s%#funambol_username#%${user}%" | \
+sed -e "s%#funambol_password#%${password}%" \
+> ${FNBL_HOME}/ds-server/config/com/funambol/server/db/db.xml
 
 cat > /usr/share/obm-tomcat/applis/funambol.xml<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
-<Context docBase="/usr/share/funambol-8.0.2/funambol" path="/funambol">
-<Resource auth="Container" 
-  driverClassName="org.postgresql.Driver"
-    name="jdbc/fnblds"
-    password="${password}"
-    type="javax.sql.DataSource"
-    url="jdbc:postgresql://${host:-localhost}/${db}"
-    username="${user}"
-    testWhileIdle="true"
-    validationQuery="SELECT 1"/>
+<Context docBase="/usr/share/funambol-10.0.3/funambol" path="/funambol">
+<Resource name="jdbc/fnblcore" auth="Container" type="javax.sql.DataSource"
+        driverClassName="com.mysql.jdbc.Driver"
+        url="jdbc:mysql://${host:-localhost}/${db}?relaxAutocommit=true&amp;zeroDateTimeBehavior=convertToNull&amp;jdbcCompliantTruncation=false&amp;interactiveClient=true"
+        username="${user}"
+        password="${password}"
+    />
+
+<Resource name="jdbc/fnblds" auth="Container" type="javax.sql.DataSource"
+        driverClassName="com.mysql.jdbc.Driver"
+        url="jdbc:mysql://${host:-localhost}/${db}?relaxAutocommit=true&amp;zeroDateTimeBehavior=convertToNull&amp;jdbcCompliantTruncation=false&amp;interactiveClient=true"
+        username="${user}"
+        password="${password}"
+    />
+
+<Resource name="jdbc/fnbluser" auth="Container" type="javax.sql.DataSource"
+              factory="com.funambol.server.db.DataSourceFactory"
+    />
 </Context>
 EOF
+else
+cat ${FNBL_HOME}/db.xml.template | \
+sed -e "s%#db_funambol_uri#%jdbc:postgresql://${host:-localhost}/${db}%" | \
+sed -e "s%#db_funambol_driver_class#%org.postgresql.Driver%"| \
+sed -e "s%#funambol_username#%${user}%"| \
+sed -e "s%#funambol_password#%${password}%"\
+> ${FNBL_HOME}/ds-server/config/com/funambol/server/db/db.xml
+
+cat > /usr/share/obm-tomcat/applis/funambol.xml<<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<Context docBase="/usr/share/funambol-10.0.3/funambol" path="/funambol">
+<Resource name="jdbc/fnblcore" auth="Container" type="javax.sql.DataSource"
+	driverClassName="org.postgresql.Driver"
+      	url="jdbc:postgresql://${host:-localhost}/${db}" 
+      	username="${user}"
+      	password="${password}"
+    />
+
+<Resource name="jdbc/fnblds" auth="Container" type="javax.sql.DataSource"
+	driverClassName="org.postgresql.Driver"
+	url="jdbc:postgresql://${host:-localhost}/${db}" 
+	username="${user}"
+	password="${password}"
+    />
+
+<Resource name="jdbc/fnbluser" auth="Container" type="javax.sql.DataSource"
+              factory="com.funambol.server.db.DataSourceFactory"
+    />
+</Context>
+EOF
+
+fi
 
 #DEBHELPER#
 
 exit 0
+

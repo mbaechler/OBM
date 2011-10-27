@@ -41,6 +41,9 @@ binary-install/obm-autoconf:: binary-install-tomcat-webapp/obm-autoconf
 install/obm-funambol::
 	(/bin/bash $(CURDIR)/debian/obm-funambol-build.sh $(CURDIR))
 
+install/obm-funambol-storage::
+	(/bin/bash $(CURDIR)/debian/obm-funambol-storage-build.sh $(CURDIR))
+
 install/obm-sync::
 	(/bin/bash $(CURDIR)/debian/obm-sync-build.sh $(CURDIR))
 

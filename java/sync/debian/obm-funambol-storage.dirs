@@ -1,0 +1,7 @@
+usr/share/dbconfig-common/data/obm-funambol-storage/install
+usr/share/dbconfig-common/data/obm-funambol-storage/install-dbadmin
+usr/share/dbconfig-common/data/obm-funambol-storage/upgrade/pgsql
+usr/share/dbconfig-common/data/obm-funambol-storage/upgrade/mysql
+usr/share/obm-funambol-storage
+usr/share/obm-funambol-storage/debian
+

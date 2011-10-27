@@ -1,31 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <java version="1.6.0" class="java.beans.XMLDecoder">
  <object class="com.funambol.server.db.DataSourceConfiguration">
-  
-    <!-- The connection URL -->
     <void method="setProperty">
-     <string>url</string>
-     <string>jdbc:hsqldb:hsql://localhost/funambol</string>
+      <string>url</string>
+      <string>#db_funambol_uri#</string>
     </void>
-    
-    <!-- The fully qualified Java class name of the JDBC driver to be used. -->
     <void method="setProperty">
-     <string>driverClassName</string>
-     <string>org.hsqldb.jdbcDriver</string>
+      <string>driverClassName</string>
+      <string>#db_funambol_driver_class#</string>
     </void>
-
-    <!-- The connection username -->
     <void method="setProperty">
-     <string>username</string>
-     <string>sa</string>
+      <string>username</string>
+      <string>#funambol_username#</string>
     </void>
-    
-    <!-- The connection password -->
     <void method="setProperty">
-     <string>password</string>
-     <string></string>
+      <string>password</string>
+      <string>#funambol_password#</string>
     </void>
-   
+ 
     <!-- The maximum number of active connections -->
     <!--
          For performance reason is better to keep this value equals to maxIdle
