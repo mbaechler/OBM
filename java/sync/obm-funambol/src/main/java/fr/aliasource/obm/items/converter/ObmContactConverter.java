@@ -260,7 +260,7 @@ public class ObmContactConverter {
 
 		if (!StringUtils.isEmpty(pd.getBirthday())) {
 			try {
-				Date d = funisDate.parse(pd.getBirthday());
+				Date d = funisDate.parse(sanitizeFunambolDate(pd.getBirthday()));
 				contact.setBirthday(d);
 			} catch (ParseException e) {
 				logger.error("cannot parse bday: " + pd.getBirthday(), e);
@@ -269,7 +269,7 @@ public class ObmContactConverter {
 		
 		if (!StringUtils.isEmpty(pd.getAnniversary())) {
 			try {
-				Date d = funisDate.parse(pd.getAnniversary());
+				Date d = funisDate.parse(sanitizeFunambolDate(pd.getAnniversary()));
 				contact.setAnniversary(d);
 			} catch (ParseException e) {
 				logger.error("cannot parse bday: " + pd.getAnniversary(), e);
@@ -279,6 +279,10 @@ public class ObmContactConverter {
 		return contact;
 	}
 	
+	private String sanitizeFunambolDate(String funisDate) {
+		return funisDate.replaceAll("-", "");
+	}
+
 	private boolean isInstantMessaging(String emailLabel) {
 		return emailLabel.startsWith(Contact.OBM_REF_IM_XMPP);
 	}

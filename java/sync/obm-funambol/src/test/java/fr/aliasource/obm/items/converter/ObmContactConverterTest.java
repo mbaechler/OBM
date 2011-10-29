@@ -343,7 +343,6 @@ public class ObmContactConverterTest {
 		xmppF3.setPropertyType("IM3Address");
 		xmppF3.setPropertyValue(xmpp3);
 		personalDetail.addEmail(xmppF3);
-
 		
 		////////
 		ObmContactConverter converter = createObmContactConverter();
@@ -358,7 +357,24 @@ public class ObmContactConverterTest {
 		Assert.assertEquals(xmpp1, obmContact.getImIdentifiers().get("XMPP;X-OBM-Ref1").getId());
 		Assert.assertEquals(xmpp2, obmContact.getImIdentifiers().get("XMPP;X-OBM-Ref2").getId());
 		Assert.assertEquals(xmpp3, obmContact.getImIdentifiers().get("XMPP;X-OBM-Ref3").getId());
+	}
+
+	@Test
+	public void testFoundationContactToObmConvertDate(){
+		DateFormat funisDate = new SimpleDateFormat("yyyyMMdd");
+		final String anniversary = "2001-02-03";
+		final String birthday = "19870204";
 		
+		com.funambol.common.pim.contact.Contact funisContact = new com.funambol.common.pim.contact.Contact();
+		PersonalDetail personalDetail = funisContact.getPersonalDetail();
+		personalDetail.setAnniversary(anniversary);
+		personalDetail.setBirthday(birthday);
+		
+		ObmContactConverter converter = createObmContactConverter();
+		Contact obmContact = converter.foundationContactToObm(funisContact);
+
+		Assert.assertEquals(anniversary.replaceAll("-", ""), funisDate.format(obmContact.getAnniversary()));
+		Assert.assertEquals(birthday, funisDate.format(obmContact.getBirthday()));
 	}
 	
 	/**
