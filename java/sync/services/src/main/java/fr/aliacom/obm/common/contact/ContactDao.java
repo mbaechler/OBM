@@ -52,6 +52,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import javax.naming.NoPermissionException;
 
@@ -81,6 +82,7 @@ import org.obm.sync.book.Phone;
 import org.obm.sync.book.Website;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
+import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventRecurrence;
 import org.obm.sync.calendar.EventType;
@@ -408,6 +410,7 @@ public class ContactDao {
 		cal.setTime(startDate);
 
 		Event e = new Event();
+		e.setExtId(getNewExtId());
 		e.setTitle(displayName);
 		e.setDate(cal.getTime());
 		e.setDuration(3600);
@@ -429,6 +432,11 @@ public class ContactDao {
 		logger.info("inserting birthday with date " + cal.getTime());
 		return e;
 	}
+
+	private EventExtId getNewExtId() {
+		return new EventExtId(UUID.randomUUID().toString());
+	}
+
 
 	private String displayName(Contact c) {
 		StringBuilder b = new StringBuilder(255);
