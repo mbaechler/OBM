@@ -1,19 +1,21 @@
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: GPL 2.0
  *
- * The contents of this file are subject to the GNU General Public
- * License Version 2 or later (the "GPL").
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Initial Developer of the Original Code is
- *   MiniG.org project members
- *
+ * %%
+ * Copyright (C) 2000 - 2011 Linagora
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * ***** END LICENSE BLOCK ***** */
-
 package org.obm.push.protocol.data;
 
 import java.util.regex.Matcher;
@@ -24,9 +26,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 /**
  * Convert text/plain mail body to HTML. The HTML version should be used for
  * display & rich formatting.
- * 
- * @author tom
- * 
  */
 public class HTMLBodyFormatter{
 
