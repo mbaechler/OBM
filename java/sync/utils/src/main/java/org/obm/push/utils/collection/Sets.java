@@ -2,6 +2,8 @@ package org.obm.push.utils.collection;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -33,4 +35,29 @@ public class Sets {
 		}
 	}
 	
+	public static <E> Set<E> symmetricDifference(Collection<E> col1, Collection<E> col2, 
+			Comparator<E> comparator, SymmetricDifferenceComparator<E> symmetricDifferenceComparator) {
+		
+		Iterator<E> from = sortedCollection(col1, comparator);
+		Iterator<E> to = sortedCollection(col2, comparator);
+		
+		Set<E> difference = new HashSet<E>();
+		while (from.hasNext()) {
+			if (to.hasNext()) {
+				E e1 = from.next();
+				E e2 = to.next();
+				if (!symmetricDifferenceComparator.equal(e1, e2)) {
+					difference.add(e1);
+				}
+			}
+		}
+		return difference;
+	}
+
+	private static <E> Iterator<E> sortedCollection(Collection<E> col, Comparator<E> comparator) {
+		TreeSet<E> set = new TreeSet<E>(comparator);
+		set.addAll(col);
+		return set.iterator();
+	}
+
 }

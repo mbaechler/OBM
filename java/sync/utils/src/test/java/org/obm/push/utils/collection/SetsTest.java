@@ -1,7 +1,10 @@
 package org.obm.push.utils.collection;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+
+import junit.framework.Assert;
 
 import org.fest.assertions.Assertions;
 import org.junit.Test;
@@ -24,7 +27,6 @@ public class SetsTest {
 			return Double.valueOf(Math.pow(o1.a - o2.a, 2) + Math.pow(o1.b - o2.b, 2)).intValue();
 		}
 	}
-
 	
 	private static class A {
 		public int a;
@@ -130,6 +132,55 @@ public class SetsTest {
 		ImmutableList<A> col2 = ImmutableList.of(a(2, 4));
 		Set<A> result = Sets.difference(col1, col2, new ComparatorUsingAllMembers());
 		Assertions.assertThat(result).containsOnly(a(1, 2), a(2, 3));
+	}
+	
+	@Test
+	public void testSymmetricDifferenceEmptyResult() {
+		A a1 = new A(1, 1);
+		A a2 = new A(2, 1);
+		A a3 = new A(3, 1);
+		A a4 = new A(4, 1);
+		
+		A a5 = new A(1, 1);
+		A a6 = new A(2, 1);
+		A a7 = new A(3, 1);
+		A a8 = new A(4, 1);
+		
+		List<A> col1 = ImmutableList.of(a3, a2, a4, a1);
+		List<A> col2 = ImmutableList.of(a8, a5, a6, a7);
+		
+		Set<A> difference = Sets.symmetricDifference(col1, col2, new ComparatorUsingAMember(), new SymmetricDifferenceComparator<A>() {
+			@Override
+			public boolean equal(A o1, A o2) {
+				return o1.b == o2.b;
+			}
+		});
+		Assert.assertTrue(difference.isEmpty());
+	}
+	
+	@Test
+	public void testSymmetricDifference() {
+		A a1 = new A(1, 1);
+		A a2 = new A(2, 1);
+		A a3 = new A(3, 4);
+		A a4 = new A(4, 1);
+		
+		A a5 = new A(1, 1);
+		A a6 = new A(2, 1);
+		A a7 = new A(3, 1);
+		A a8 = new A(4, 1);
+		
+		List<A> col1 = ImmutableList.of(a3, a2, a4, a1);
+		List<A> col2 = ImmutableList.of(a8, a5, a6, a7);
+		
+		Set<A> difference = Sets.symmetricDifference(col1, col2, new ComparatorUsingAMember(), new SymmetricDifferenceComparator<A>() {
+			@Override
+			public boolean equal(A o1, A o2) {
+				return o1.b == o2.b;
+			}
+		});
+		Assert.assertFalse(difference.isEmpty());
+		Assert.assertEquals(difference.iterator().next(), a3);
 	}
 
 }
