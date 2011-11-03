@@ -1,0 +1,6 @@
+Template: obm-funambol-storage/dbtype
+Type: select
+Choices: mysql
+Description: Type of obm-funambol database server:
+ Install funambol with mysql
+

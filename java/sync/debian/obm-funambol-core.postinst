@@ -44,9 +44,9 @@ password=`cat ${funambol_conf} | grep "^password *=" | cut -d"=" -f2| sed -e 's/
 db=`cat ${funambol_conf} | grep "^db *=" | cut -d"=" -f2| sed -e 's/ //g'`
 host=`cat ${funambol_conf} | grep "^host *=" | cut -d"=" -f2| sed -e 's/ //g'`
 
-if [ ${dbtype} = 'MYSQL' ]; then
+if [ ${dbtype} = 'mysql' ]; then
 cat ${FNBL_HOME}/db.xml.template | \
-sed -e "s%#db_funambol_uri#%jdbc:mysql://${host:-localhost}/${db}?relaxAutocommit=true&amp;zeroDateTimeBehavior=convertToNull&amp;jdbcCompliantTruncation=false&amp;interactiveClient=true%" | \
+sed -e "s%#db_funambol_uri#%jdbc:mysql://${host:-localhost}/${db}?relaxAutocommit=true\\&amp;zeroDateTimeBehavior=convertToNull\\&amp;jdbcCompliantTruncation=false\\&amp;interactiveClient=true%" | \
 sed -e "s%#db_funambol_driver_class#%com.mysql.jdbc.Driver%" | \
 sed -e "s%#funambol_username#%${user}%" | \
 sed -e "s%#funambol_password#%${password}%" \

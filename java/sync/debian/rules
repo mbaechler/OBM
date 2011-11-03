@@ -38,8 +38,8 @@ binary-install-tomcat-webapp/% ::
 
 binary-install/obm-autoconf:: binary-install-tomcat-webapp/obm-autoconf
 
-install/obm-funambol::
-	(/bin/bash $(CURDIR)/debian/obm-funambol-build.sh $(CURDIR))
+install/obm-funambol-core::
+	(/bin/bash $(CURDIR)/debian/obm-funambol-core-build.sh $(CURDIR))
 
 install/obm-funambol-storage::
 	(/bin/bash $(CURDIR)/debian/obm-funambol-storage-build.sh $(CURDIR))

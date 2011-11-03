@@ -1,0 +1,39 @@
+Template: obm-funambol-storage/dbhost
+Type: string
+Default: 127.0.0.1
+Description: Host IP address for obm-funambol database server:
+ .
+ You have to set here the host IP address for the obm-funambol database server.
+
+Template: obm-funambol-storage/dbname
+Type: string
+Default: obmfunambol
+Description: obm-funambol database name:
+ .
+ You have to set here the obm-funambol database name.
+
+Template: obm-funambol-storage/dbuser
+Type: string
+Default: obmfunambol
+Description: obm-funambol database user name:
+ .
+ You have to set here the name for the obm-funambol Database user. This user is
+ used by obm-funambol to access to the obm-funambol database.
+
+Template: obm-funambol-storage/dbpasswd
+Type: password
+Description: obm-funambol database user password:
+ .
+ You have to set here the password for the obm-funambol database user. For
+ security reasons, it shouldn't be a blank password.
+
+Template: obm-funambol-storage/dbpasswd_verify
+Type: password
+Description: obm-funambol database user password verify:
+ .
+ you must enter the password to verify.
+
+Template: obm-funambol-storage/passwords-do-not-match
+Type: note
+Description: Passwords do not match.
+ The passwords you supplied do not match.  Please try again.

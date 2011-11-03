@@ -8,10 +8,7 @@ maven_home=${HOME}
 MVN_BIN="/usr/bin/mvn -Dmaven.test.skip -Duser.home=${maven_home}"
 POM_FILE="pom.xml"
 
-
-BUILD_DEB_DIR="${CURDIR}/debian"
-PROJECT_NAME="obm-funambol"
-FUNAMBOL_BUILD_DEB_DIR="${BUILD_DEB_DIR}/obm-funambol"
+FUNAMBOL_BUILD_DEB_DIR="${CURDIR}/debian/obm-funambol-core"
 
 FUNAMBOL_VERSION="10.0.3"
 SHARE_INSTALL_DIR="${FUNAMBOL_BUILD_DEB_DIR}/usr/share"
@@ -70,10 +67,4 @@ fi
 
 S4J=`find ${PROJECT_NAME}/target -name *.s4j`
 cp ${S4J} ${FUNAMBOL_INSTALL_DIR}/ds-server/modules
-
-#<!--copy todir="debian/obm-funambol/usr/share/funambol-10.0.3/funambol/WEB-INF/lib/"          file="obm-funambol/lib/obm-sync-client.jar"/-->
-
-#<target name="obm-funambol-storage">
-#    <ant antfile="obm-funambol-storage/build.xml" target="dist" dir="../"/>
-#  </target>
 

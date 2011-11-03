@@ -88,18 +88,62 @@ Architecture: all
 Pre-Depends: obm-jetty
 Description: Jetty common libs for Open Business Management
  This package contains the library used by obm webapps deployed in tomcat.
-.
+ .
  OBM is a global groupware, messaging and CRM application. It is intended to
  be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
  simple contact database. OBM also features integration with PDAs, smartphones,
  Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.
 
-Package: obm-funambol
+Package: obm-funambol-mysql
 Architecture: all
-Depends: obm-funambol-storage (= ${binary:Version}), obm-munin-node
+Depends: obm-funambol-core, obm-funambol-storage-mysql, obm-funambol-storage
+Description: Funambol server with obm plugin and Mysql (metapackage)
+ Plugin for funambol used to provide OBM data as syncml.
+ .
+ OBM is a global groupware, messaging and CRM application. It is intended to
+ be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
+ simple contact database. OBM also features integration with PDAs, smartphones,
+ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.
+
+Package: obm-funambol-pgsql
+Architecture: all
+Depends: obm-funambol-core, obm-funambol-storage-pgsql, obm-funambol-storage
+Description: Funambol server with obm plugin and Postgresql (metapackage)
+ Plugin for funambol used to provide OBM data as syncml.
+ .
+ OBM is a global groupware, messaging and CRM application. It is intended to
+ be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
+ simple contact database. OBM also features integration with PDAs, smartphones,
+ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors. 
+
+Package: obm-funambol-core
+Architecture: all
+Depends: obm-munin-node
 Description: Funambol server with obm plugin
  Plugin for funambol used to provide OBM data as syncml.
-.
+ .
+ OBM is a global groupware, messaging and CRM application. It is intended to
+ be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
+ simple contact database. OBM also features integration with PDAs, smartphones,
+ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.
+
+Package: obm-funambol-storage-mysql
+Architecture: all
+Pre-Depends: mysql-server
+Description: Configuration OBM funambol with Mysql database
+ This package create postgres database OBM funambol.
+ .
+ OBM is a global groupware, messaging and CRM application. It is intended to
+ be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
+ simple contact database. OBM also features integration with PDAs, smartphones,
+ Mozilla Thunderbird/Lightning and Microsoft Outlook via specific connectors.
+
+Package: obm-funambol-storage-pgsql
+Architecture: all
+Pre-Depends: postgresql-8.4 | postgresql-8.3
+Description: Configuration OBM funambol with Postgresql database
+ This package create postgres database OBM funambol.
+ .
  OBM is a global groupware, messaging and CRM application. It is intended to
  be an Exchange Or Notes/Domino Mail replacement, but can also be used as a
  simple contact database. OBM also features integration with PDAs, smartphones,
@@ -107,11 +151,9 @@ Description: Funambol server with obm plugin
 
 Package: obm-funambol-storage
 Architecture: all
-Depends: dbconfig-common, postgresql-8.3, obm-munin-node
-Provides: obm-funambol-core
-Conflicts: obm-funambol-core
-Replaces: obm-funambol-core
-Description: Postgresql OBM funambol database
+Pre-Depends: obm-funambol-storage-mysql | obm-funambol-storage-pgsql
+Depends: dbconfig-common
+Description: Configuration OBM funambol database
  This package create postgres database OBM funambol.
  .
  OBM is a global groupware, messaging and CRM application. It is intended to
