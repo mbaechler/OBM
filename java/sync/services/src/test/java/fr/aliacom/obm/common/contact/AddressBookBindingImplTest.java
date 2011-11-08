@@ -30,9 +30,9 @@ public class AddressBookBindingImplTest {
 	
 	private ObmHelper mockHelper() throws SQLException {
 		ObmHelper helper = EasyMock.createMock(ObmHelper.class);
-		expect(helper.getConnection()).andReturn(null).once();
+		expect(helper.getConnection()).andReturn(null);
 		helper.cleanup(null, null, null);
-		expect(helper.selectNow(null)).andReturn(new Date()).once();
+		expect(helper.selectNow(null)).andReturn(new Date());
 		return helper;
 	}
 
@@ -43,7 +43,6 @@ public class AddressBookBindingImplTest {
 	 */
 	@Test
 	public void testGetSyncGlobalAddressBookSync() throws ServerFault, SQLException {
-		Date lastSync = new Date();
 		Date timestamp = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 
 		AccessToken token = new AccessToken(1, "");
@@ -112,11 +111,17 @@ public class AddressBookBindingImplTest {
 		ContactDao contactDao = EasyMock.createMock(ContactDao.class);
 		expect(contactDao.findUpdatedContacts(timestamp, token)).andReturn(contactUpdates).once();
 		expect(contactDao.findRemovalCandidates(timestamp, token)).andReturn(removalCandidates).once();
-		expect(contactDao.getLastSync()).andReturn(lastSync);
+		
+		expect(helper.getConnection()).andReturn(null);
+		helper.cleanup(null, null, null);
+		expect(helper.selectNow(null)).andReturn(new Date());
 		
 		expect(contactDao.findUpdatedFolders(timestamp, token)).andReturn(updatedContactFolders).once();
 		expect(contactDao.findRemovedFolders(timestamp, token)).andReturn(removedContactFolders).once();
-		expect(contactDao.getLastSync()).andReturn(lastSync);
+
+		expect(helper.getConnection()).andReturn(null);
+		helper.cleanup(null, null, null);
+		expect(helper.selectNow(null)).andReturn(new Date());
 		
 		UserDao userDao = EasyMock.createMock(UserDao.class);
 		expect(userDao.findUpdatedUsers(timestamp, token)).andReturn(userUpdates).once();
@@ -142,8 +147,6 @@ public class AddressBookBindingImplTest {
 		assertThat(changes.getRemovedContacts()).containsOnly(allRemovedContacts.toArray());
 		assertThat(changes.getUpdatedAddressBooks()).containsOnly(allUpdatedFolders.toArray());
 		assertThat(changes.getRemovedAddressBooks()).containsOnly(removedContactFolders.toArray());
-		assertThat(lastSync).isEqualTo(changes.getContactChanges().getLastSync());
-		assertThat(lastSync).isEqualTo(changes.getBooksChanges().getLastSync());
 	}
 
 	/**
@@ -153,8 +156,7 @@ public class AddressBookBindingImplTest {
 	 */
 	@Test
 	public void testGetSyncNoGlobalAddressBookSync() throws ServerFault, SQLException {
-		Date lastSync = new Date();
-		Date timestamp = lastSync;
+		Date timestamp = new Date();
 
 		AccessToken token = new AccessToken(1, "");
 
@@ -200,11 +202,15 @@ public class AddressBookBindingImplTest {
 		
 		expect(contactDao.findUpdatedContacts(timestamp, token)).andReturn(contactUpdates).once();
 		expect(contactDao.findRemovalCandidates(timestamp, token)).andReturn(removalCandidates).once();
-		expect(contactDao.getLastSync()).andReturn(lastSync);
+		expect(helper.getConnection()).andReturn(null);
+		helper.cleanup(null, null, null);
+		expect(helper.selectNow(null)).andReturn(new Date());
 
 		expect(contactDao.findUpdatedFolders(timestamp, token)).andReturn(updatedContactFolders).once();
 		expect(contactDao.findRemovedFolders(timestamp, token)).andReturn(removedContactFolders).once();
-		expect(contactDao.getLastSync()).andReturn(lastSync);
+		expect(helper.getConnection()).andReturn(null);
+		helper.cleanup(null, null, null);
+		expect(helper.selectNow(null)).andReturn(new Date());
 		
 		ConstantService configuration = EasyMock.createMock(ConstantService.class);
 		expect(
@@ -225,7 +231,5 @@ public class AddressBookBindingImplTest {
 		assertThat(changes.getRemovedContacts()).containsOnly(allRemovedContacts.toArray());
 		assertThat(changes.getUpdatedAddressBooks()).containsOnly(allUpdatedFolders.toArray());
 		assertThat(changes.getRemovedAddressBooks()).containsOnly(removedContactFolders.toArray());
-		assertThat(lastSync).isEqualTo(changes.getContactChanges().getLastSync());
-		assertThat(lastSync).isEqualTo(changes.getBooksChanges().getLastSync());
 	}
 }
