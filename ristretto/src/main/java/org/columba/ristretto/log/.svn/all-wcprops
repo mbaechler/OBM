@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/log
+END
+RistrettoLogger.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/log/RistrettoLogger.java
+END
+LogInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/log/LogInputStream.java
+END
+LogOutputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/log/LogOutputStream.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/log/package.html
+END

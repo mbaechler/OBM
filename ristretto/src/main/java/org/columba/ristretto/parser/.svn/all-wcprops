@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svnroot/columba/!svn/ver/323/ristretto/trunk/src/core/org/columba/ristretto/parser
+END
+MessageParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/parser/MessageParser.java
+END
+AddressParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/parser/AddressParser.java
+END
+CharSequenceSearcher.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/parser/CharSequenceSearcher.java
+END
+HeaderParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/298/ristretto/trunk/src/core/org/columba/ristretto/parser/HeaderParser.java
+END
+MimeTypeParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/parser/MimeTypeParser.java
+END
+BodyParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/parser/BodyParser.java
+END
+DateParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/323/ristretto/trunk/src/core/org/columba/ristretto/parser/DateParser.java
+END
+ParserException.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/parser/ParserException.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/parser/package.html
+END

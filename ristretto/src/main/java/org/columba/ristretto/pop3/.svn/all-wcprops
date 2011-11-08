@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/columba/!svn/ver/457/ristretto/trunk/src/core/org/columba/ristretto/pop3
+END
+UidListEntry.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/UidListEntry.java
+END
+POP3Exception.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/POP3Exception.java
+END
+POP3MultiLineStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/POP3MultiLineStream.java
+END
+POP3Response.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/POP3Response.java
+END
+POP3DownloadThread.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/POP3DownloadThread.java
+END
+ScanListEntry.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/ScanListEntry.java
+END
+POP3Protocol.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/457/ristretto/trunk/src/core/org/columba/ristretto/pop3/POP3Protocol.java
+END
+CommandNotSupportedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/CommandNotSupportedException.java
+END
+MessageNotOnServerException.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/MessageNotOnServerException.java
+END
+POP3InputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/POP3InputStream.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/pop3/package.html
+END

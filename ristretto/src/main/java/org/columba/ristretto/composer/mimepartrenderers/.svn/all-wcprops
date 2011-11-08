@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/mimepartrenderers
+END
+TextpartRenderer.java
+K 25
+svn:wc:ra_dav:version-url
+V 124
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/mimepartrenderers/TextpartRenderer.java
+END
+MultipartRenderer.java
+K 25
+svn:wc:ra_dav:version-url
+V 125
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/mimepartrenderers/MultipartRenderer.java
+END
+DefaultMimePartRenderer.java
+K 25
+svn:wc:ra_dav:version-url
+V 131
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/mimepartrenderers/DefaultMimePartRenderer.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/mimepartrenderers/package.html
+END

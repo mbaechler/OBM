@@ -1,0 +1,125 @@
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svnroot/columba/!svn/ver/348/ristretto/trunk/src/core/org/columba/ristretto/message
+END
+MimeHeader.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/313/ristretto/trunk/src/core/org/columba/ristretto/message/MimeHeader.java
+END
+MimeTree.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/348/ristretto/trunk/src/core/org/columba/ristretto/message/MimeTree.java
+END
+MailboxInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/MailboxInfo.java
+END
+MessageIDGenerator.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/MessageIDGenerator.java
+END
+InputStreamMimePart.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/InputStreamMimePart.java
+END
+MimePart.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/348/ristretto/trunk/src/core/org/columba/ristretto/message/MimePart.java
+END
+StreamableMimePart.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/StreamableMimePart.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/package.html
+END
+MessageDate.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/MessageDate.java
+END
+Saveable.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/Saveable.java
+END
+MessageMimePart.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/MessageMimePart.java
+END
+Message.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/Message.java
+END
+Address.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/columba/!svn/ver/301/ristretto/trunk/src/core/org/columba/ristretto/message/Address.java
+END
+Attributes.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/Attributes.java
+END
+Header.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/columba/!svn/ver/311/ristretto/trunk/src/core/org/columba/ristretto/message/Header.java
+END
+LocalMimePart.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/LocalMimePart.java
+END
+MimeType.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/MimeType.java
+END
+BasicHeader.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/347/ristretto/trunk/src/core/org/columba/ristretto/message/BasicHeader.java
+END
+IgnoreCaseHashtable.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/313/ristretto/trunk/src/core/org/columba/ristretto/message/IgnoreCaseHashtable.java
+END
+Flags.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/message/Flags.java
+END

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/concurrency
+END
+Mutex.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/concurrency/Mutex.java
+END
+Semaphore.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/concurrency/Semaphore.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/concurrency/package.html
+END

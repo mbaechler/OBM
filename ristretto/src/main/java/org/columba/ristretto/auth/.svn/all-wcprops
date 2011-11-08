@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/columba/!svn/ver/400/ristretto/trunk/src/core/org/columba/ristretto/auth
+END
+AuthenticationMechanism.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/AuthenticationMechanism.java
+END
+AuthenticationServer.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/AuthenticationServer.java
+END
+AuthenticationFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/AuthenticationFactory.java
+END
+AuthenticationException.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/AuthenticationException.java
+END
+NoSuchAuthenticationException.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/NoSuchAuthenticationException.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/package.html
+END

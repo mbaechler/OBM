@@ -1,0 +1,131 @@
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io
+END
+Source.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/Source.java
+END
+FileSource.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/FileSource.java
+END
+TempFileInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/TempFileInputStream.java
+END
+SequenceInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/SequenceInputStream.java
+END
+MemBufferInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/MemBufferInputStream.java
+END
+MemBufferOutputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/MemBufferOutputStream.java
+END
+VariableSizeFileBufferInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/VariableSizeFileBufferInputStream.java
+END
+VariableSizeFileBufferOutputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 118
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/VariableSizeFileBufferOutputStream.java
+END
+MemBuffer.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/MemBuffer.java
+END
+ConcatenatedSource.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/ConcatenatedSource.java
+END
+AsyncInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/AsyncInputStream.java
+END
+VariableSizeFileBuffer.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/VariableSizeFileBuffer.java
+END
+StreamUtils.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/StreamUtils.java
+END
+ByteBufferSource.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/ByteBufferSource.java
+END
+TempSourceFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/TempSourceFactory.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/package.html
+END
+Streamable.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/Streamable.java
+END
+FileSourceModel.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/FileSourceModel.java
+END
+CharSequenceSource.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/CharSequenceSource.java
+END
+SourceInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/SourceInputStream.java
+END
+ConnectionDroppedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/io/ConnectionDroppedException.java
+END

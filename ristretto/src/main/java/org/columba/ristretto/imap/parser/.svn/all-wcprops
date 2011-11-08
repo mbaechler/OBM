@@ -1,0 +1,119 @@
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svnroot/columba/!svn/ver/309/ristretto/trunk/src/core/org/columba/ristretto/imap/parser
+END
+AppendInfoParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/AppendInfoParser.java
+END
+SequenceSetParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/SequenceSetParser.java
+END
+NumberListParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/NumberListParser.java
+END
+ParenthesisParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/columba/!svn/ver/270/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/ParenthesisParser.java
+END
+CopyInfoParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/CopyInfoParser.java
+END
+ListInfoParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/ListInfoParser.java
+END
+NamespaceParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/NamespaceParser.java
+END
+FlagsParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svnroot/columba/!svn/ver/309/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/FlagsParser.java
+END
+ResponseTextCodeParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/ResponseTextCodeParser.java
+END
+MailboxStatusParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/MailboxStatusParser.java
+END
+IMAPHeaderParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/IMAPHeaderParser.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/package.html
+END
+StringListParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/StringListParser.java
+END
+QuotaInfoParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/QuotaInfoParser.java
+END
+IMAPResponseParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/IMAPResponseParser.java
+END
+MimeTreeParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/columba/!svn/ver/270/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/MimeTreeParser.java
+END
+MailboxInfoParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/MailboxInfoParser.java
+END
+MessageAttributeParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/MessageAttributeParser.java
+END
+UIDParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/parser/UIDParser.java
+END

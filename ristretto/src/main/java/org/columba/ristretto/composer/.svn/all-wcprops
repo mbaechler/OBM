@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer
+END
+MimePartRenderer.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/MimePartRenderer.java
+END
+MimeTreeRenderer.java
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/MimeTreeRenderer.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/composer/package.html
+END

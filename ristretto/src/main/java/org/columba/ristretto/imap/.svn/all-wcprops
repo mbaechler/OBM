@@ -1,0 +1,179 @@
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svnroot/columba/!svn/ver/309/ristretto/trunk/src/core/org/columba/ristretto/imap
+END
+IMAPHeader.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPHeader.java
+END
+MailboxStatus.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/MailboxStatus.java
+END
+MessageSet.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/MessageSet.java
+END
+IMAPFlags.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPFlags.java
+END
+IMAPDateTime.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPDateTime.java
+END
+TagFactory.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/TagFactory.java
+END
+Section.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/Section.java
+END
+IMAPResponse.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPResponse.java
+END
+IMAPException.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPException.java
+END
+QuotaInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/QuotaInfo.java
+END
+IMAPDownloadThread.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPDownloadThread.java
+END
+IMAPProtocol.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPProtocol.java
+END
+NamespaceCollection.java
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/NamespaceCollection.java
+END
+CommmandTooLongException.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/CommmandTooLongException.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/package.html
+END
+SearchKey.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/SearchKey.java
+END
+IMAPInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPInputStream.java
+END
+AppendInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/AppendInfo.java
+END
+IMAPDate.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPDate.java
+END
+SequenceSet.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/SequenceSet.java
+END
+IMAPCommand.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPCommand.java
+END
+CopyInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/CopyInfo.java
+END
+ListInfo.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/ListInfo.java
+END
+IMAPDisconnectedException.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPDisconnectedException.java
+END
+MailboxNameUTF7Converter.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/MailboxNameUTF7Converter.java
+END
+SequenceEntry.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/SequenceEntry.java
+END
+IMAPListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/IMAPListener.java
+END
+Namespace.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/Namespace.java
+END
+ResponseTextCode.java
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/imap/ResponseTextCode.java
+END

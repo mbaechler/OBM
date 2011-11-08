@@ -1,0 +1,58 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>columba</groupId>
+	<artifactId>ristretto-core</artifactId>
+	<packaging>jar</packaging>
+	<version>1.1.2-LINAGORA</version>
+	<description>
+                Ristretto is a low-level mail api for Java. It offers a fast and easy way to enhance your software with SMTP,
+                POP3 and IMAP capabilities.
+        </description>
+        <name>Low-Level mail api for Java.</name>
+        <url>http://www.columbamail.org</url>
+        <inceptionYear>2000</inceptionYear>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit-addons</groupId>
+			<artifactId>junit-addons</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.3.2</version>
+					<configuration>
+						<source>1.6</source>
+						<target>1.6</target>
+					</configuration>				
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>columba</id>
+			<name>Columba main repository</name>
+			<url>dav:https://www.hora-obscura.de/dav_columba</url>
+		</repository>
+	</distributionManagement>
+
+</project>

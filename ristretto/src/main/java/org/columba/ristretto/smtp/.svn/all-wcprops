@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp
+END
+SMTPInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp/SMTPInputStream.java
+END
+SMTPException.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp/SMTPException.java
+END
+SMTPResponse.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp/SMTPResponse.java
+END
+SMTPProtocol.java
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp/SMTPProtocol.java
+END
+StopWordSafeInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp/StopWordSafeInputStream.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/smtp/package.html
+END

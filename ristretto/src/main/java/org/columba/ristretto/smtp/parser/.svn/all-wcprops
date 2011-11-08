@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp/parser
+END
+SMTPResponseParser.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/columba/!svn/ver/41/ristretto/trunk/src/core/org/columba/ristretto/smtp/parser/SMTPResponseParser.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/smtp/parser/package.html
+END

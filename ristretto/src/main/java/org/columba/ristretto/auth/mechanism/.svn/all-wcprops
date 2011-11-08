@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svnroot/columba/!svn/ver/400/ristretto/trunk/src/core/org/columba/ristretto/auth/mechanism
+END
+SaslWrapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/mechanism/SaslWrapper.java
+END
+PlainMechanism.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/mechanism/PlainMechanism.java
+END
+DigestMD5Mechanism.java
+K 25
+svn:wc:ra_dav:version-url
+V 114
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/mechanism/DigestMD5Mechanism.java
+END
+CramMD5Mechanism.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/columba/!svn/ver/400/ristretto/trunk/src/core/org/columba/ristretto/auth/mechanism/CramMD5Mechanism.java
+END
+LoginMechanism.java
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/mechanism/LoginMechanism.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/auth/mechanism/package.html
+END

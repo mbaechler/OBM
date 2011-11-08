@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svnroot/columba/!svn/ver/409/ristretto/trunk/src/core/org/columba/ristretto/coder
+END
+Base64EncoderInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/Base64EncoderInputStream.java
+END
+QuotedPrintable.java
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svnroot/columba/!svn/ver/404/ristretto/trunk/src/core/org/columba/ristretto/coder/QuotedPrintable.java
+END
+Base64.java
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/Base64.java
+END
+QuotedPrintableDecoderInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/QuotedPrintableDecoderInputStream.java
+END
+CharsetEncoderInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/CharsetEncoderInputStream.java
+END
+Base64DecoderInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/Base64DecoderInputStream.java
+END
+CRLFFilterInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/CRLFFilterInputStream.java
+END
+CanonizeFilterInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svnroot/columba/!svn/ver/409/ristretto/trunk/src/core/org/columba/ristretto/coder/CanonizeFilterInputStream.java
+END
+CharsetDecoderInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/CharsetDecoderInputStream.java
+END
+FallbackCharsetDecoderInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 121
+/svnroot/columba/!svn/ver/330/ristretto/trunk/src/core/org/columba/ristretto/coder/FallbackCharsetDecoderInputStream.java
+END
+EncodedWord.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svnroot/columba/!svn/ver/404/ristretto/trunk/src/core/org/columba/ristretto/coder/EncodedWord.java
+END
+QuotedPrintableEncoderInputStream.java
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/QuotedPrintableEncoderInputStream.java
+END
+package.html
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svnroot/columba/!svn/ver/12/ristretto/trunk/src/core/org/columba/ristretto/coder/package.html
+END
