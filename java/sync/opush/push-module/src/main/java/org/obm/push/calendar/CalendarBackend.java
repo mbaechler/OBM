@@ -21,7 +21,6 @@ import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSTask;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.SyncState;
-import org.obm.push.calendar.TodoConverter;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnknownObmSyncServerException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
@@ -586,7 +585,7 @@ public class CalendarBackend extends ObmSyncBackend {
 
 
 	private Event getEventFromServerId(ICalendar calCli, AccessToken token, String calendar, String serverId) throws ServerFault, EventNotFoundException {
-		Integer itemId = getItemIdFor(serverId);
+		Integer itemId = getItemIdFromServerId(serverId);
 		if (itemId == null) {
 			return null;
 		}
