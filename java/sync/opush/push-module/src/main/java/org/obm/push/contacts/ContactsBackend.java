@@ -23,7 +23,6 @@ import org.obm.push.store.CollectionDao;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.AddressBook;
-import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
 import org.obm.sync.client.CalendarType;
@@ -226,7 +225,7 @@ public class ContactsBackend extends ObmSyncBackend {
 				itemId = serverId.substring(idx + 1);
 				Contact convertedContact = new ContactConverter().contact(data);
 				convertedContact.setUid(Integer.parseInt(itemId));
-				bc.modifyContact(token, BookType.contacts, convertedContact);
+				bc.modifyContact(token, addressBookId, convertedContact);
 			} else {
 				Contact createdContact = bc.createContact(token, addressBookId,
 						new ContactConverter().contact(data));
@@ -239,6 +238,8 @@ public class ContactsBackend extends ObmSyncBackend {
 		} catch (ContactAlreadyExistException e) {
 			throw new UnknownObmSyncServerException(e);
 		} catch (DaoException e) {
+			throw new UnknownObmSyncServerException(e);
+		} catch (ContactNotFoundException e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
 			logout(token);
