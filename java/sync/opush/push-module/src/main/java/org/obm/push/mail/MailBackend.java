@@ -215,7 +215,7 @@ public class MailBackend extends ObmSyncBackend {
 	private Map<Integer, Collection<Long>> getEmailUidByCollectionId(List<String> fetchIds) {
 		Map<Integer, Collection<Long>> ret = Maps.newHashMap();
 		for (String serverId : fetchIds) {
-			Integer collectionId = getCollectionIdFor(serverId);
+			Integer collectionId = getCollectionIdFromServerId(serverId);
 			Collection<Long> set = ret.get(collectionId);
 			if (set == null) {
 				set = Sets.newHashSet();
@@ -258,7 +258,7 @@ public class MailBackend extends ObmSyncBackend {
 			}
 			if (serverId != null) {
 				final Long uid = getEmailUidFromServerId(serverId);
-				final Integer collectionId = getCollectionIdFor(serverId);
+				final Integer collectionId = getCollectionIdFromServerId(serverId);
 				final String collectionName = getCollectionPathFor(collectionId);
 				final Integer devDbId = bs.getDevice().getDatabaseId();
 
@@ -333,15 +333,6 @@ public class MailBackend extends ObmSyncBackend {
 		}
 	}
 
-	private Integer getCollectionIdFor(String serverId) {
-		int idx = serverId.lastIndexOf(":");
-		Integer collectionId = 0;
-		if (idx > 0) {
-			collectionId = Integer.parseInt(serverId.substring(0, idx));
-		}
-		return collectionId;
-	}
-
 	public void sendEmail(BackendSession bs, byte[] mailContent, Boolean saveInSent) throws ProcessingEmailException {
 		try {
 			SendEmailHandler handler = new SendEmailHandler(getUserEmail(bs));
@@ -361,7 +352,7 @@ public class MailBackend extends ObmSyncBackend {
 			}
 			
 			if (serverId == null || !serverId.isEmpty()) {
-				collectionId = getCollectionIdFor(serverId);
+				collectionId = getCollectionIdFromServerId(serverId);
 				collectionPath = getCollectionPathFor(collectionId);
 			}
 			
@@ -591,7 +582,7 @@ public class MailBackend extends ObmSyncBackend {
 	}
 	
 	public Long getEmailUidFromServerId(String serverId){
-		return getItemIdFor(serverId).longValue();
+		return getItemIdFromServerId(serverId).longValue();
 	}
 	
 }
