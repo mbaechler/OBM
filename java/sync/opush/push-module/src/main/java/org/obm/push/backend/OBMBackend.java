@@ -196,7 +196,7 @@ public class OBMBackend implements IBackend {
 			throws DaoException, CollectionNotFoundException, UnknownObmSyncServerException, ProcessingEmailException {
 		
 		return contentsExporter.getItemEstimateSize(backendSession, syncCollection.getOptions().getFilterType(),
-				syncCollection.getCollectionId(), syncCollection.getSyncState());
+				syncCollection.getCollectionId(), syncCollection.getSyncState(), syncCollection.getDataType());
 	}
 	
 }
