@@ -42,10 +42,6 @@
 			<artifactId>fest-assert</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.mnode.ical4j</groupId>
-			<artifactId>ical4j</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.linagora.obm</groupId>
 			<artifactId>dbcp</artifactId>
 			<version>${obm.version}</version>
@@ -136,6 +132,11 @@
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
 			<artifactId>annotations</artifactId>
+			<version>${obm.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.linagora.obm</groupId>
+			<artifactId>icalendar</artifactId>
 			<version>${obm.version}</version>
 		</dependency>
 	</dependencies>

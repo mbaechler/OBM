@@ -45,6 +45,7 @@ import net.fortuna.ical4j.data.ParserException;
 import org.apache.commons.lang.StringUtils;
 import org.obm.annotations.transactional.Transactional;
 import org.obm.sync.NotAllowedException;
+import org.obm.icalendar.Ical4jHelper;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
@@ -81,6 +82,7 @@ import fr.aliacom.obm.common.user.ObmUser;
 import fr.aliacom.obm.common.user.UserService;
 import fr.aliacom.obm.utils.HelperService;
 import fr.aliacom.obm.utils.Ical4jHelper;
+import fr.aliacom.obm.utils.Helper;
 import fr.aliacom.obm.utils.LogUtils;
 
 public class CalendarBindingImpl implements ICalendar {

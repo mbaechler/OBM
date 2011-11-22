@@ -48,11 +48,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.obm.sync.GuiceServletContextListener;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.FreeBusyRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;

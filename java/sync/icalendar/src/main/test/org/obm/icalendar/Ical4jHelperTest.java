@@ -1,3 +1,4 @@
+<<<<<<< HEAD:java/sync/services/src/test/java/fr/aliacom/obm/utils/Ical4jHelperTest.java
 /* ***** BEGIN LICENSE BLOCK *****
  * 
  * Copyright (C) 2011-2012  Linagora
@@ -30,6 +31,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 package fr.aliacom.obm.utils;
+=======
+package org.obm.icalendar;
+>>>>>>> b679032... - [OBMFULL-2844] Move Ical4jHelper from services to icalendar project:java/sync/icalendar/src/main/test/org/obm/icalendar/Ical4jHelperTest.java
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -102,7 +106,6 @@ import org.obm.sync.calendar.RecurrenceKind;
 import com.google.common.base.Splitter;
 
 import fr.aliacom.obm.common.domain.ObmDomain;
-import fr.aliacom.obm.common.user.ObmUser;
 
 public class Ical4jHelperTest {
 

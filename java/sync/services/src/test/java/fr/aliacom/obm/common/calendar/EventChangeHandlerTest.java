@@ -64,6 +64,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.obm.sync.auth.AccessToken;
+import org.obm.icalendar.Ical4jHelper;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.ParticipationState;
@@ -81,6 +82,7 @@ import fr.aliacom.obm.common.user.UserService;
 import fr.aliacom.obm.common.user.UserSettings;
 import fr.aliacom.obm.utils.HelperService;
 import fr.aliacom.obm.utils.Ical4jHelper;
+import fr.aliacom.obm.utils.Helper;
 
 @RunWith(Suite.class)
 @SuiteClasses({

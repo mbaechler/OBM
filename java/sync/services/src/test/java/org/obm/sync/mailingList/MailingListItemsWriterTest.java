@@ -37,10 +37,10 @@ import java.util.List;
 
 import javax.xml.transform.TransformerException;
 
+import junit.framework.TestCase;
+
 import org.obm.sync.utils.DOMUtils;
 import org.w3c.dom.Document;
-
-import junit.framework.TestCase;
 
 public class MailingListItemsWriterTest extends TestCase {
 

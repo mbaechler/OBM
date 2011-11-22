@@ -44,6 +44,7 @@ import javax.jms.JMSException;
 
 import org.apache.commons.lang.StringUtils;
 import org.obm.sync.auth.AccessToken;
+import org.obm.icalendar.Ical4jHelper;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.ParticipationState;
@@ -67,7 +68,6 @@ import fr.aliacom.obm.common.setting.SettingsService;
 import fr.aliacom.obm.common.user.ObmUser;
 import fr.aliacom.obm.common.user.UserService;
 import fr.aliacom.obm.common.user.UserSettings;
-import fr.aliacom.obm.utils.Ical4jHelper;
 
 public class EventChangeHandler {
 

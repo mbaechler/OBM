@@ -31,8 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package fr.aliacom.obm.common.user;
 
-import org.easymock.EasyMock;
 import static org.easymock.EasyMock.expect;
+
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 import fr.aliacom.obm.common.FindException;

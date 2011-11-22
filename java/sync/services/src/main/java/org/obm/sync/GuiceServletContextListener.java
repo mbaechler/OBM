@@ -46,8 +46,8 @@ import org.obm.configuration.ConfigurationService;
 import org.obm.configuration.ConfigurationServiceImpl;
 import org.obm.dbcp.DBCP;
 import org.obm.dbcp.IDBCP;
-import org.obm.locator.store.LocatorService;
 import org.obm.locator.store.LocatorCache;
+import org.obm.locator.store.LocatorService;
 import org.obm.sync.server.template.ITemplateLoader;
 import org.obm.sync.server.template.TemplateLoaderFreeMarkerImpl;
 
