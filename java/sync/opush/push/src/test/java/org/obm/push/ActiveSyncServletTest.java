@@ -8,7 +8,7 @@ import org.junit.Test;
 public class ActiveSyncServletTest {
 
 	private ActiveSyncServlet createActiveSyncServlet() {
-		return new ActiveSyncServlet(null, null, null, null, null);
+		return new ActiveSyncServlet(null, null, null, null, null, null);
 	}
 	
 	@Test
