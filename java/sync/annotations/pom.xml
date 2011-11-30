@@ -44,6 +44,12 @@
 			<artifactId>btm</artifactId>
 			<version>2.1.0</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.jboss.arquillian.junit</groupId>
+    		<artifactId>arquillian-junit-container</artifactId>
+    		<version>1.0.0.CR6</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>
