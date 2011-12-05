@@ -4,7 +4,6 @@ import java.util.TreeMap;
 
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
-import com.google.common.collect.Maps;
 
 public enum TechnicalLogType {
 	HTTP_REQUEST("HttpRequest"),
@@ -36,7 +35,7 @@ public enum TechnicalLogType {
 		private TreeMap<String, TechnicalLogType> index;
 
 		private Index() {
-			index = Maps.newTreeMap();
+			index = new TreeMap<String, TechnicalLogType>();
 			for (TechnicalLogType logType: TechnicalLogType.values()) {
 				index.put(logType.getMarkerName(), logType);
 			}
