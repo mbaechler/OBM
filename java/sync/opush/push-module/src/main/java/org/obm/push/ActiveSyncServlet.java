@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidParameterException;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.StringTokenizer;
 
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -23,22 +21,8 @@ import org.obm.push.bean.BackendSession;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.User;
 import org.obm.push.exception.DaoException;
-import org.obm.push.handler.FolderSyncHandler;
-import org.obm.push.handler.GetAttachmentHandler;
-import org.obm.push.handler.GetItemEstimateHandler;
 import org.obm.push.handler.IContinuationHandler;
 import org.obm.push.handler.IRequestHandler;
-import org.obm.push.handler.ItemOperationsHandler;
-import org.obm.push.handler.MeetingResponseHandler;
-import org.obm.push.handler.MoveItemsHandler;
-import org.obm.push.handler.PingHandler;
-import org.obm.push.handler.ProvisionHandler;
-import org.obm.push.handler.SearchHandler;
-import org.obm.push.handler.SendMailHandler;
-import org.obm.push.handler.SettingsHandler;
-import org.obm.push.handler.SmartForwardHandler;
-import org.obm.push.handler.SmartReplyHandler;
-import org.obm.push.handler.SyncHandler;
 import org.obm.push.impl.PushContinuation;
 import org.obm.push.impl.PushContinuation.Factory;
 import org.obm.push.impl.Responder;
@@ -52,23 +36,19 @@ import org.obm.sync.auth.AuthFault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 /**
  * ActiveSync server implementation. Routes all request to appropriate request
  * handlers.
- * 
  */
 @Singleton
 public class ActiveSyncServlet extends HttpServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(ActiveSyncServlet.class);
 	
-	private Injector injector;
-	private Map<String, IRequestHandler> handlers;
+	private Handlers handlers;
 	private SessionService sessionService;
 	private LoggerService loggerService; 
 	private IBackend backend;
@@ -80,7 +60,7 @@ public class ActiveSyncServlet extends HttpServlet {
 	@Inject
 	protected ActiveSyncServlet(SessionService sessionService, LoggerService loggerService,
 			IBackend backend, Factory continuationFactory, DeviceService deviceService, 
-			User.Factory userFactory) {
+			User.Factory userFactory, Handlers handlers) {
 		super();
 		this.sessionService = sessionService;
 		this.loggerService = loggerService;
@@ -88,6 +68,7 @@ public class ActiveSyncServlet extends HttpServlet {
 		this.continuationFactory = continuationFactory;
 		this.deviceService = deviceService;
 		this.userFactory = userFactory;
+		this.handlers = handlers;
 	}
 
 	@Override
@@ -183,40 +164,6 @@ public class ActiveSyncServlet extends HttpServlet {
 			ph.sendResponseWithoutHierarchyChanges(bs, responder, c);
 		}
 	}
-
-	@Override
-	public void init(ServletConfig config) throws ServletException {
-		super.init(config);
-		this.injector = 
-				(Injector) config
-				.getServletContext()
-				.getAttribute(GuiceServletContextListener.ATTRIBUTE_NAME);
-		handlers = createHandlersMap();
-	}
-
-	private ImmutableMap<String, IRequestHandler> createHandlersMap() {
-		return ImmutableMap.<String, IRequestHandler>builder()
-				.put("FolderSync",		getInstance(FolderSyncHandler.class))
-				.put("Sync", 			getInstance(SyncHandler.class))
-				.put("GetItemEstimate", getInstance(GetItemEstimateHandler.class))
-				.put("Provision", 		getInstance(ProvisionHandler.class))
-				.put("Ping", 			getInstance(PingHandler.class))
-				.put("Settings", 		getInstance(SettingsHandler.class))
-				.put("Search", 			getInstance(SearchHandler.class))
-				.put("SendMail", 		getInstance(SendMailHandler.class))
-				.put("MoveItems", 		getInstance(MoveItemsHandler.class))
-				.put("SmartReply", 		getInstance(SmartReplyHandler.class))
-				.put("SmartForward", 	getInstance(SmartForwardHandler.class))
-				.put("MeetingResponse",	getInstance(MeetingResponseHandler.class))
-				.put("GetAttachment", 	getInstance(GetAttachmentHandler.class))
-				.put("ItemOperations", 	getInstance(ItemOperationsHandler.class))
-				.build();
-	}
-
-	private IRequestHandler getInstance(Class<? extends IRequestHandler> clazz) {
-		return injector.getInstance(clazz);
-	}
-
 	
 	/**
 	 * Checks authentification headers. Returns non null value if login/password
@@ -372,7 +319,7 @@ public class ActiveSyncServlet extends HttpServlet {
 	}
 
 	private IRequestHandler getHandler(BackendSession p) {
-		return handlers.get(p.getCommand());
+		return handlers.getHandler(p.getCommand());
 	}
 
 }
