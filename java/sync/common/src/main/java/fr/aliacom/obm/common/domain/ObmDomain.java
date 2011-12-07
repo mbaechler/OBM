@@ -21,6 +21,7 @@ public class ObmDomain {
 
 	private int id;
 	private String name;
+	private String uuid;
 
 	public String getName() {
 		return name;
@@ -37,4 +38,13 @@ public class ObmDomain {
 	public void setId(int id) {
 		this.id = id;
 	}
+
+	public String getUuid() {
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+	
 }
