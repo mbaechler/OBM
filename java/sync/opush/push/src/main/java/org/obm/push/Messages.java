@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.apache.commons.io.FileUtils;
-import org.obm.configuration.ObmConfigurationService;
+import org.obm.configuration.ConfigurationService;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -18,7 +18,7 @@ public class Messages {
 	private ResourceBundle bundle;
 	
 	@Inject
-	private Messages(ObmConfigurationService configurationService) {
+	private Messages(ConfigurationService configurationService) {
 		bundle = configurationService.getResourceBundle(Locale.getDefault());
 	}
 	
