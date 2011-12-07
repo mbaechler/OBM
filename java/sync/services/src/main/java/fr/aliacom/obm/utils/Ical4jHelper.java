@@ -125,7 +125,8 @@ public class Ical4jHelper {
 	
 	private static final int MAX_FOLD_LENGTH = 74; 
 	private static final int SECONDS_IN_DAY = 43200000;
-	private static final String XOBMDOMAIN = "X-OBM-DOMAIN";
+	private static final String X_OBM_DOMAIN = "X-OBM-DOMAIN";
+	private static final String X_OBM_DOMAIN_UUID = "X-OBM-DOMAIN-UUID";
 
 	private static Logger logger = LoggerFactory.getLogger(Ical4jHelper.class);
 	
@@ -176,7 +177,7 @@ public class Ical4jHelper {
 	public String buildIcsInvitationReply(final Event event, final ObmUser obmUserReply) {
 		Method method = Method.REPLY;
 		final Attendee replyAttendee = findAttendeeFromObmUserReply(event.getAttendees(), obmUserReply);
-		final Calendar calendar = buildVEvent(null, event, replyAttendee,method);		
+		final Calendar calendar = buildVEvent(obmUserReply, event, replyAttendee,method);		
 		calendar.getProperties().add(method);
 		return foldingWriterToString(calendar);
 	}
@@ -222,7 +223,7 @@ public class Ical4jHelper {
 		VEvent vEvent = buildIcsInvitationVEventDefaultValue(event);
 		PropertyList prop = vEvent.getProperties();
 		appendUidToICS(prop, event, null);
-		appendXObmDomain(user.getDomain(), prop);
+		appendXObmDomainProperties(user.getDomain(), prop);
 		return vEvent;
 	}
 	
@@ -327,7 +328,7 @@ public class Ical4jHelper {
 		appendRecurence(event, vEvent);
 		appendAlert(event, vEvent.getAlarms());
 		appendOpacity(event, vEvent.getTransparency(), event.isAllday());
-		appendIsInternal(user.getDomain(), event, vEvent.getProperty(XOBMDOMAIN));
+		appendIsInternal(user.getDomain(), event, vEvent.getProperty(X_OBM_DOMAIN_UUID));
 		
 		appendCreated(event, vEvent.getCreated());
 		appendLastModified(event, vEvent.getLastModified());
@@ -358,7 +359,7 @@ public class Ical4jHelper {
 		appendOpacity(event,
 				(Transp) vTodo.getProperties().getProperty(Property.TRANSP),
 				event.isAllday());
-		appendIsInternal(user.getDomain(), event, vTodo.getProperty(XOBMDOMAIN));
+		appendIsInternal(user.getDomain(), event, vTodo.getProperty(X_OBM_DOMAIN_UUID));
 		
 		appendCreated(event, vTodo.getCreated());
 		appendLastModified(event, vTodo.getLastModified());
@@ -381,7 +382,7 @@ public class Ical4jHelper {
 	private void appendIsInternal(ObmDomain domain, Event event, Property obmDomain) {
 		boolean eventIsInternal = false;
 		if(obmDomain != null){
-			eventIsInternal = domain.getName().equals(obmDomain.getValue());
+			eventIsInternal = domain.getUuid().equals(obmDomain.getValue());
 		}
 		event.setInternalEvent(eventIsInternal);
 		
@@ -651,7 +652,7 @@ public class Ical4jHelper {
 		appendRecurenceIdToICS(prop, event);
 		appendXMozLastAck(prop);
 		if(user != null){
-			appendXObmDomain(user.getDomain(), prop);
+			appendXObmDomainProperties(user.getDomain(), prop);
 		}
 		return vEvent;
 	}
@@ -714,9 +715,12 @@ public class Ical4jHelper {
 		prop.add(p);
 	}
 	
-	private void appendXObmDomain(ObmDomain obmDomain, PropertyList prop) {
-		XProperty p = new XProperty(XOBMDOMAIN, obmDomain.getName());
-		prop.add(p);
+	private void appendXObmDomainProperties(ObmDomain obmDomain, PropertyList prop) {
+		XProperty domainProp = new XProperty(X_OBM_DOMAIN, obmDomain.getName());
+		XProperty uuidDomainProp = new XProperty(X_OBM_DOMAIN_UUID, obmDomain.getUuid());
+		
+		prop.add(domainProp);
+		prop.add(uuidDomainProp);
 	}
 
 	private void appendStatusToICS(PropertyList prop, Event event,
