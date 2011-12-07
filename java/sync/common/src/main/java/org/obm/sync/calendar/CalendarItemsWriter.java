@@ -203,7 +203,7 @@ public class CalendarItemsWriter extends AbstractItemsWriter {
 				"http://www.obm.org/xsd/sync/event.xsd", "event");
 		Element root = doc.getDocumentElement();
 		appendEvent(root, event);
-		DOMUtils.serialise(doc, out);
+		DOMUtils.serialize(doc, out);
 		return out.toString();
 	}
 
@@ -215,7 +215,7 @@ public class CalendarItemsWriter extends AbstractItemsWriter {
 		for (Event event : events) {
 			appendEvent(root, event);
 		}
-		DOMUtils.serialise(doc, out);
+		DOMUtils.serialize(doc, out);
 		return out.toString();
 	}
 
@@ -285,7 +285,7 @@ public class CalendarItemsWriter extends AbstractItemsWriter {
 					"freeBusyRequest");
 			Element root = doc.getDocumentElement();
 			appendFreeBusyRequest(root, fbr);
-			DOMUtils.serialise(doc, out);
+			DOMUtils.serialize(doc, out);
 		} catch (Exception e) {
 			logger.error("Error writing freebusy as string", e);
 		}
@@ -325,7 +325,7 @@ public class CalendarItemsWriter extends AbstractItemsWriter {
 					"http://www.obm.org/xsd/sync/freeBusy.xsd", "freeBusy");
 			Element root = doc.getDocumentElement();
 			appendFreeBusy(root, fb);
-			DOMUtils.serialise(doc, out);
+			DOMUtils.serialize(doc, out);
 		} catch (Exception e) {
 			logger.error("Error writing freebusy as string", e);
 		}

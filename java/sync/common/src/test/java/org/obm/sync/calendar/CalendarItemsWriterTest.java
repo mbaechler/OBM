@@ -173,7 +173,7 @@ private CalendarItemsWriter writer;
 		"</event>";
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		DOMUtils.serialise(doc, out);
+		DOMUtils.serialize(doc, out);
 		
 		Assert.assertEquals(xmlExpected, out.toString());
 		

@@ -36,7 +36,7 @@ public class MailingListItemsWriter extends AbstractItemsWriter {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			Document doc = getMailingListsAsXML(mailingList);
-			DOMUtils.serialise(doc, out);
+			DOMUtils.serialize(doc, out);
 		} catch (Exception ex) {
 			logger.error(ex.getMessage(), ex);
 		}
@@ -61,7 +61,7 @@ public class MailingListItemsWriter extends AbstractItemsWriter {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
 			Document doc = getMailingListEmailsAsXML(emails);
-			DOMUtils.serialise(doc, out);
+			DOMUtils.serialize(doc, out);
 		} catch (Exception ex) {
 			logger.error(ex.getMessage(), ex);
 		}
