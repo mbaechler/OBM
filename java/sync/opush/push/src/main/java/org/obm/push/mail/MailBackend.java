@@ -47,10 +47,10 @@ import org.obm.push.tnefconverter.TNEFUtils;
 import org.obm.push.utils.FileUtils;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
-import org.obm.sync.client.book.BookClient;
-import org.obm.sync.client.calendar.AbstractEventSyncClient;
-import org.obm.sync.client.calendar.CalendarClient;
-import org.obm.sync.client.calendar.TodoClient;
+import org.obm.sync.client.CalendarType;
+import org.obm.sync.client.login.LoginService;
+import org.obm.sync.services.IAddressBook;
+import org.obm.sync.services.ICalendar;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -58,6 +58,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 @Singleton
 public class MailBackend extends ObmSyncBackend {
@@ -68,9 +69,12 @@ public class MailBackend extends ObmSyncBackend {
 	@Inject
 	/*package*/ MailBackend(IEmailManager emailManager,	CollectionDao collectionDao, 
 			IInvitationFilterManager filterManager, 
-			BookClient bookClient, CalendarClient calendarClient, TodoClient todoClient)  {
+			IAddressBook bookClient, 
+			@Named(CalendarType.CALENDAR) ICalendar calendarClient, 
+			@Named(CalendarType.TODO) ICalendar todoClient,
+			LoginService login)  {
 		
-		super(collectionDao, bookClient, calendarClient, todoClient);
+		super(collectionDao, bookClient, calendarClient, todoClient, login);
 		this.emailManager = emailManager;
 		this.filterManager = filterManager;
 	}
@@ -427,14 +431,14 @@ public class MailBackend extends ObmSyncBackend {
 	}
 
 	private String getUserEmail(BackendSession bs) throws UnknownObmSyncServerException {
-		AbstractEventSyncClient cal = getCalendarClient();
-		AccessToken at = cal.login(bs.getUser().getLoginAtDomain(), bs.getPassword(), OBM_SYNC_ORIGIN);
+		ICalendar cal = getCalendarClient();
+		AccessToken at = login(bs);
 		try {
 			return cal.getUserEmail(at);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			cal.logout(at);
+			logout(at);
 		}
 	}
 

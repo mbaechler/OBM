@@ -22,20 +22,25 @@ import org.obm.sync.auth.ContactNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
-import org.obm.sync.client.book.BookClient;
-import org.obm.sync.client.calendar.CalendarClient;
-import org.obm.sync.client.calendar.TodoClient;
+import org.obm.sync.client.CalendarType;
+import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.ContactChangesResponse;
+import org.obm.sync.services.IAddressBook;
+import org.obm.sync.services.ICalendar;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 @Singleton
 public class ContactsBackend extends ObmSyncBackend {
 
 	@Inject
-	private ContactsBackend(CollectionDao collectionDao, BookClient bookClient, CalendarClient calendarClient, TodoClient todoClient) {
-		super(collectionDao, bookClient, calendarClient, todoClient);
+	private ContactsBackend(CollectionDao collectionDao, IAddressBook bookClient, 
+			@Named(CalendarType.CALENDAR) ICalendar calendarClient, 
+			@Named(CalendarType.TODO) ICalendar todoClient,
+			LoginService login) {
+		super(collectionDao, bookClient, calendarClient, todoClient, login);
 	}
 
 	public List<ItemChange> getHierarchyChanges(BackendSession bs) throws DaoException {
@@ -61,8 +66,8 @@ public class ContactsBackend extends ObmSyncBackend {
 	}
 
 	public DataDelta getContentChanges(BackendSession bs, SyncState state, Integer collectionId) throws UnknownObmSyncServerException {
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		
 		List<ItemChange> addUpd = new LinkedList<ItemChange>();
 		List<ItemChange> deletions = new LinkedList<ItemChange>();
@@ -83,7 +88,7 @@ public class ContactsBackend extends ObmSyncBackend {
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 		return new DataDelta(addUpd, deletions, lastSync);
 	}
@@ -102,8 +107,8 @@ public class ContactsBackend extends ObmSyncBackend {
 		logger.info("create contact ({} | {}) in collectionId {}", 
 				new Object[]{data.getFirstName(), data.getLastName(), collectionId});
 
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 
 		String itemId = null;
 		try {
@@ -121,7 +126,7 @@ public class ContactsBackend extends ObmSyncBackend {
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 
 		return getServerIdFor(collectionId, itemId);
@@ -132,8 +137,8 @@ public class ContactsBackend extends ObmSyncBackend {
 		if (serverId != null) {
 			int idx = serverId.indexOf(":");
 			if (idx > 0) {
-				BookClient bc = getBookClient();
-				AccessToken token = login(bc, bs);
+				IAddressBook bc = getBookClient();
+				AccessToken token = login(bs);
 				try {
 					bc.removeContact(token, BookType.contacts, serverId.substring(idx + 1) );
 				} catch (ServerFault e) {
@@ -141,15 +146,15 @@ public class ContactsBackend extends ObmSyncBackend {
 				} catch (ContactNotFoundException e) {
 					throw new ServerItemNotFoundException(serverId);
 				} finally {
-					bc.logout(token);
+					logout(token);
 				}
 			}
 		}
 	}
 
 	public List<ItemChange> fetchItems(BackendSession bs, List<String> fetchServerIds) {
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 
 		List<ItemChange> ret = new LinkedList<ItemChange>();
 		for (String serverId: fetchServerIds) {
@@ -167,7 +172,7 @@ public class ContactsBackend extends ObmSyncBackend {
 				}
 			}
 		}
-		bc.logout(token);
+		logout(token);
 		return ret;
 	}
 
