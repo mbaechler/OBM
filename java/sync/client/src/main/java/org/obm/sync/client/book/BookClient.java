@@ -13,10 +13,11 @@ import org.obm.sync.book.BookItemsParser;
 import org.obm.sync.book.BookItemsWriter;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
-import org.obm.sync.client.impl.AbstractClientImpl;
+import org.obm.sync.client.impl.AuthenticatedClientImpl;
 import org.obm.sync.client.impl.SyncClientException;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
+import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.AddressBookChangesResponse;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.FolderChanges;
@@ -31,15 +32,15 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class BookClient extends AbstractClientImpl implements IAddressBook {
+public class BookClient extends AuthenticatedClientImpl implements IAddressBook {
 
 	private final BookItemsParser respParser;
 	private final BookItemsWriter biw;
 	private final Locator Locator;
 
 	@Inject
-	private BookClient(SyncClientException syncClientException, Locator Locator) {
-		super(syncClientException);
+	private BookClient(SyncClientException syncClientException, Locator Locator, LoginService login) {
+		super(syncClientException, login);
 		this.Locator = Locator;
 		this.respParser = new BookItemsParser();
 		this.biw = new BookItemsWriter();

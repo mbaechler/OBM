@@ -17,45 +17,36 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.obm.locator.LocatorClientException;
 import org.obm.sync.XTrustProvider;
 import org.obm.sync.auth.AccessToken;
-import org.obm.sync.auth.MavenVersion;
-import org.obm.sync.client.ISyncClient;
 import org.obm.sync.locators.Locator;
 import org.obm.sync.utils.DOMUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-public abstract class AbstractClientImpl implements ISyncClient {
+public abstract class AbstractClientImpl {
 
-	private static final int MAX_CONNECTIONS = 8;
-	protected final Logger logger = LoggerFactory.getLogger(getClass());
-	protected final SyncClientException exceptionFactory;
-
-	protected HttpClient hc;
-	
-	protected abstract Locator getLocator();
-	
 	static {
 		XTrustProvider.install();
 	}
-
+	
+	private static final int MAX_CONNECTIONS = 8;
+	protected final Logger logger = LoggerFactory.getLogger(getClass());
+	protected final SyncClientException exceptionFactory;
+	protected HttpClient hc;
+	
 	private static final HttpMethodRetryHandler retryH = new HttpMethodRetryHandler() {
-		public boolean retryMethod(HttpMethod arg0, IOException arg1, int arg2) {
-			return false;
-		}
-	};
+			public boolean retryMethod(HttpMethod arg0, IOException arg1, int arg2) {
+				return false;
+			}
+		};
 
-	protected AbstractClientImpl(SyncClientException exceptionFactory) {
-		this.exceptionFactory = exceptionFactory;
-		this.hc = createHttpClient();
-	}
+	protected abstract Locator getLocator();
 
-	private static HttpClient createHttpClient() {
+	protected static HttpClient createHttpClient() {
 		MultiThreadedHttpConnectionManager multiThreadedHttpConnectionManager = 
 				new MultiThreadedHttpConnectionManager();
 		HttpConnectionManagerParams params = new HttpConnectionManagerParams();
@@ -65,6 +56,12 @@ public abstract class AbstractClientImpl implements ISyncClient {
 		HttpClient ret = new HttpClient(multiThreadedHttpConnectionManager);
 		ret.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, retryH);
 		return ret;
+	}
+
+	public AbstractClientImpl(SyncClientException exceptionFactory) {
+		super();
+		this.exceptionFactory = exceptionFactory;
+		this.hc = createHttpClient();
 	}
 
 	protected Document execute(AccessToken token, String action, Multimap<String, String> parameters) {
@@ -132,51 +129,20 @@ public abstract class AbstractClientImpl implements ISyncClient {
 		}
 	}
 
-	public AccessToken login(String loginAtDomain, String password, String origin) {
-		Multimap<String, String> params = ArrayListMultimap.create();
-		params.put("login", loginAtDomain);
-		params.put("password", password);
-		params.put("origin", origin);
-
-		AccessToken token = new AccessToken(0, 0, origin);
-		token.setUser(loginAtDomain.split("@", 2)[0]);
-		token.setDomain(loginAtDomain.split("@", 2)[1]);
-		
-		Document doc = execute(token, "/login/doLogin", params);
-		Element root = doc.getDocumentElement();
-		String email = DOMUtils.getElementText(root, "email");
-		String sid = DOMUtils.getElementText(root, "sid");
-		Element v = DOMUtils.getUniqueElement(root, "version");
-		MavenVersion version = new MavenVersion();
-		if (v != null) {
-			version.setMajor(v.getAttribute("major"));
-			version.setMinor(v.getAttribute("minor"));
-			version.setRelease(v.getAttribute("release"));
-		}
-		token.setSessionId(sid);
-		token.setVersion(version);
-		token.setEmail(email);
-		return token;
-	}
-
-	public void logout(AccessToken at) {
-		Multimap<String, String> params = initParams(at);
-		executeVoid(at, "/login/doLogout", params);
-	}
-	
 	private String getBackendUrl(String loginAtDomain) throws LocatorClientException {
 		Locator locator = getLocator();
 		return locator.backendUrl(loginAtDomain);
 	}
-	
-	private PostMethod getPostMethod(AccessToken at, String action) throws LocatorClientException {
-		String backendUrl = getBackendUrl(at.getUserWithDomain());
-		PostMethod pm = new PostMethod(backendUrl + action );
-		pm.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
-		return pm;
-	}
-	
-	private void releaseConnection(PostMethod pm){
+
+	private PostMethod getPostMethod(AccessToken at, String action)
+			throws LocatorClientException {
+				String backendUrl = getBackendUrl(at.getUserWithDomain());
+				PostMethod pm = new PostMethod(backendUrl + action );
+				pm.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=utf-8");
+				return pm;
+			}
+
+	private void releaseConnection(PostMethod pm) {
 		if (pm != null) {
 			pm.releaseConnection();
 		}

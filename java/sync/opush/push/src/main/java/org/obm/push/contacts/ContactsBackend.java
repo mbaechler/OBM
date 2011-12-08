@@ -27,16 +27,18 @@ import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
-import org.obm.sync.client.book.BookClient;
-import org.obm.sync.client.calendar.CalendarClient;
-import org.obm.sync.client.calendar.TodoClient;
+import org.obm.sync.client.CalendarType;
+import org.obm.sync.client.login.LoginService;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.FolderChanges;
+import org.obm.sync.services.IAddressBook;
+import org.obm.sync.services.ICalendar;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 @Singleton
 public class ContactsBackend extends ObmSyncBackend {
@@ -44,11 +46,12 @@ public class ContactsBackend extends ObmSyncBackend {
 	private final ContactConfiguration contactConfiguration;
 	
 	@Inject
-	private ContactsBackend(ContactConfiguration contactConfiguration, CollectionDao collectionDao, BookClient bookClient, 
-			CalendarClient calendarClient, TodoClient todoClient) {
-		
-		super(collectionDao, bookClient, calendarClient, todoClient);
-		this.contactConfiguration = contactConfiguration;
+	private ContactsBackend(ContactConfiguration contactConfiguration, CollectionDao collectionDao, IAddressBook bookClient, 
+			@Named(CalendarType.CALENDAR) ICalendar calendarClient, 
+			@Named(CalendarType.TODO) ICalendar todoClient,
+			LoginService login) {
+		super(collectionDao, bookClient, calendarClient, todoClient, login);
+			this.contactConfiguration = contactConfiguration;
 	}
 
 	public HierarchyItemsChanges getHierarchyChanges(BackendSession bs, Date lastSync) throws DaoException, UnknownObmSyncServerException {
@@ -78,14 +81,14 @@ public class ContactsBackend extends ObmSyncBackend {
 	}
 
 	private FolderChanges listAddressBooksChanged(BackendSession bs, Date lastSync) throws UnknownObmSyncServerException {
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		try {
 			return bc.listAddressBooksChanged(token, lastSync);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 	}
 
@@ -183,26 +186,26 @@ public class ContactsBackend extends ObmSyncBackend {
 	}
 	
 	private List<AddressBook> listAddressBooks(BackendSession bs) throws UnknownObmSyncServerException {
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		try {
 			return bc.listAllBooks(token);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 	}
 
 	private ContactChanges listContactsChanged(BackendSession bs, Date lastSync, Integer addressBookId) throws UnknownObmSyncServerException {
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		try {
 			return bc.listContactsChanged(token, lastSync, addressBookId);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 	}
 	
@@ -218,6 +221,8 @@ public class ContactsBackend extends ObmSyncBackend {
 		
 		Integer contactId = getItemIdFromServerId(serverId);
 		Integer addressBookId = findAddressBookIdFromCollectionId(bs, collectionId);
+		logger.info("create contact ({} | {}) in collectionId {}", 
+				new Object[]{data.getFirstName(), data.getLastName(), collectionId});
 		try {
 
 			if (serverId != null) {
@@ -245,28 +250,28 @@ public class ContactsBackend extends ObmSyncBackend {
 	private Contact modifyContact(BackendSession bs, Integer addressBookId, Contact contact) 
 			throws UnknownObmSyncServerException, NoPermissionException, ContactNotFoundException {
 		
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		try {
 			return bc.modifyContact(token, addressBookId, contact);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 	}
 	
 	private Contact createContact(BackendSession bs, Integer addressBookId, Contact contact) 
 			throws UnknownObmSyncServerException, NoPermissionException, ContactAlreadyExistException {
 		
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		try {
 			return bc.createContact(token, addressBookId, contact);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 	}
 
@@ -291,16 +296,17 @@ public class ContactsBackend extends ObmSyncBackend {
 	private Contact removeContact(BackendSession bs, Integer addressBookId, Integer contactId) 
 			throws UnknownObmSyncServerException, NoPermissionException, ContactNotFoundException {
 		
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		try {
 			return bc.removeContact(token, addressBookId, contactId);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 	}
+
 
 	public List<ItemChange> fetchItems(BackendSession bs, List<String> fetchServerIds) 
 			throws CollectionNotFoundException, UnknownObmSyncServerException, DaoException {
@@ -326,14 +332,14 @@ public class ContactsBackend extends ObmSyncBackend {
 	private Contact getContactFromId(BackendSession bs, Integer addressBookId, Integer contactId) 
 			throws UnknownObmSyncServerException, ContactNotFoundException {
 		
-		BookClient bc = getBookClient();
-		AccessToken token = login(bc, bs);
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
 		try {
 			return bc.getContactFromId(token, addressBookId, contactId);
 		} catch (ServerFault e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
-			bc.logout(token);
+			logout(token);
 		}
 	}
 
