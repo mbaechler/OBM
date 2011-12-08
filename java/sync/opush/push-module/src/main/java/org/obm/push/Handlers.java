@@ -1,4 +1,5 @@
 package org.obm.push;
+import org.obm.push.handler.AutodiscoverHandler;
 import org.obm.push.handler.FolderSyncHandler;
 import org.obm.push.handler.GetAttachmentHandler;
 import org.obm.push.handler.GetItemEstimateHandler;
@@ -39,7 +40,8 @@ public class Handlers {
 			SmartForwardHandler smartForwardHandler,
 			MeetingResponseHandler meetingResponseHandler,
 			GetAttachmentHandler getAttachmentHandler,
-			ItemOperationsHandler itemOperationsHandler) {
+			ItemOperationsHandler itemOperationsHandler,
+			AutodiscoverHandler autodiscoverHandler) {
 		
 		handlers = ImmutableMap.<String, IRequestHandler>builder()
 				.put("FolderSync",		folderSyncHandler)
@@ -56,6 +58,7 @@ public class Handlers {
 				.put("MeetingResponse",	meetingResponseHandler)
 				.put("GetAttachment", 	getAttachmentHandler)
 				.put("ItemOperations", 	itemOperationsHandler)
+				.put("Autodiscover", 	autodiscoverHandler)
 				.build();
 	}
 	
