@@ -29,6 +29,7 @@ import org.obm.sync.server.template.ITemplateLoader;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 
+import fr.aliacom.obm.ToolBox;
 import fr.aliacom.obm.common.MailService;
 import fr.aliacom.obm.common.calendar.EventChangeHandlerTestsTools;
 import fr.aliacom.obm.services.constant.ConstantService;
@@ -47,7 +48,7 @@ public class ErrorMailerTest {
 		ITemplateLoader templateLoader;
 		
 		public Common(){
-			at = new AccessToken(1, 1, "unitTest");
+			at = new AccessToken(1, "unitTest");
 			
 			templateLoader = new ITemplateLoader() {
 				@Override
@@ -66,7 +67,7 @@ public class ErrorMailerTest {
 		}
 		
 		protected AccessToken getMockAccessToken(){
-			at.setDomain("test.tlse.lng");
+			at.setDomain(ToolBox.getDefaultObmDomain());
 			at.setEmail("adrien@test.tlse.lng");
 			return at;
 		}

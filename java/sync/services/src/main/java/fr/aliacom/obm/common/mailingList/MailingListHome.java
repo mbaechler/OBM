@@ -208,7 +208,7 @@ public class MailingListHome {
 			int idx = 1;
 			ps.setInt(idx++, at.getObmId());
 			ps.setInt(idx++, at.getObmId());
-			ps.setInt(idx++, at.getDomainId());
+			ps.setInt(idx++, at.getDomain().getId());
 			ps.setInt(idx++, at.getObmId());
 			ps.setString(idx++, ml.getName());
 

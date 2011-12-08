@@ -100,21 +100,19 @@ public class CalendarBindingImplTest {
 		return rightsHelper;
 	}
 
-	private AccessToken mockAccessToken(String userName, String domainName) {
+	private AccessToken mockAccessToken(String userName, ObmDomain domain) {
 		AccessToken accessToken = createMock(AccessToken.class);
-		expect(accessToken.getDomain()).andReturn(domainName).atLeastOnce();
+		expect(accessToken.getDomain()).andReturn(domain).atLeastOnce();
 		expect(accessToken.getUser()).andReturn(userName).anyTimes();
 		expect(accessToken.getOrigin()).andReturn("unittest").anyTimes();
 		expect(accessToken.getConversationUid()).andReturn(1).anyTimes();
 		return accessToken;
 	}
 
-	private ObmUser mockObmUser(String userEmail, String domain) {
+	private ObmUser mockObmUser(String userEmail, ObmDomain domain) {
 		ObmUser user = createMock(ObmUser.class);
 		expect(user.getEmail()).andReturn(userEmail).atLeastOnce();
-		ObmDomain obmDomain = new ObmDomain();
-		obmDomain.setName(domain);
-		expect(user.getDomain()).andReturn(obmDomain).anyTimes();
+		expect(user.getDomain()).andReturn(domain).anyTimes();
 		return user;
 	}
 	
@@ -150,7 +148,7 @@ public class CalendarBindingImplTest {
 				fixtures.mccarthyInfo,
 		};
 			
-		AccessToken accessToken = mockAccessToken(fixtures.userEmail, fixtures.domainName);
+		AccessToken accessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
 		HelperService rightsHelper = createMock(HelperService.class);
 		
 		rightsHelper.constructEmailFromList(eq(fixtures.userEmail), eq(fixtures.domainName));
@@ -199,7 +197,7 @@ public class CalendarBindingImplTest {
 				fixtures.mccarthyInfo,
 		};
 			
-		AccessToken accessToken = mockAccessToken(fixtures.userEmail, fixtures.domainName);
+		AccessToken accessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
 		HelperService rightsHelper = createMock(HelperService.class);
 		
 		rightsHelper.constructEmailFromList(eq(fixtures.userEmailWithoutDomain), eq(fixtures.domainName));
@@ -225,15 +223,15 @@ public class CalendarBindingImplTest {
 	
 	@Test(expected=ServerFault.class)
 	public void testCalendarOwnerNotAnAttendee() throws ServerFault, FindException, EventAlreadyExistException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userName = "user";
 		EventExtId eventExtId = new EventExtId("extid");
 		String userEmail = "user@domain1";
 		
-		ObmUser user = mockObmUser(userEmail, domainName);
+		ObmUser user = mockObmUser(userEmail, fixtures.domain);
 		
-		AccessToken accessToken = mockAccessToken(userName, domainName);
+		AccessToken accessToken = mockAccessToken(userName, fixtures.domain);
 		HelperService rightsHelper = mockRightsHelper(calendar, accessToken);
 		
 		final Event event = createMock(Event.class);
@@ -245,7 +243,7 @@ public class CalendarBindingImplTest {
 		EasyMock.expectLastCall().andReturn(null).atLeastOnce();
 		
 		final UserService userService = createMock(UserService.class);
-		userService.getUserFromCalendar(eq(calendar), eq(domainName));
+		userService.getUserFromCalendar(eq(calendar), eq(fixtures.domainName));
 		EasyMock.expectLastCall().andReturn(user).atLeastOnce();
 
 		final CalendarDao calendarDao = createMock(CalendarDao.class);
@@ -268,18 +266,18 @@ public class CalendarBindingImplTest {
 	@Test
 	public void testImportEventInThePast() 
 		throws ImportICalendarException, ServerFault, IOException, ParserException, FindException, SQLException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userEmail = "user@domain1";
 		String icsData = "icsData";
 		EventExtId eventExtId = new EventExtId("extid");
 		Attendee fakeUserAttendee = getFakeAttendee(userEmail);
 		fakeUserAttendee.setState(ParticipationState.NEEDSACTION);
 		
-		final ObmUser obmUser = mockObmUser(userEmail, domainName);
+		final ObmUser obmUser = mockObmUser(userEmail, fixtures.domain);
 		expect(obmUser.getLogin()).andReturn(calendar).atLeastOnce();
 		
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 		
 		Event eventWithOwnerAttendee = createMock(Event.class);
 		expect(eventWithOwnerAttendee.getExtId()).andReturn(eventExtId).atLeastOnce();
@@ -290,7 +288,7 @@ public class CalendarBindingImplTest {
 		
 		HelperService rightsHelper = mockRightsHelper(calendar, accessToken);
 		Ical4jHelper ical4jHelper = mockIcal4jHelper(obmUser, icsData, eventWithOwnerAttendee);
-		UserService userService = mockImportICSUserService(accessToken, fakeUserAttendee, calendar, domainName, obmUser);
+		UserService userService = mockImportICSUserService(accessToken, fakeUserAttendee, calendar, fixtures.domainName, obmUser);
 		CalendarDao calendarDao = mockImportICalendarCalendarDao(accessToken, calendar, obmUser, eventExtId, eventWithOwnerAttendee);
 		
 		Object[] mocks = {accessToken, userService, rightsHelper, eventWithOwnerAttendee, ical4jHelper, obmUser, calendarDao};
@@ -310,8 +308,8 @@ public class CalendarBindingImplTest {
 	
 	@Test
 	public void testPurge() throws FindException, ServerFault, SQLException, NumberFormatException, EventNotFoundException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userEmail = "user@domain1";
 		EventExtId oldEventNoOtherAttendeesExtId = new EventExtId("oldEventNoOtherAttendeesExtId");
 		EventExtId oldEventWithOtherAttendeesExtId = new EventExtId("oldEventWithOtherAttendeesExtId");
@@ -322,9 +320,9 @@ public class CalendarBindingImplTest {
 		Attendee userAttendee = getFakeAttendee(userEmail);
 		Attendee otherAttendee = getFakeAttendee(otherUserEmail);
 		userAttendee.setState(ParticipationState.NEEDSACTION);
-		final ObmUser obmUser = mockObmUser(userEmail, domainName);
+		final ObmUser obmUser = mockObmUser(userEmail, fixtures.domain);
 
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 
 		final Calendar oldEventDate = Calendar.getInstance();
 		oldEventDate.add(Calendar.MONTH, -8);
@@ -350,8 +348,8 @@ public class CalendarBindingImplTest {
 				ParticipationState.DECLINED, false);
 
 		UserService userService = createMock(UserService.class);
-		expect(userService.getUserFromCalendar(calendar, domainName)).andReturn(obmUser).atLeastOnce();
-		expect(userService.getUserFromLogin(userEmail, domainName)).andReturn(obmUser).atLeastOnce();
+		expect(userService.getUserFromCalendar(calendar, fixtures.domainName)).andReturn(obmUser).atLeastOnce();
+		expect(userService.getUserFromLogin(userEmail, fixtures.domainName)).andReturn(obmUser).atLeastOnce();
 		expect(userService.getUserFromAccessToken(accessToken)).andReturn(obmUser).atLeastOnce();
 
 		CalendarDao calendarDao = createMock(CalendarDao.class);
@@ -383,18 +381,18 @@ public class CalendarBindingImplTest {
 	@Test
 	public void testImportEventInTheFuture() 
 		throws ImportICalendarException, ServerFault, IOException, ParserException, FindException, SQLException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userEmail = "user@domain1";
 		String icsData = "icsData";
 		EventExtId eventExtId = new EventExtId("extid");
 		Attendee fakeUserAttendee = getFakeAttendee(userEmail);
 		fakeUserAttendee.setState(ParticipationState.NEEDSACTION);
 		
-		final ObmUser obmUser = mockObmUser(userEmail, domainName);
+		final ObmUser obmUser = mockObmUser(userEmail, fixtures.domain);
 		expect(obmUser.getLogin()).andReturn(calendar).atLeastOnce();
 		
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 		
 		Event eventWithOwnerAttendee = createMock(Event.class);
 		expect(eventWithOwnerAttendee.getExtId()).andReturn(eventExtId).atLeastOnce();
@@ -405,7 +403,7 @@ public class CalendarBindingImplTest {
 		
 		HelperService rightsHelper = mockRightsHelper(calendar, accessToken);
 		Ical4jHelper ical4jHelper = mockIcal4jHelper(obmUser, icsData, eventWithOwnerAttendee);
-		UserService userService = mockImportICSUserService(accessToken, fakeUserAttendee, calendar, domainName, obmUser);
+		UserService userService = mockImportICSUserService(accessToken, fakeUserAttendee, calendar, fixtures.domainName, obmUser);
 		CalendarDao calendarDao = mockImportICalendarCalendarDao(accessToken, calendar, obmUser, eventExtId, eventWithOwnerAttendee);
 		
 		Object[] mocks = {accessToken, userService, rightsHelper, eventWithOwnerAttendee, ical4jHelper, obmUser, calendarDao};
@@ -425,8 +423,8 @@ public class CalendarBindingImplTest {
 
 	@Test
 	public void testAttendeeHasRightToWriteOnCalendar() throws FindException, ServerFault, SQLException, EventNotFoundException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userEmail = "user@domain1";
 		EventExtId extId = new EventExtId("extId");
 		boolean updateAttendee = true;
@@ -451,13 +449,13 @@ public class CalendarBindingImplTest {
 		ObmUser obmUser = new ObmUser();
 		obmUser.setEmail(userEmail);
 		
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
 		EventChangeHandler eventChangeHandler = createMock(EventChangeHandler.class);
 		
-		expect(userService.getUserFromCalendar(calendar, domainName)).andReturn(obmUser).atLeastOnce();
+		expect(userService.getUserFromCalendar(calendar, fixtures.domainName)).andReturn(obmUser).atLeastOnce();
 		expect(calendarDao.findEventByExtId(accessToken, obmUser, event.getExtId())).andReturn(beforeEvent).atLeastOnce();
 		expect(helper.canWriteOnCalendar(accessToken, attendee.getEmail())).andReturn(true).atLeastOnce();
 		expect(calendarDao.modifyEventForcingSequence(accessToken, calendar, event, updateAttendee, 1, true)).andReturn(event).atLeastOnce();
@@ -477,8 +475,8 @@ public class CalendarBindingImplTest {
 	@Test
 	public void testAttendeeHasNoRightToWriteOnCalendar() throws FindException, ServerFault,
 			SQLException, EventNotFoundException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userEmail = "user@domain1";
 		EventExtId extId = new EventExtId("extId");
 		boolean updateAttendee = true;
@@ -503,13 +501,13 @@ public class CalendarBindingImplTest {
 		ObmUser obmUser = new ObmUser();
 		obmUser.setEmail(userEmail);
 
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
 		EventChangeHandler eventChangeHandler = createMock(EventChangeHandler.class);
 
-		expect(userService.getUserFromCalendar(calendar, domainName)).andReturn(obmUser)
+		expect(userService.getUserFromCalendar(calendar, fixtures.domainName)).andReturn(obmUser)
 				.atLeastOnce();
 		expect(calendarDao.findEventByExtId(accessToken, obmUser, event.getExtId())).andReturn(
 				beforeEvent).atLeastOnce();
@@ -535,8 +533,8 @@ public class CalendarBindingImplTest {
 	}
 
 	public void testDontSendEmailsAndDontUpdateStatusForUnimportantChanges() throws ServerFault, FindException, SQLException, EventNotFoundException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userEmail = "user@domain1";
 		String guestAttendee1Email = "guestAttendee1@domain1";
 		String guestAttendee2Email = "guestAttendee2@domain1";
@@ -577,10 +575,10 @@ public class CalendarBindingImplTest {
 		newEvent.setAttendees(newAttendees);
 		newEvent.setSequence(sequence);
 
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 
 		UserService userService = createMock(UserService.class);
-		expect(userService.getUserFromCalendar(calendar, domainName)).andReturn(obmUser).atLeastOnce();
+		expect(userService.getUserFromCalendar(calendar, fixtures.domainName)).andReturn(obmUser).atLeastOnce();
 
 		HelperService rightsHelper = mockRightsHelper(calendar, accessToken);
 
@@ -655,9 +653,9 @@ public class CalendarBindingImplTest {
 	}
 	
 	private Event testParseICS(EventExtId extId, Event eventFromDao) throws Exception {
-		String domainName = "myDomain";
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "toto";
-		String email = calendar + "@" + domainName;
+		String email = calendar + "@" + fixtures.domainName;
 		String ics = "icsData";
 		
 		ObmUser obmUser = new ObmUser();
@@ -666,11 +664,11 @@ public class CalendarBindingImplTest {
 		Event eventFromIcs = new Event();
 		eventFromIcs.setExtId(extId);
 		
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		
 		UserService userService = createMock(UserService.class);
-		expect(userService.getUserFromCalendar(calendar, domainName)).andReturn(obmUser).once();
+		expect(userService.getUserFromCalendar(calendar, fixtures.domainName)).andReturn(obmUser).once();
 		expect(userService.getUserFromAccessToken(accessToken)).andReturn(obmUser).once();
 		Ical4jHelper ical4jHelper = mockIcal4jHelper(obmUser, ics, eventFromIcs);
 		
@@ -693,8 +691,8 @@ public class CalendarBindingImplTest {
 	
 	@Test
 	public void testCreateExternalEventCalendarOwnerWithDeclinedPartState() throws FindException, ServerFault, EventAlreadyExistException, SQLException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
 		String calendar = "cal1";
-		String domainName = "domain1";
 		String userEmail = "user@domain1";
 		EventExtId extId = new EventExtId("extId");
 		boolean notification = false;
@@ -722,13 +720,13 @@ public class CalendarBindingImplTest {
 		ObmUser obmUser = new ObmUser();
 		obmUser.setEmail(userEmail);
 		
-		AccessToken accessToken = mockAccessToken(calendar, domainName);
+		AccessToken accessToken = mockAccessToken(calendar, fixtures.domain);
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
 		EventChangeHandler eventChangeHandler = createMock(EventChangeHandler.class);
 		
-		expect(userService.getUserFromCalendar(calendar, domainName)).andReturn(obmUser).atLeastOnce();
+		expect(userService.getUserFromCalendar(calendar, fixtures.domainName)).andReturn(obmUser).atLeastOnce();
 		expect(calendarDao.findEventByExtId(accessToken, obmUser, event.getExtId())).andReturn(null).once();
 		expect(calendarDao.createEvent(accessToken, calendar, event, false)).andReturn(eventCreated).once();
 		expect(calendarDao.removeEvent(accessToken, eventCreated, eventCreated.getType(), eventCreated.getSequence())).andReturn(eventCreated).once();
