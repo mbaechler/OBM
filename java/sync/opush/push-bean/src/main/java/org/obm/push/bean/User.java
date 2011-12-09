@@ -1,7 +1,6 @@
 package org.obm.push.bean;
 
 import java.io.Serializable;
-import java.security.InvalidParameterException;
 import java.util.Iterator;
 
 import com.google.common.base.Objects;
@@ -42,7 +41,7 @@ public class User implements Serializable {
 				loginAndDomain = buildUserFromLoginParts(parts);
 			}
 			if (loginAndDomain == null) {
-				throw new InvalidParameterException();
+				throw new IllegalArgumentException();
 			}
 			return loginAndDomain;
 		}
@@ -60,7 +59,7 @@ public class User implements Serializable {
 		private String[] buildUserFromLoginParts(Iterable<String> parts) {
 			int nbParts = Iterables.size(parts);
 			if (nbParts > 2) {
-				throw new InvalidParameterException();
+				throw new IllegalArgumentException();
 			} else if (nbParts == 2) {
 				Iterator<String> iterator = parts.iterator();
 				String domain = iterator.next();
@@ -74,7 +73,7 @@ public class User implements Serializable {
 		
 		private void checkField(String key, String field) {
 			if (field.contains("@") || field.contains("\\")) {
-				throw new InvalidParameterException(key + " is invalid : " + field);
+				throw new IllegalArgumentException(key + " is invalid : " + field);
 			}
 		}
 	}
