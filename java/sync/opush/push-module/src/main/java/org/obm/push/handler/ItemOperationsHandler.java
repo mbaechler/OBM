@@ -87,7 +87,7 @@ public class ItemOperationsHandler extends WbxmlRequestHandler {
 	}
 	
 	private void sendResponse(Responder responder, Document document) {
-		responder.sendResponse("ItemOperations", document);
+		responder.sendWBXMLResponse("ItemOperations", document);
 	}
 	
 	private ItemOperationsResponse doTheJob(BackendSession bs, ItemOperationsRequest itemOperationRequest) throws CollectionNotFoundException, 

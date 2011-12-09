@@ -167,7 +167,7 @@ public class PingHandler extends WbxmlRequestHandler implements
 	}
 
 	private void sendResponse(Responder responder, Document document) {
-		responder.sendResponse("Ping", document);
+		responder.sendWBXMLResponse("Ping", document);
 	}
 
 	private PingResponse buildResponse(boolean sendHierarchyChange, IContinuation continuation) 

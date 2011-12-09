@@ -148,7 +148,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 	}
 
 	private void sendResponse(Responder responder, Document document) {
-		responder.sendResponse("AirSync", document);
+		responder.sendWBXMLResponse("AirSync", document);
 	}
 	
 	private void registerWaitingSync(IContinuation continuation, BackendSession bs, Sync sync) throws CollectionNotFoundException, 
@@ -500,7 +500,7 @@ public class SyncHandler extends WbxmlRequestHandler implements IContinuationHan
 			if (continuation != null) {
 				logger.info("Resp for requestId = {}", continuation.getReqId());
 			}
-			responder.sendResponse("AirSync", syncProtocol.encodeResponse(errorStatus) );
+			responder.sendWBXMLResponse("AirSync", syncProtocol.encodeResponse(errorStatus) );
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}

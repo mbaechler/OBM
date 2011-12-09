@@ -107,7 +107,7 @@ public class SyncHandlerTest {
 				
 		Responder responder = EasyMock.createMock(Responder.class);
 		Capture<Document> document = new Capture<Document>();
-		responder.sendResponse(EasyMock.eq("AirSync"), EasyMock.capture(document));
+		responder.sendWBXMLResponse(EasyMock.eq("AirSync"), EasyMock.capture(document));
 		
 		
 		IContinuation continuation = EasyMock.createMock(IContinuation.class);

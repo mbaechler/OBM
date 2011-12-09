@@ -75,7 +75,7 @@ public class FolderSyncHandler extends WbxmlRequestHandler {
 	}
 
 	private void sendResponse(Responder responder, Document ret) {
-		responder.sendResponse("FolderHierarchy", ret);
+		responder.sendWBXMLResponse("FolderHierarchy", ret);
 	}
 	
 	private void sendError(Responder responder, FolderSyncStatus status, Exception exception) {
