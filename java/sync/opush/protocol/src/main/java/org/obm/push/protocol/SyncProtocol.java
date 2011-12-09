@@ -44,7 +44,7 @@ public class SyncProtocol {
 			throws NoDocumentException, PartialException, ProtocolException, DaoException, PIMDataTypeNotFoundException {
 		
 		if (doc == null) {
-			throw new NoDocumentException();
+			throw new NoDocumentException("Document of Sync request is null.");
 		}
 		return new SyncRequest( syncDecoder.decodeSync(doc, backendSession) );
 	}
