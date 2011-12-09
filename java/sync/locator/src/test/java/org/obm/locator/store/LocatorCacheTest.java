@@ -10,7 +10,6 @@ import org.obm.configuration.ConfigurationService;
 import org.obm.configuration.ConfigurationServiceImpl;
 import org.obm.locator.LocatorClientException;
 import org.obm.locator.LocatorClientImpl;
-import org.obm.locator.store.LocatorCache;
 
 public class LocatorCacheTest {
 
