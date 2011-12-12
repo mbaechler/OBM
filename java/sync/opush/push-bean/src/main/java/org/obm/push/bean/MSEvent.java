@@ -11,6 +11,7 @@ import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventObmId;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 
 public class MSEvent implements IApplicationData, Serializable {
 	
@@ -265,6 +266,25 @@ public class MSEvent implements IApplicationData, Serializable {
 	public void setUid(MSEventUid uid) {
 		this.uid = uid;
 	}
+	
+	public MessageClass findReplyType() {
+		//a reply must contain a single attendee
+		if (attendees.size() != 1) {
+			return null;
+		}
+		MSAttendee attendee = Iterables.getFirst(getAttendees(), null);
+		switch (attendee.getAttendeeStatus()) {
+		case TENTATIVE:
+			return MessageClass.ScheduleMeetingRespTent;
+		case ACCEPT:
+			return MessageClass.ScheduleMeetingRespPos;
+		case DECLINE:
+			return MessageClass.ScheduleMeetingRespNeg;
+		default:
+			return null;
+		}
+	}
+
 	
 	@Override
 	public String toString() {

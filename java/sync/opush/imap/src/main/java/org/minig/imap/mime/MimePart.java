@@ -157,6 +157,7 @@ public class MimePart extends AbstractMimePart implements IMimePart {
 		return null;
 	}
 	
+	@Override
 	public boolean isInvitation() {
 		String method = retrieveMethodFromCalendarPart();
 		return "REQUEST".equalsIgnoreCase(method);
@@ -167,9 +168,16 @@ public class MimePart extends AbstractMimePart implements IMimePart {
 		return getFullMimeType().equalsIgnoreCase("message/rfc822");
 	}
 	
+	@Override
 	public boolean isCancelInvitation() {
 		String method = retrieveMethodFromCalendarPart();
 		return "CANCEL".equalsIgnoreCase(method);
+	}
+	
+	@Override
+	public boolean isReplyInvitation() {
+		String method = retrieveMethodFromCalendarPart();
+		return "REPLY".equalsIgnoreCase(method);
 	}
 	
 	@Override

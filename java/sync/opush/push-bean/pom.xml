@@ -40,6 +40,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.easytesting</groupId>
+			<artifactId>fest-assert</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.linagora.obm</groupId>
 			<artifactId>utils</artifactId>
 			<version>${obm.version}</version>

@@ -106,7 +106,7 @@ public class MessageLoader {
 	private MailMessageInvitation extractInvitation(IMimePart mimePart) {
 		IMimePart parentMessage = findRootMessage(mimePart);
 		for (IMimePart mp : parentMessage.listLeaves(true, true)) {
-			if (mp.isInvitation() || mp.isCancelInvitation()) {
+			if (mp.isInvitation() || mp.isCancelInvitation() || mp.isReplyInvitation()) {
 				return new MailMessageInvitation(mp.getContentId(), mp);
 			} 	
 		}

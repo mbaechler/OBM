@@ -148,6 +148,11 @@ public class MimeMessage implements IMimePart {
 	}
 
 	@Override
+	public boolean isReplyInvitation() {
+		return from.isReplyInvitation();
+	}
+	
+	@Override
 	public String getContentTransfertEncoding() {
 		return from.getContentTransfertEncoding();
 	}

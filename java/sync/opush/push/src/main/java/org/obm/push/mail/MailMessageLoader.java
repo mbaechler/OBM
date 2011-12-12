@@ -187,12 +187,15 @@ public class MailMessageLoader {
 				msEmail.setInvitation(event, MessageClass.ScheduleMeetingRequest);
 			} else if (mimePart.isCancelInvitation()) {
 				msEmail.setInvitation(event, MessageClass.ScheduleMeetingCanceled);
+			} else if (mimePart.isReplyInvitation()) {
+				MessageClass replyType = event.findReplyType();
+				msEmail.setInvitation(event, replyType);
 			}
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
 	}
-	
+
 	private InputStream extractInputStreamInvitation(final IMimePart mp, final long uid, final long messageId) throws IOException {
 		byte[] data = null;
 		final InputStream part = storeClient.uidFetchPart(uid, mp.getAddress().toString());

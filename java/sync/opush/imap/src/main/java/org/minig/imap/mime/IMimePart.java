@@ -56,5 +56,7 @@ public interface IMimePart {
 	boolean isAttachment();
 
 	boolean isNested();
+
+	boolean isReplyInvitation();
 	
 }
