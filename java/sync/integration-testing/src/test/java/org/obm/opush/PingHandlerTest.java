@@ -253,7 +253,6 @@ public class PingHandlerTest {
 			ChangedCollections hasChangesCollections = buildSyncCollectionWithChanges(
 					dateWhenChangesAppear, collectionIdWhereChangesAppear, collectionPathWhereChangesAppear);
 			expect(collectionDao.getCalendarChangedCollections(dateFirstSyncFromASSpecs)).andReturn(hasChangesCollections).once();
-			expect(collectionDao.getCalendarChangedCollections(dateWhenChangesAppear)).andReturn(hasChangesCollections).anyTimes();
 		}
 	}
 	
@@ -271,7 +270,7 @@ public class PingHandlerTest {
 				anyObject(FilterType.class),
 				anyInt(),
 				anyObject(SyncState.class)))
-			.andReturn(1).anyTimes();
+			.andReturn(1).times(2);
 	}
 
 	private void mockContentsExporter(IContentsExporter contentsExporter) 
