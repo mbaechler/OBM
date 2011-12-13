@@ -174,7 +174,7 @@ public class SessionManagement {
 			AccessToken token = buildAccessToken(origin, userLogin, obmDomain);
 			registerTokenInSession(token);
 			logger.info(LogUtils.prefix(token) + login + " logged in from " + token.getOrigin()
-					+ ". auth type: " + authService.getType() + " (mail: " + token.getEmail()
+					+ ". auth type: " + authService.getType() + " (mail: " + token.getUserEmail()
 					+ ") on obm-sync " + token.getVersion());
 			return token;
 		}
@@ -204,10 +204,14 @@ public class SessionManagement {
 			return null;
 		}
 		AccessToken token = new AccessToken(databaseUser.getUid(), obmDomain.getId(), origin);
-		token.setUser(userLogin);
+		token.setUserDisplayName(databaseUser.getDisplayName());
+		token.setUserLogin(userLogin);
+		
+		String userEmail = helperService.constructEmailFromList(databaseUser.getEmail(), obmDomain.getName());
+		token.setUserEmail(userEmail);
+		
 		token.setDomain(obmDomain.getName());
 		token.setSessionId(newSessionId());
-		token.setEmail(helperService.constructEmailFromList(databaseUser.getEmail(), obmDomain.getName()));
 		token.setConversationUid(conversationUidGenerator.incrementAndGet());
 		token.setVersion(ObmSyncVersion.current());
 		//FIXME: probably broken
@@ -228,11 +232,11 @@ public class SessionManagement {
 			throw new AuthFault("Invalid access token");
 		}
 		at.setDomain(u.getDomain());
-		at.setUser(u.getUser());
+		at.setUserLogin(u.getUserLogin());
 		at.setDomainId(u.getDomainId());
 		at.setObmId(u.getObmId());
 		at.setOrigin(u.getOrigin());
-		at.setEmail(u.getEmail());
+		at.setUserEmail(u.getUserEmail());
 		at.setIsoCodeToNameCache(u.getIsoCodeToNameCache());
 		at.setServiceProperties(u.getServiceProperties());
 		at.setCalendarRights(u.getCalendarRights());

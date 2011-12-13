@@ -136,7 +136,7 @@ public class SettingDao {
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Could not store vacation settings for "
-					+ token.getUser(), e);
+					+ token.getUserLogin(), e);
 		} finally {
 			obmHelper.cleanup(con, ps, null);
 		}
@@ -163,7 +163,7 @@ public class SettingDao {
 			ps.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Could not store forwarding settings for "
-					+ token.getUser(), e);
+					+ token.getUserLogin(), e);
 		} finally {
 			obmHelper.cleanup(con, ps, null);
 		}
@@ -203,7 +203,7 @@ public class SettingDao {
 
 		} catch (SQLException e) {
 			logger.error("Could not load forwarding settings for "
-					+ token.getUser(), e);
+					+ token.getUserLogin(), e);
 		} finally {
 			obmHelper.cleanup(con, ps, rs);
 		}
@@ -243,7 +243,7 @@ public class SettingDao {
 			}
 
 		} catch (SQLException e) {
-			logger.error("Could load vacation settings for " + token.getUser(),
+			logger.error("Could load vacation settings for " + token.getUserLogin(),
 					e);
 		} finally {
 			obmHelper.cleanup(con, ps, rs);

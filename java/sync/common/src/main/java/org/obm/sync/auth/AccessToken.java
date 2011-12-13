@@ -8,13 +8,15 @@ import org.obm.sync.calendar.CalendarInfo;
 
 public class AccessToken {
 
-	private String user;
+	private String userLogin;
+	private String userDisplayName;
+	private String userEmail;
+	
 	private String sessionId;
 	private String domain;
 	private int obmId;
 	private int domainId;
 	private String origin;
-	private String email;
 	private boolean rootAccount;
 
 	private Map<String, String> isoCodeToNameCache;
@@ -34,12 +36,12 @@ public class AccessToken {
 		this.serviceProps = new HashMap<String, String>();
 	}
 
-	public String getUser() {
-		return user;
+	public String getUserLogin() {
+		return userLogin;
 	}
 
-	public void setUser(String user) {
-		this.user = user;
+	public void setUserLogin(String userLogin) {
+		this.userLogin = userLogin;
 	}
 
 	public String getSessionId() {
@@ -82,12 +84,12 @@ public class AccessToken {
 		this.origin = origin;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getUserEmail() {
+		return userEmail;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setUserEmail(String userEmail) {
+		this.userEmail = userEmail;
 	}
 
 	public Map<String, String> getIsoCodeToNameCache() {
@@ -147,6 +149,15 @@ public class AccessToken {
 	}
 	
 	public String getUserWithDomain() {
-		return user + "@" + domain;
+		return userLogin + "@" + domain;
 	}
+
+	public String getUserDisplayName() {
+		return userDisplayName;
+	}
+	
+	public void setUserDisplayName(String displayName) {
+		this.userDisplayName = displayName;
+	}
+	
 }

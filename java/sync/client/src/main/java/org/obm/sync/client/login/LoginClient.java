@@ -30,12 +30,13 @@ public class LoginClient extends AbstractClientImpl implements LoginService {
 		params.put("origin", origin);
 
 		AccessToken token = new AccessToken(0, 0, origin);
-		token.setUser(loginAtDomain.split("@", 2)[0]);
+		token.setUserLogin(loginAtDomain.split("@", 2)[0]);
 		token.setDomain(loginAtDomain.split("@", 2)[1]);
 		
 		Document doc = execute(token, "/login/doLogin", params);
 		Element root = doc.getDocumentElement();
 		String email = DOMUtils.getElementText(root, "email");
+		String displayname = DOMUtils.getElementText(root, "displayname");
 		String sid = DOMUtils.getElementText(root, "sid");
 		Element v = DOMUtils.getUniqueElement(root, "version");
 		MavenVersion version = new MavenVersion();
@@ -46,7 +47,8 @@ public class LoginClient extends AbstractClientImpl implements LoginService {
 		}
 		token.setSessionId(sid);
 		token.setVersion(version);
-		token.setEmail(email);
+		token.setUserEmail(email);
+		token.setUserDisplayName(displayname);
 		return token;
 	}
 

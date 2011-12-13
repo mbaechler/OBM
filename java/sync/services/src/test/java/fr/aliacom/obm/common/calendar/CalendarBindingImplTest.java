@@ -103,7 +103,7 @@ public class CalendarBindingImplTest {
 	private AccessToken mockAccessToken(String userName, String domainName) {
 		AccessToken accessToken = createMock(AccessToken.class);
 		expect(accessToken.getDomain()).andReturn(domainName).atLeastOnce();
-		expect(accessToken.getUser()).andReturn(userName).anyTimes();
+		expect(accessToken.getUserLogin()).andReturn(userName).anyTimes();
 		expect(accessToken.getOrigin()).andReturn("unittest").anyTimes();
 		expect(accessToken.getConversationUid()).andReturn(1).anyTimes();
 		return accessToken;

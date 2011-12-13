@@ -118,9 +118,10 @@ public class EventConverterTest {
 	public void testOwnerloginIsNotEqualsToOwnerEmail() throws SAXException, IOException, FactoryConfigurationError {
 		String loginAtDomain = "LOGIN@obm.lng.org";
 		String email = "EMAIL@obm.lng.org";
+		String displayName = "displayName";
 
 		Credentials credentials = new Credentials( 
-				Factory.create().createUser(loginAtDomain, email), "password");
+				Factory.create().createUser(loginAtDomain, email, displayName), "password");
 		BackendSession backendSession = buildBackendSession(credentials);
 		
 		IApplicationData data = getApplicationData("OBMFULL-2907.xml");
@@ -164,7 +165,7 @@ public class EventConverterTest {
 	}
 	
 	private BackendSession buildBackendSession(String userId) {
-		User user = Factory.create().createUser(userId, "email@domain");
+		User user = Factory.create().createUser(userId, "email@domain", "displayName");
 		return buildBackendSession(new Credentials(user, "test"));
 	}
 	

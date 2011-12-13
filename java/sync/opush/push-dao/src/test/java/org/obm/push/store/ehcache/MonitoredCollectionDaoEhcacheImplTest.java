@@ -36,7 +36,7 @@ public class MonitoredCollectionDaoEhcacheImplTest extends StoreManagerConfigura
 		transactionManager.begin();
 		this.objectStoreManager = new ObjectStoreManager( super.initConfigurationServiceMock() );
 		this.monitoredCollectionStoreServiceImpl = new MonitoredCollectionDaoEhcacheImpl(objectStoreManager);
-		User user = Factory.create().createUser("login@domain", "email@domain");
+		User user = Factory.create().createUser("login@domain", "email@domain", "displayName");
 		this.credentials = new Credentials(user, "password");
 	}
 	

@@ -67,7 +67,7 @@ public class ErrorMailerTest {
 		
 		protected AccessToken getMockAccessToken(){
 			at.setDomain("test.tlse.lng");
-			at.setEmail("adrien@test.tlse.lng");
+			at.setUserEmail("adrien@test.tlse.lng");
 			return at;
 		}
 
