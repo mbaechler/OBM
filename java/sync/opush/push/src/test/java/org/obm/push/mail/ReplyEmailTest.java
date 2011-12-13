@@ -44,6 +44,26 @@ public class ReplyEmailTest {
 	}
 
 	@Test
+	public void testJira2842() throws IOException, MimeException, ParserException, NotQuotableEmailException {
+		MSEmail original = MailTestsUtils.createMSEmailPlainText("origin");
+		Message reply = loadMimeMessage(getClass(), "replyWithAttachment.eml");
+		
+		ReplyEmail replyEmail = new ReplyEmail(mockOpushConfigurationService(), mime4jUtils, "from@linagora.test", original, reply);
+		Message message = replyEmail.getMimeMessage();
+		Assertions.assertThat(message.isMultipart()).isTrue();
+		Assertions.assertThat(message.getMimeType()).isEqualTo("multipart/mixed");
+		Assertions.assertThat(message.getBody()).isInstanceOf(Multipart.class);
+		Multipart multipart = (Multipart) message.getBody();
+		Assertions.assertThat(multipart.getBodyParts()).hasSize(2);
+		Entity plainTextPart = multipart.getBodyParts().get(0);
+		Entity binaryPart = multipart.getBodyParts().get(1);
+		Assertions.assertThat(plainTextPart.getMimeType()).isEqualTo("text/plain");
+		Assertions.assertThat(binaryPart.getMimeType()).isEqualTo("application/octet-stream");
+		String textPlainAsString = mime4jUtils.toString(plainTextPart.getBody());
+		Assertions.assertThat(textPlainAsString).contains("Envoyé depuis mon HTC").contains("> origin");
+	}
+	
+	@Test
 	public void testReplyCopyOfAddress() throws IOException, MimeException, ParserException, NotQuotableEmailException {
 		MSEmail original = MailTestsUtils.createMSEmailPlainText("origin");
 		Message reply = loadMimeMessage(getClass(), "plainText.eml");
