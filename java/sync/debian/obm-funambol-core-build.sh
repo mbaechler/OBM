@@ -9,6 +9,7 @@ MVN_BIN="/usr/bin/mvn -Dmaven.test.skip -Duser.home=${maven_home}"
 POM_FILE="pom.xml"
 
 FUNAMBOL_BUILD_DEB_DIR="${CURDIR}/debian/obm-funambol-core"
+PROJECT_NAME="funambol-connector"
 
 FUNAMBOL_VERSION="10.0.3"
 SHARE_INSTALL_DIR="${FUNAMBOL_BUILD_DEB_DIR}/usr/share"
@@ -31,7 +32,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # build project
-${MVN_BIN} -f obm-funambol/pom.xml install
+${MVN_BIN} -f ${PROJECT_NAME}/pom.xml install
 if [ $? -ne 0 ]; then
   echo "FATAL: mvn package"
   exit 1

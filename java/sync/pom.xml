@@ -76,7 +76,7 @@
 		<module>integration-testing</module>
 		<module>webapp-common-dependencies</module>
     		<module>icalendar</module>
-		<module>obm-funambol</module>
+		<module>funambol-connector</module>
  	</modules>
 
 	<build>
