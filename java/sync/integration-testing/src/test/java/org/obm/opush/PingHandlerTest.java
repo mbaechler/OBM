@@ -247,9 +247,10 @@ public class PingHandlerTest {
 		expect(collectionDao.getContactChangedCollections(anyObject(Date.class))).andReturn(changed).anyTimes();
 		expect(collectionDao.getCalendarChangedCollections(anyObject(Date.class))).andReturn(changed).anyTimes();
 
+		int randomCollectionId = anyInt();
 		for (OpushUser opushUser: fakeTestUsers) {
 			String collectionPath = buildCalendarCollectionPath(opushUser);  
-			expect(collectionDao.getCollectionPath(anyInt())).andReturn(collectionPath).anyTimes();
+			expect(collectionDao.getCollectionPath(randomCollectionId)).andReturn(collectionPath).anyTimes();
 		}
 	}
 	
@@ -261,17 +262,18 @@ public class PingHandlerTest {
 		int collectionIdWhereChangesAppear = anyInt();
 		
 		expectCollectionDaoUnchangeForXIteration(collectionDao, dateFirstSyncFromASSpecs, collectionNoChangeIterationCount);
-		
+
+		int randomCollectionId = anyInt();
 		for (OpushUser user : fakeTestUsers) {
 			String collectionPathWhereChangesAppear = buildCalendarCollectionPath(user);  
-			expect(collectionDao.getCollectionPath(anyInt())).andReturn(collectionPathWhereChangesAppear).anyTimes();
+			expect(collectionDao.getCollectionPath(randomCollectionId)).andReturn(collectionPathWhereChangesAppear).anyTimes();
 
 			ChangedCollections hasChangesCollections = buildSyncCollectionWithChanges(
 					dateWhenChangesAppear, collectionIdWhereChangesAppear, collectionPathWhereChangesAppear);
 			expect(collectionDao.getCalendarChangedCollections(dateFirstSyncFromASSpecs)).andReturn(hasChangesCollections).once();
 		}
 	}
-
+	
 	private void expectCollectionDaoUnchangeForXIteration(CollectionDao collectionDao, Date activeSyncSpecFirstSyncDate, 
 			int noChangeIterationCount) throws DaoException {
 		ChangedCollections noChangeCollections = new ChangedCollections(activeSyncSpecFirstSyncDate, ImmutableSet.<SyncCollection>of());
