@@ -17,6 +17,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.impl.ListenerRegistration;
 import org.obm.push.mail.IEmailManager;
+import org.obm.push.mail.ImapClientProvider;
 import org.obm.push.mail.MailBackend;
 import org.obm.push.monitor.CalendarMonitoringThread;
 import org.obm.push.monitor.ContactsMonitoringThread;
@@ -49,19 +50,23 @@ public class OBMBackend implements IBackend {
 	
 	private final Set<ICollectionChangeListener> registeredListeners;
 	private final Map<Integer, EmailMonitoringThread> emailPushMonitors;
+
+	private final ImapClientProvider imapClientProvider;
 	
 	@Inject
 	private OBMBackend(CollectionDao collectionDao, IEmailManager emailManager,
 			IContentsExporter contentsExporter, MailBackend mailBackend,
 			CalendarMonitoringThread.Factory calendarMonitoringThreadFactory,
-			ContactsMonitoringThread.Factory contactsMonitoringThreadFactory,
-			LoginService loginService) {
+			ContactsMonitoringThread.Factory contactsMonitoringThreadFactory, 
+			LoginService loginService,
+			ImapClientProvider imapClientProvider) {
 		
 		this.collectionDao = collectionDao;
 		this.emailManager = emailManager;
 		this.contentsExporter = contentsExporter;
 		this.mailBackend = mailBackend;
 		this.loginService = loginService;
+		this.imapClientProvider = imapClientProvider;
 		
 		this.registeredListeners = Collections
 				.synchronizedSet(new HashSet<ICollectionChangeListener>());
@@ -102,7 +107,7 @@ public class OBMBackend implements IBackend {
 				emt.stopIdle();
 			} else {
 				emt = new EmailMonitoringThread(mailBackend, registeredListeners,
-					bs, collectionId, emailManager, contentsExporter);
+					bs, collectionId, emailManager, contentsExporter, imapClientProvider);
 			}
 		
 			emt.startIdle();
