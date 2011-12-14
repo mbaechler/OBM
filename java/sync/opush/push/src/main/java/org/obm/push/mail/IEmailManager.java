@@ -55,8 +55,6 @@ public interface IEmailManager {
 
 	boolean getActivateTLS();
 	
-	String locateImap(BackendSession bs) throws LocatorClientException;
-
 	void updateData(Integer devId, Integer collectionId, Date lastSync, Collection<Long> removedEmailsIds, Collection<Email> updated)
 			throws DaoException;
 
