@@ -11,6 +11,8 @@ import org.obm.push.bean.SyncCollection;
 import org.obm.push.utils.DOMUtils;
 import org.w3c.dom.Element;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.inject.Inject;
 
 public class ContactEncoder implements IDataEncoder {
@@ -39,7 +41,7 @@ public class ContactEncoder implements IDataEncoder {
 		// e(body, "AirSyncBase:Truncated", "1");
 		// }
 
-		DOMUtils.createElementAndText(parent, "Contacts:FileAs", getFileAs(c));
+		DOMUtils.createElementAndText(parent, "Contacts:FileAs", c.getFileAs());
 
 		e(parent, "Contacts:FirstName", c.getFirstName());
 		e(parent, "Contacts:LastName", c.getLastName());
@@ -140,17 +142,6 @@ public class ContactEncoder implements IDataEncoder {
 			}
 		}
 		// DOMUtils.createElement(parent, "Contacts:Picture");
-	}
-
-	private String getFileAs(MSContact c) {
-		if (c.getFirstName() != null && c.getLastName() != null
-				&& c.getFirstName().length() > 0) {
-			return c.getLastName() + ", " + c.getFirstName();
-		} else if (c.getFirstName() != null && c.getFirstName().length() > 0) {
-			return c.getFirstName();
-		} else {
-			return c.getLastName();
-		}
 	}
 
 	private void e(Element p, String name, String val) {
