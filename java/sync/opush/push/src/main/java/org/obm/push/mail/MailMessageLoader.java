@@ -80,7 +80,7 @@ public class MailMessageLoader {
 		this.storeClient = store;
 		this.calendarClient = calendarClient;
 		this.eventService = eventService;
-		this.htmlMimeSubtypePriority = Arrays.asList("html", "plain", "calendar");
+		this.htmlMimeSubtypePriority = Arrays.asList("html", "plain");
 	}
 
 	public MSEmail fetch(final Integer collectionId, final long messageId, final BackendSession bs) {
