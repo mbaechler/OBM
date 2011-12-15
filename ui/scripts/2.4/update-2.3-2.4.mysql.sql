@@ -335,6 +335,8 @@ ALTER TABLE `opush_synced_item` ADD COLUMN `addition` BOOLEAN;
 UPDATE `opush_synced_item` SET `addition`='1';
 ALTER TABLE `opush_synced_item` MODIFY `addition` BOOLEAN NOT NULL;
 
+UPDATE opush_sync_mail SET timestamp='1970-01-01 01:00:01' WHERE timestamp='0000-00-00 00:00:00';
+
 -- ----------------------------------------------------------------------------
 -- Write that the 2.3->2.4 is completed
 -- ----------------------------------------------------------------------------
