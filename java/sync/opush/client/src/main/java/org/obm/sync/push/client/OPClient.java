@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
@@ -17,6 +18,8 @@ import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.obm.push.utils.DOMUtils;
 import org.obm.push.utils.FileUtils;
 import org.obm.push.wbxml.WBXMLTools;
+import org.obm.push.wbxml.WBXmlException;
+import org.obm.sync.push.client.commands.AutodiscoverCommand;
 import org.obm.sync.push.client.commands.FolderSync;
 import org.obm.sync.push.client.commands.Options;
 import org.obm.sync.push.client.commands.Sync;
@@ -70,6 +73,10 @@ public class OPClient {
 		run(new Options());
 	}
 
+	public AutodiscoverResponse autodiscover() throws Exception {
+		return run(new AutodiscoverCommand(ai.getLogin()));
+	}
+	
 	public FolderSyncResponse folderSync(String key) throws Exception {
 		return run(new FolderSync(key));
 	}
@@ -93,14 +100,14 @@ public class OPClient {
 
 		DOMUtils.logDom(doc);
 
-		byte[] data = WBXMLTools.toWbxml(namespace, doc);
+		InputStream data = transformRequestDataToInputStream(namespace, doc);
 		PostMethod pm = null;
 		pm = new PostMethod(ai.getUrl() + "?User=" + ai.getLogin()
 				+ "&DeviceId=" + ai.getDevId() + "&DeviceType="
 				+ ai.getDevType() + "&Cmd=" + cmd);
-		pm.setRequestHeader("Content-Length", "" + data.length);
-		pm.setRequestBody(new ByteArrayInputStream(data));
-		pm.setRequestHeader("Content-Type", "application/vnd.ms-sync.wbxml");
+		pm.setRequestHeader("Content-Length", "" + data.available());
+		pm.setRequestBody(data);
+		pm.setRequestHeader("Content-Type", getRequestContentType());
 		pm.setRequestHeader("Authorization", ai.authValue());
 		pm.setRequestHeader("User-Agent", ai.getUserAgent());
 		pm.setRequestHeader("Ms-Asprotocolversion", protocolVersion.toString());
@@ -136,16 +143,12 @@ public class OPClient {
 						+ localCopy.getAbsolutePath());
 
 				InputStream in = new FileInputStream(localCopy);
-				if (pm.getResponseHeader("Content-Encoding") != null
-						&& pm.getResponseHeader("Content-Encoding").getValue()
-								.contains("gzip")) {
+				if (isGzipContentEncoding(pm)) {
 					in = new GZIPInputStream(in);
 				}
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				FileUtils.transfer(in, out, true);
-				if (pm.getResponseHeader("Content-Type") != null
-						&& pm.getResponseHeader("Content-Type").getValue()
-								.contains("application/vnd.ms-sync.multipart")) {
+				if (isActiveSyncMultipartContentType(pm)) {
 					byte[] all = out.toByteArray();
 					int idx = 0;
 					byte[] buffer = new byte[4];
@@ -178,6 +181,9 @@ public class OPClient {
 						}
 
 					}
+				} else if (isXmlResponse(pm)) {
+					xml = DOMUtils.parse(new String(out.toByteArray()));
+					DOMUtils.logDom(xml);
 				} else if (out.toByteArray().length > 0) {
 					xml = WBXMLTools.toXml(out.toByteArray());
 					DOMUtils.logDom(xml);
@@ -187,6 +193,21 @@ public class OPClient {
 			pm.releaseConnection();
 		}
 		return xml;
+	}
+
+	private boolean isXmlResponse(PostMethod pm) {
+		Header contentType =  pm.getResponseHeader("Content-Type");
+		return contentType != null && contentType.getValue().contains("text/xml");
+	}
+
+	private boolean isActiveSyncMultipartContentType(PostMethod pm) {
+		Header contentType = pm.getResponseHeader("Content-Type");
+		return contentType != null && contentType.getValue().contains("application/vnd.ms-sync.multipart");
+	}
+
+	private boolean isGzipContentEncoding(PostMethod pm) {
+		Header encoding = pm.getResponseHeader("Content-Encoding");
+		return encoding != null && encoding.getValue().contains("gzip");
 	}
 
 	private final int byteArrayToInt(byte[] b) {
@@ -242,6 +263,14 @@ public class OPClient {
 		}
 		return null;
 
+	}
+
+	protected InputStream transformRequestDataToInputStream(String namespace, Document doc) throws WBXmlException, IOException {
+		return new ByteArrayInputStream(WBXMLTools.toWbxml(namespace, doc));
+	}
+	
+	protected String getRequestContentType() {
+		return "application/vnd.ms-sync.wbxml";
 	}
 
 	public ProtocolVersion getProtocolVersion() {
