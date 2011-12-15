@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Autodiscover xmlns="http://schemas.microsoft.com/exchange/autodiscover/mobilesync/requestschema/2006">
+	<Request>
+		<EMailAddress>eduarddell@woodgrovebank.com</EMailAddress>
+		<AcceptableResponseSchema>
+			http://schemas.microsoft.com/exchange/autodiscover/mobilesync/responseschema/2006
+		</AcceptableResponseSchema>
+	</Request>
+</Autodiscover>
