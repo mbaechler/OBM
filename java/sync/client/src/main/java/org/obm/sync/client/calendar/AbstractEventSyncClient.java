@@ -26,9 +26,8 @@ import org.obm.sync.calendar.FreeBusy;
 import org.obm.sync.calendar.FreeBusyRequest;
 import org.obm.sync.calendar.ParticipationState;
 import org.obm.sync.calendar.SyncRange;
-import org.obm.sync.client.impl.AuthenticatedClientImpl;
+import org.obm.sync.client.impl.AbstractClientImpl;
 import org.obm.sync.client.impl.SyncClientException;
-import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.EventChanges;
 import org.obm.sync.locators.Locator;
 import org.obm.sync.services.ICalendar;
@@ -39,7 +38,7 @@ import org.w3c.dom.Document;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
-public abstract class AbstractEventSyncClient extends AuthenticatedClientImpl implements ICalendar {
+public abstract class AbstractEventSyncClient extends AbstractClientImpl implements ICalendar {
 
 	private CalendarItemsParser respParser;
 	private CalendarItemsWriter ciw;
@@ -47,8 +46,8 @@ public abstract class AbstractEventSyncClient extends AuthenticatedClientImpl im
 	private final Locator locator;
 
 	public AbstractEventSyncClient(String type, SyncClientException syncClientException, 
-			Locator locator, LoginService login) {
-		super(syncClientException, login);
+			Locator locator) {
+		super(syncClientException);
 		this.locator = locator;
 		respParser = new CalendarItemsParser();
 		this.type = type;
