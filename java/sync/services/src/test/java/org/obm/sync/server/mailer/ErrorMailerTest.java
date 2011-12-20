@@ -37,10 +37,17 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 
 @RunWith(Suite.class)
-@SuiteClasses({ErrorMailerTest.Error.class})
+@SuiteClasses({ErrorMailerTest.Error.class, ErrorMailerTest.Expire.class})
 public class ErrorMailerTest {
 
 	private static final TimeZone TIMEZONE = TimeZone.getTimeZone("Europe/Paris");
+	
+	protected static AccessToken getMockAccessToken(){
+		AccessToken at = new AccessToken(1, "unitTest");
+		at.setDomain(ToolBox.getDefaultObmDomain());
+		at.setEmail("adrien@test.tlse.lng");
+		return at;
+	}
 	
 	public abstract static class Common {
 		
@@ -48,7 +55,7 @@ public class ErrorMailerTest {
 		ITemplateLoader templateLoader;
 		
 		public Common(){
-			at = new AccessToken(1, "unitTest");
+			at = getMockAccessToken();
 			
 			templateLoader = new ITemplateLoader() {
 				@Override
@@ -66,12 +73,6 @@ public class ErrorMailerTest {
 			return templateLoader;
 		}
 		
-		protected AccessToken getMockAccessToken(){
-			at.setDomain(ToolBox.getDefaultObmDomain());
-			at.setEmail("adrien@test.tlse.lng");
-			return at;
-		}
-
 		protected MailService defineMailServiceExpectations(
 				List<InternetAddress> expectedRecipients,
 				Capture<MimeMessage> capturedMessage) throws MessagingException {
@@ -105,9 +106,8 @@ public class ErrorMailerTest {
 
 
 		protected void test() throws UnsupportedEncodingException, IOException, MessagingException {
-
 			ConstantService constantService = EasyMock.createMock(ConstantService.class);
-			EasyMock.expect(constantService.getObmSyncMailer(getMockAccessToken())).andReturn("x-obm-sync@test.tlse.lng").once();
+			EasyMock.expect(constantService.getObmSyncMailer(at)).andReturn("x-obm-sync@test.tlse.lng").once();
 			EasyMock.expect(constantService.getResourceBundle(Locale.FRENCH)).andReturn(
 					ResourceBundle.getBundle("Messages", Locale.FRENCH));
 			Capture<MimeMessage> capturedMessage = new Capture<MimeMessage>();
@@ -157,7 +157,7 @@ public class ErrorMailerTest {
 
 		@Override
 		protected void executeProcess(ErrorMailer errorMailer) {
-			errorMailer.notifyConnectorVersionError(getMockAccessToken(), "1.1.1", Locale.FRENCH, TIMEZONE);
+			errorMailer.notifyConnectorVersionError(at, "1.1.1", Locale.FRENCH, TIMEZONE);
 		}
 		
 		@Test
@@ -188,5 +188,49 @@ public class ErrorMailerTest {
 		}
 
 	}
+	
+	public static class Expire {
+		
+		@Test
+		public void testExpireAfterWrite() throws MessagingException {
+			AccessToken at = getMockAccessToken();
+			ConstantService constantService = EasyMock.createMock(ConstantService.class);
+			EasyMock.expect(constantService.getObmSyncMailer(at)).andReturn("x-obm-sync@test.tlse.lng").once();
+			EasyMock.expect(constantService.getResourceBundle(Locale.FRENCH)).andReturn(
+					ResourceBundle.getBundle("Messages", Locale.FRENCH));
+			Capture<MimeMessage> capturedMessage = new Capture<MimeMessage>();
+			EasyMock.replay(constantService);
+			List<InternetAddress> expectedRecipients = ImmutableList.of(new InternetAddress("adrien@test.tlse.lng"));
+			
+			MailService mailService = EasyMock.createMock(MailService.class);
+			mailService.sendMessage(
+					EasyMock.anyObject(Session.class),
+					EventChangeHandlerTestsTools.compareCollections(expectedRecipients), 
+					EasyMock.capture(capturedMessage));
+			EasyMock.expectLastCall();
+			EasyMock.replay(mailService);
+
+			ITemplateLoader templateLoader = new ITemplateLoader() {
+				@Override
+				public Template getTemplate(String templateName, Locale locale, TimeZone timezone)
+						throws IOException {
+					Configuration cfg = new Configuration();
+					cfg.setClassForTemplateLoading(getClass(), "template");
+					return cfg.getTemplate(templateName, locale);
+				}
+			};
+			
+			ErrorMailer errorMailer = new ErrorMailer(mailService, constantService, templateLoader);
+			
+			errorMailer.notifyConnectorVersionError(at, "1.1.1", Locale.FRENCH, TIMEZONE);
+			errorMailer.notifyConnectorVersionError(at, "1.1.1", Locale.FRENCH, TIMEZONE);
+
+			EasyMock.verify(mailService, constantService);
+			
+
+		}
+		
+	}
+	
 
 }
