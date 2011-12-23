@@ -44,4 +44,28 @@ public class Messages {
 				Strings.nullToEmpty(cc), 
 				Strings.nullToEmpty(bcc));
 	}
+	
+	public String mailNotSynchronizableWithHeadersFrom(String noReplyMailDomain) {
+		return getString("MailNotSynchronizableWithHeadersFrom", noReplyMailDomain);
+	}
+	
+	public String mailNotSynchronizableWithHeadersSubject(String originalSubject) {
+		return getString("MailNotSynchronizableWithHeadersSubject", originalSubject);
+	}
+	
+	public String mailNotSynchronizableWithHeadersBody(String originalFrom, String errorMessage) {
+		return getString("MailNotSynchronizableWithHeadersBody", originalFrom, errorMessage);
+	}
+	
+	public String mailNotSynchronizableFrom(String noReplyMailDomain) {
+		return getString("MailNotSynchronizableFrom", noReplyMailDomain);
+	}
+	
+	public String mailNotSynchronizableSubject() {
+		return getString("MailNotSynchronizableSubject");
+	}
+	
+	public String mailNotSynchronizableBody(String errorMessage) {
+		return getString("MailNotSynchronizableBody", errorMessage);
+	}
 }
