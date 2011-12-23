@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.columba.ristretto.message.Address;
+import org.minig.imap.Envelope;
 import org.minig.imap.FastFetch;
 import org.minig.imap.Flag;
 import org.minig.imap.FlagsList;
@@ -47,6 +48,7 @@ import org.obm.push.bean.SyncState;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.SendEmailException;
 import org.obm.push.exception.SmtpInvalidRcptException;
+import org.obm.push.exception.UnfetchableMailException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.exception.activesync.StoreEmailException;
 import org.obm.push.mail.smtp.SmtpSender;
@@ -77,16 +79,19 @@ public class EmailManager implements IEmailManager {
 	private final EmailSync emailSync;
 	private final EventService eventService;
 	private final LoginService login;
+	private final MSEmailDiagnostic.Factory diagnosticMSEmailFactory;
 	private final boolean activateTLS;
 	private final boolean loginWithDomain;
 
 	private final ImapClientProvider imapClientProvider;
+
 	
 	@Inject
 	/*package*/ EmailManager(EmailDao emailDao, EmailConfiguration emailConfiguration, 
 			SmtpSender smtpSender, EmailSync emailSync,
 			EventService eventService, LoginService login,
-			ImapClientProvider imapClientProvider) {
+			ImapClientProvider imapClientProvider,
+			MSEmailDiagnostic.Factory diagnosticMSEmailFactory) {
 		
 		this.emailSync = emailSync;
 		this.smtpProvider = smtpSender;
@@ -94,6 +99,7 @@ public class EmailManager implements IEmailManager {
 		this.eventService = eventService;
 		this.login = login;
 		this.imapClientProvider = imapClientProvider;
+		this.diagnosticMSEmailFactory = diagnosticMSEmailFactory;
 		this.activateTLS = emailConfiguration.activateTls();
 		this.loginWithDomain = emailConfiguration.loginWithDomain();
 	}
@@ -125,7 +131,7 @@ public class EmailManager implements IEmailManager {
 			final MailMessageLoader mailLoader = 
 					new MailMessageLoader(store, calendarClient, eventService, login);
 			for (final Long uid: uids) {
-				final MSEmail email = mailLoader.fetch(collectionId, uid, bs);
+				MSEmail email = tryToFetchMail(bs, collectionId, mailLoader, uid);
 				if (email != null) {
 					mails.add(email);
 				}
@@ -136,6 +142,18 @@ public class EmailManager implements IEmailManager {
 		return mails;
 	}
 
+	private MSEmail tryToFetchMail(BackendSession bs, Integer collectionId, final MailMessageLoader mailLoader, final Long uid) {
+		try {
+			return mailLoader.fetch(collectionId, uid, bs);
+		} catch (UnfetchableMailException e) {
+			return makeErrorMailDiagnostic(e.getFetchingEnvelope(), bs.getUser().getDomain(), e.getLocalizedMessage());
+		}
+	}
+	
+	private MSEmail makeErrorMailDiagnostic(Envelope originalEnvelope, String serverDomain, String diagnosticMessage) {
+		return diagnosticMSEmailFactory.buildDiagnosticMSEmail(originalEnvelope, serverDomain, diagnosticMessage);
+	}
+	
 	private ListResult listAllFolder(StoreClient store) {
 		return store.listAll();
 	}

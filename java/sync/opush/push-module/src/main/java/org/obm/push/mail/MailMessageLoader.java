@@ -55,6 +55,7 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MessageClass;
 import org.obm.push.bean.MethodAttachment;
+import org.obm.push.exception.UnfetchableMailException;
 import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.service.EventService;
 import org.obm.push.utils.FileUtils;
@@ -90,8 +91,9 @@ public class MailMessageLoader {
 		this.login = login;
 	}
 
-	public MSEmail fetch(final Integer collectionId, final long messageId, final BackendSession bs) {
+	public MSEmail fetch(final Integer collectionId, final long messageId, final BackendSession bs) throws UnfetchableMailException {
 		MSEmail msEmail = null;
+		Envelope toFetchEnvelope = null;
 		try {
 			
 			final List<Long> messageIdAsList = Arrays.asList(messageId);
@@ -99,6 +101,7 @@ public class MailMessageLoader {
 			if (envelopes.size() != 1 || envelopes.iterator().next() == null) {
 				return null;
 			}
+			toFetchEnvelope = envelopes.iterator().next();
 			
 			final MimeMessage mimeMessage = getFirstMimeMessage(messageIdAsList);
 			if (mimeMessage != null) {
@@ -109,18 +112,20 @@ public class MailMessageLoader {
 				msEmail = convertMailMessageToMSEmail(message, bs, mimeMessage.getUid(), collectionId, messageId);
 				setMsEmailFlags(msEmail, messageIdAsList);
 				fetchMimeData(msEmail, messageId);
-				msEmail.setSmtpId(envelopes.iterator().next().getMessageId());
+				msEmail.setSmtpId(toFetchEnvelope.getMessageId());
+			} else {
+				throw new UnfetchableMailException(toFetchEnvelope, "This email cannot be fetched into opush, mimeMessage has not been found");
 			}
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
-			return null;
+			throw new UnfetchableMailException(toFetchEnvelope, "This email cannot be fetched into opush", e);
 		} catch (StoreException e) {
 			logger.error(e.getMessage(), e);
-			return null;
+			throw new UnfetchableMailException(toFetchEnvelope, "This email cannot be fetched into opush", e);
 		}
 		return msEmail;
 	}
-
+	
 	private MimeMessage getFirstMimeMessage(final List<Long> messageIdAsList) {
 		final Collection<MimeMessage> mts = storeClient.uidFetchBodyStructure(messageIdAsList);
 		final MimeMessage tree = Iterables.getFirst(mts, null);
@@ -289,7 +294,7 @@ public class MailMessageLoader {
 		}		
 		return emailBody;
 	}
-	
+
 	private byte[] extractPartData(final IMimePart mp, final InputStream bodyText, final long messageId) throws IOException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		FileUtils.transfer(bodyText, out, true);

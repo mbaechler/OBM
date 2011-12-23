@@ -38,7 +38,7 @@ public class EmailManagerTest {
 		
 		EmailManager emailManager = 
 				new EmailManager(null, emailConfiguration, smtpSender, 
-						null, null, null, null);
+						null, null, null, null, null);
 
 		emailManager.sendEmail(backendSession,
 				new Address("test@test.fr"),
