@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
@@ -36,6 +37,7 @@ import org.minig.imap.Envelope;
 import org.minig.imap.Flag;
 import org.minig.imap.FlagsList;
 import org.minig.imap.StoreClient;
+import org.minig.imap.command.ImapReturn;
 import org.minig.imap.mime.IMimePart;
 import org.minig.imap.mime.MimeMessage;
 import org.minig.mime.QuotedPrintableDecoderInputStream;
@@ -55,6 +57,7 @@ import org.obm.push.bean.MSEmailBodyType;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MessageClass;
 import org.obm.push.bean.MethodAttachment;
+import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnfetchableMailException;
 import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.service.EventService;
@@ -92,78 +95,76 @@ public class MailMessageLoader {
 	}
 
 	public MSEmail fetch(final Integer collectionId, final long messageId, final BackendSession bs) throws UnfetchableMailException {
-		MSEmail msEmail = null;
-		Envelope toFetchEnvelope = null;
 		try {
-			
 			final List<Long> messageIdAsList = Arrays.asList(messageId);
-			final Collection<Envelope> envelopes = storeClient.uidFetchEnvelope(messageIdAsList);
-			if (envelopes.size() != 1 || envelopes.iterator().next() == null) {
-				return null;
-			}
-			toFetchEnvelope = envelopes.iterator().next();
-			
+			final Collection<ImapReturn<Envelope>> envelopes = storeClient.uidFetchEnvelope(messageIdAsList);
+			Envelope toFetchEnvelope = getImapReturnValue(envelopes);
+
 			final MimeMessage mimeMessage = getFirstMimeMessage(messageIdAsList);
-			if (mimeMessage != null) {
-				final MessageFetcherImpl messageFetcherImpl = new MessageFetcherImpl(storeClient);
-				final MessageLoader helper = new MessageLoader(messageFetcherImpl, htmlMimeSubtypePriority, false, mimeMessage);
-				final MailMessage message = helper.fetch();
-				
-				msEmail = convertMailMessageToMSEmail(message, bs, mimeMessage.getUid(), collectionId, messageId);
-				setMsEmailFlags(msEmail, messageIdAsList);
-				fetchMimeData(msEmail, messageId);
-				msEmail.setSmtpId(toFetchEnvelope.getMessageId());
-			} else {
-				throw new UnfetchableMailException(toFetchEnvelope, "This email cannot be fetched into opush, mimeMessage has not been found");
-			}
+			final MessageFetcherImpl messageFetcherImpl = new MessageFetcherImpl(storeClient);
+			final MessageLoader helper = new MessageLoader(messageFetcherImpl, htmlMimeSubtypePriority, false, mimeMessage);
+			MailMessage message = helper.fetch();
+			MSEmail msEmail = convertMailMessageToMSEmail(message, bs, mimeMessage.getUid(), collectionId, messageId);
+			setMsEmailFlags(msEmail, messageIdAsList);
+			fetchMimeData(msEmail, messageId);
+			msEmail.setSmtpId(toFetchEnvelope.getMessageId());
+			return msEmail;
 		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-			throw new UnfetchableMailException(toFetchEnvelope, "This email cannot be fetched into opush", e);
+			throw new UnfetchableMailException(e);
 		} catch (StoreException e) {
-			logger.error(e.getMessage(), e);
-			throw new UnfetchableMailException(toFetchEnvelope, "This email cannot be fetched into opush", e);
+			throw new UnfetchableMailException(e);
+		} catch (DaoException e) {
+			throw new UnfetchableMailException(e);
+		} catch (MimeException e) {
+			throw new UnfetchableMailException(e);
 		}
-		return msEmail;
 	}
 	
-	private MimeMessage getFirstMimeMessage(final List<Long> messageIdAsList) {
-		final Collection<MimeMessage> mts = storeClient.uidFetchBodyStructure(messageIdAsList);
-		final MimeMessage tree = Iterables.getFirst(mts, null);
+	private <T> T getImapReturnValue(Collection<ImapReturn<T>> elements) throws UnfetchableMailException {
+		try {
+			ImapReturn<T> element = Iterables.getOnlyElement(elements);
+			if (element.isError()) {
+				throw element.getError().getCause();
+			}
+			return element.getValue();
+		} catch (IllegalArgumentException e) {
+			throw new UnfetchableMailException(e);
+		} catch (NoSuchElementException e) {
+			throw new UnfetchableMailException(e);
+		} catch (Exception e) {
+			throw new UnfetchableMailException(e);
+		}
+	}
+	
+	private MimeMessage getFirstMimeMessage(final List<Long> messageIdAsList) throws UnfetchableMailException {
+		final Collection<ImapReturn<MimeMessage>> mts = storeClient.uidFetchBodyStructure(messageIdAsList);
+		final MimeMessage tree = getImapReturnValue(mts);
 		return tree;
 	}
 	
-	private void setMsEmailFlags(final MSEmail msEmail, final List<Long> messageIdAsList) {
-		final Collection<FlagsList> fl = storeClient.uidFetchFlags(messageIdAsList);
-		if (!fl.isEmpty()) {
-			final FlagsList fl0 = fl.iterator().next();
-			msEmail.setRead(fl0.contains(Flag.SEEN));
-			msEmail.setStarred(fl0.contains(Flag.FLAGGED));
-			msEmail.setAnswered(fl0.contains(Flag.ANSWERED));
-		}
+	private void setMsEmailFlags(final MSEmail msEmail, final List<Long> messageIdAsList) throws UnfetchableMailException {
+		final Collection<ImapReturn<FlagsList>> fl = storeClient.uidFetchFlags(messageIdAsList);
+		FlagsList flags = getImapReturnValue(fl);
+		msEmail.setRead(flags.contains(Flag.SEEN));
+		msEmail.setStarred(flags.contains(Flag.FLAGGED));
+		msEmail.setAnswered(flags.contains(Flag.ANSWERED));
 	}
 	
-	private void fetchMimeData(final MSEmail mm, final long messageId) {
-		try {
-			final InputStream mimeData = storeClient.uidFetchMessage(messageId);
+	private void fetchMimeData(final MSEmail mm, final long messageId) throws MimeException, IOException {
+		final InputStream mimeData = storeClient.uidFetchMessage(messageId);
 
-			final SendEmailHandler handler = new SendEmailHandler("");
-			final MimeEntityConfig config = new MimeEntityConfig();
-			config.setMaxContentLen(Integer.MAX_VALUE);
-			config.setMaxLineLen(Integer.MAX_VALUE);
-			final MimeStreamParser parser = new MimeStreamParser(config);
-			parser.setContentHandler(handler);
-			parser.parse(mimeData);
-
-			mm.setMimeData(handler.getMessage());
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-		} catch (MimeException e) {
-			logger.error(e.getMessage(), e);
-		}
+		final SendEmailHandler handler = new SendEmailHandler("");
+		final MimeEntityConfig config = new MimeEntityConfig();
+		config.setMaxContentLen(Integer.MAX_VALUE);
+		config.setMaxLineLen(Integer.MAX_VALUE);
+		final MimeStreamParser parser = new MimeStreamParser(config);
+		parser.setContentHandler(handler);
+		parser.parse(mimeData);
+		mm.setMimeData(handler.getMessage());
 	}
 
 	private MSEmail convertMailMessageToMSEmail(final MailMessage mailMessage, final BackendSession bs, 
-			final long uid, final Integer collectionId, long messageId) {
+			final long uid, final Integer collectionId, long messageId) throws IOException, DaoException, UnfetchableMailException {
 		
 		final MSEmail msEmail = new MSEmail();
 		msEmail.setSubject(mailMessage.getSubject());
@@ -187,18 +188,14 @@ public class MailMessageLoader {
 	}
 
 	private void setInvitation(final MSEmail msEmail, final BackendSession bs, final MailMessageInvitation mailMessageInvitation, 
-			final long uid, final long messageId) {			
+			final long uid, final long messageId) throws IOException, DaoException, UnfetchableMailException {			
 		final IMimePart mimePart = mailMessageInvitation.getPart();
-		try {	
-			final InputStream inputStreamInvitation = extractInputStreamInvitation(mimePart, uid, messageId);
-			final MSEvent event = getInvitation(bs, inputStreamInvitation);
-			if (mimePart.isInvitation()) {
-				msEmail.setInvitation(event, MessageClass.ScheduleMeetingRequest);
-			} else if (mimePart.isCancelInvitation()) {
-				msEmail.setInvitation(event, MessageClass.ScheduleMeetingCanceled);
-			}
-		} catch (IOException e) {
-			logger.error(e.getMessage());
+		final InputStream inputStreamInvitation = extractInputStreamInvitation(mimePart, uid, messageId);
+		final MSEvent event = getInvitation(bs, inputStreamInvitation);
+		if (mimePart.isInvitation()) {
+			msEmail.setInvitation(event, MessageClass.ScheduleMeetingRequest);
+		} else if (mimePart.isCancelInvitation()) {
+			msEmail.setInvitation(event, MessageClass.ScheduleMeetingCanceled);
 		}
 	}
 	
@@ -212,28 +209,30 @@ public class MailMessageLoader {
 		return null;
 	}
 	
-	private MSEvent getInvitation(BackendSession bs, InputStream invitation) throws IOException {
+	private MSEvent getInvitation(BackendSession bs, InputStream invitation) throws IOException, DaoException, UnfetchableMailException {
 		final String ics = FileUtils.streamString(invitation, true);
 		if (ics != null && !"".equals(ics) && ics.startsWith("BEGIN")) {
+			List<Event> obmEvents = null; 
+
 			final AccessToken at = login.login(bs.getUser().getLoginAtDomain(),
 					bs.getPassword(), ObmSyncBackend.OBM_SYNC_ORIGIN);
 			try {
-				final List<Event> obmEvents = calendarClient.parseICS(at, ics);
-				if (obmEvents.size() > 0) {
-					final Event icsEvent = obmEvents.get(0);
-					return eventService.convertEventToMSEvent(bs, icsEvent);
-				}
-			} catch (Throwable e) {
-				logger.error(e.getMessage() + ", ics was:\n" + ics, e);
+				obmEvents = calendarClient.parseICS(at, ics);
+			} catch (Exception e) {
+				throw new UnfetchableMailException(e);
 			} finally {
 				login.logout(at);
+			}
+			if (obmEvents.size() > 0) {
+				final Event icsEvent = obmEvents.get(0);
+				return eventService.convertEventToMSEvent(bs, icsEvent);
 			}
 		}
 		return null;
 	}
 
 	private Set<MSAttachement> convertMailMessageAttachmentToMSAttachment(MailMessage mailMessage, long uid, 
-			Integer collectionId, long messageId) {
+			Integer collectionId, long messageId) throws IOException {
 		
 		Set<MSAttachement> msAttachements = new HashSet<MSAttachement>();
 		for (MailMessageAttachment mailMessageAttachment: mailMessage.getAttachments()) {			
@@ -261,7 +260,8 @@ public class MailMessageLoader {
 	}
 	
 	private Set<MSEmail> convertAllMailMessageToMSEmail(final Set<MailMessage> set, final BackendSession bs, 
-			final long uid, final Integer collectionId, final long messageId) {
+			final long uid, final Integer collectionId, final long messageId) 
+					throws IOException, DaoException, UnfetchableMailException {
 		final Set<MSEmail> msEmails = new HashSet<MSEmail>();
 		for (final MailMessage mailMessage: set) {
 			msEmails.add(convertMailMessageToMSEmail(mailMessage, bs, uid, collectionId, messageId));
@@ -317,33 +317,29 @@ public class MailMessageLoader {
 	}
 	
 	private MSAttachement extractAttachmentData(final IMimePart mp, final long uid, 
-			final Integer collectionId, final long messageId) {
-		try {
+			final Integer collectionId, final long messageId) throws IOException {
 			
-			if (mp.getName() != null || mp.getContentId() != null) {
-				byte[] data = null;
-				final InputStream part = storeClient.uidFetchPart(uid, mp.getAddress().toString());
-				data = extractPartData(mp, part, messageId);
-				
-				final String id = AttachmentHelper.getAttachmentId(collectionId.toString(), String.valueOf(messageId), 
-						mp.getAddress().toString(), mp.getFullMimeType(), mp.getContentTransfertEncoding());
-				
-				String name = mp.getName();
-				if (name == null) {
-					name = mp.getContentId();
-				}
-				
-				MSAttachement att = new MSAttachement();
-				att.setFileReference(id);
-				att.setMethod(MethodAttachment.NormalAttachment);
-				att.setEstimatedDataSize(data.length);
-				att.setDisplayName(name);
-				return att;
-			}			
-			
-		} catch (Exception e) {
-			logger.error("Error extract attachment["+uid+"]");
-		}
+		if (mp.getName() != null || mp.getContentId() != null) {
+			byte[] data = null;
+			final InputStream part = storeClient.uidFetchPart(uid, mp.getAddress().toString());
+			data = extractPartData(mp, part, messageId);
+
+			final String id = AttachmentHelper.getAttachmentId(collectionId.toString(), String.valueOf(messageId), 
+					mp.getAddress().toString(), mp.getFullMimeType(), mp.getContentTransfertEncoding());
+
+			String name = mp.getName();
+			if (name == null) {
+				name = mp.getContentId();
+			}
+
+			MSAttachement att = new MSAttachement();
+			att.setFileReference(id);
+			att.setMethod(MethodAttachment.NormalAttachment);
+			att.setEstimatedDataSize(data.length);
+			att.setDisplayName(name);
+			return att;
+		}			
+
 		return null;
 	}
 	

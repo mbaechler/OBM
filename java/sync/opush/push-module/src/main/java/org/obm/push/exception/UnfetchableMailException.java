@@ -4,7 +4,7 @@ import org.minig.imap.Envelope;
 
 public class UnfetchableMailException extends Exception {
 
-	private final Envelope fetchingEnvelope;
+	private Envelope fetchingEnvelope;
 
 	public UnfetchableMailException(Envelope fetchingEnvelope, String msg) {
 		super(msg);
@@ -16,12 +16,12 @@ public class UnfetchableMailException extends Exception {
 		this.fetchingEnvelope = fetchingEnvelope;
 	}
 
+	public UnfetchableMailException(Throwable cause) {
+		super(cause);
+	}
+
 	public Envelope getFetchingEnvelope() {
 		return fetchingEnvelope;
 	}
 
-	@Override
-	public String getLocalizedMessage() {
-		return getMessage() + " : " + getCause().getMessage();
-	}
 }

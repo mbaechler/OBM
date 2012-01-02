@@ -24,6 +24,7 @@ import java.util.Set;
 import org.minig.imap.FastFetch;
 import org.minig.imap.SearchQuery;
 import org.minig.imap.StoreClient;
+import org.minig.imap.command.ImapReturn;
 import org.obm.push.bean.Email;
 import org.obm.push.bean.SyncState;
 import org.obm.push.exception.DaoException;
@@ -31,7 +32,9 @@ import org.obm.push.store.EmailDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -80,8 +83,25 @@ public class EmailSync implements IEmailSync {
 
 	private Set<Email> getImapEmails(StoreClient imapStore, Date windows) {
 		Collection<Long> uids = imapStore.uidSearch(new SearchQuery(null, windows));
-		Collection<FastFetch> mails = imapStore.uidFetchFast(uids);
-		return EmailFactory.listEmailFromFastFetch(mails);
+		Collection<ImapReturn<FastFetch>> mails = imapStore.uidFetchFast(uids);
+		return listEmailFromFastFetch(mails);
 	}
 
+	public static Set<Email> listEmailFromFastFetch(Collection<ImapReturn<FastFetch>> mails) {
+		Builder<Email> builder = ImmutableSet.builder();
+		for (ImapReturn<FastFetch> fastFetch: mails) {
+			if (fastFetch.isError()) {
+				logger.error("message information can't be fetch", fastFetch.getError());
+			} else {
+				builder.add( getEmailFromFastFetch(fastFetch.getValue()) );
+			}
+		}
+		return builder.build();
+	}
+
+	public static Email getEmailFromFastFetch(FastFetch fastFetch) {
+		return new Email(fastFetch.getUid(), fastFetch.isRead(), fastFetch.getInternalDate());
+	}
+
+	
 }

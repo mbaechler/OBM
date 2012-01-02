@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.columba.ristretto.message.Address;
-import org.minig.imap.Envelope;
 import org.minig.imap.FastFetch;
 import org.minig.imap.Flag;
 import org.minig.imap.FlagsList;
@@ -39,6 +38,7 @@ import org.minig.imap.ListInfo;
 import org.minig.imap.ListResult;
 import org.minig.imap.SearchQuery;
 import org.minig.imap.StoreClient;
+import org.minig.imap.command.ImapReturn;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.locator.LocatorClientException;
 import org.obm.push.bean.BackendSession;
@@ -48,9 +48,9 @@ import org.obm.push.bean.SyncState;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.SendEmailException;
 import org.obm.push.exception.SmtpInvalidRcptException;
-import org.obm.push.exception.UnfetchableMailException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.exception.activesync.StoreEmailException;
+import org.obm.push.mail.MSEmailDiagnostic.Factory;
 import org.obm.push.mail.smtp.SmtpSender;
 import org.obm.push.service.EventService;
 import org.obm.push.store.EmailDao;
@@ -62,8 +62,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -79,10 +79,9 @@ public class EmailManager implements IEmailManager {
 	private final EmailSync emailSync;
 	private final EventService eventService;
 	private final LoginService login;
-	private final MSEmailDiagnostic.Factory diagnosticMSEmailFactory;
 	private final boolean activateTLS;
-
 	private final ImapClientProvider imapClientProvider;
+	private final Factory diagnosticMSEmailFactory;
 
 	
 	@Inject
@@ -126,10 +125,12 @@ public class EmailManager implements IEmailManager {
 			login(store);
 			store.select(parseMailBoxName(store, collectionName));
 			
-			final MailMessageLoader mailLoader = 
-					new MailMessageLoader(store, calendarClient, eventService, login);
+			final MessageLoader mailLoader = 
+					new MessageLoader(diagnosticMSEmailFactory,
+							store, calendarClient, eventService, login);
+			
 			for (final Long uid: uids) {
-				MSEmail email = tryToFetchMail(bs, collectionId, mailLoader, uid);
+				MSEmail email = mailLoader.fetch(collectionId, uid, bs);
 				if (email != null) {
 					mails.add(email);
 				}
@@ -138,18 +139,6 @@ public class EmailManager implements IEmailManager {
 			store.logout();
 		}
 		return mails;
-	}
-
-	private MSEmail tryToFetchMail(BackendSession bs, Integer collectionId, final MailMessageLoader mailLoader, final Long uid) {
-		try {
-			return mailLoader.fetch(collectionId, uid, bs);
-		} catch (UnfetchableMailException e) {
-			return makeErrorMailDiagnostic(e.getFetchingEnvelope(), bs.getUser().getDomain(), e.getLocalizedMessage());
-		}
-	}
-	
-	private MSEmail makeErrorMailDiagnostic(Envelope originalEnvelope, String serverDomain, String diagnosticMessage) {
-		return diagnosticMSEmailFactory.buildDiagnosticMSEmail(originalEnvelope, serverDomain, diagnosticMessage);
 	}
 	
 	private ListResult listAllFolder(StoreClient store) {
@@ -225,14 +214,14 @@ public class EmailManager implements IEmailManager {
 			Long uid) throws IMAPException, DaoException, LocatorClientException {
 		
 		StoreClient store = imapClientProvider.getImapClient(bs);
-		Collection<Long> newUid = null;
+		Collection<ImapReturn<Long>> newUids = null;
 		try {
 			login(store);
 			String srcMailBox = parseMailBoxName(store, srcFolder);
 			String dstMailBox = parseMailBoxName(store, dstFolder);
 			store.select(srcMailBox);
 			List<Long> uids = Arrays.asList(uid);
-			newUid = store.uidCopy(uids, dstMailBox);
+			newUids = store.uidCopy(uids, dstMailBox);
 			FlagsList fl = new FlagsList();
 			fl.add(Flag.DELETED);
 			logger.info("delete conv id = ", uid);
@@ -243,10 +232,15 @@ public class EmailManager implements IEmailManager {
 		} finally {
 			store.logout();
 		}
-		if (newUid == null || newUid.isEmpty()) {
+		if (newUids == null || newUids.isEmpty()) {
 			return null;
 		}
-		return newUid.iterator().next();
+		ImapReturn<Long> newUid = newUids.iterator().next();
+		if (newUid.isError()) {
+			logger.error("Message copy failed", newUid.getError().getCause());
+			return null;
+		}
+		return newUid.getValue();
 	}
 
 	@Override
@@ -457,16 +451,16 @@ public class EmailManager implements IEmailManager {
 		}
 	}
 
-	private void addMessageInCache(StoreClient store, Integer devId, Integer collectionId, Long mailUids) throws DaoException {
-		Collection<FastFetch> fetch = store.uidFetchFast(ImmutableSet.of(mailUids));
-		Collection<Email> emails = Collections2.transform(fetch, new Function<FastFetch, Email>() {
-					@Override
-					public Email apply(FastFetch input) {
-						return new Email(input.getUid(), input.isRead(), input.getInternalDate());
-					}
-				});
+	private void addMessageInCache(StoreClient store, Integer devId, Integer collectionId, Long mailUids) throws DaoException, IMAPException {
+		Collection<ImapReturn<FastFetch>> elements = store.uidFetchFast(ImmutableSet.of(mailUids));
+		ImapReturn<FastFetch> element = Iterables.getOnlyElement(elements);
+		if (element.isError()) {
+			throw new IMAPException(element.getError().getCause());
+		}
+		FastFetch input = element.getValue();
+		Email email = new Email(input.getUid(), input.isRead(), input.getInternalDate());
 		try {
-			markEmailsAsSynced(devId, collectionId, emails);
+			markEmailsAsSynced(devId, collectionId, Arrays.asList(email));
 		} catch (DaoException e) {
 			throw new DaoException("Error while adding messages in db", e);
 		}
