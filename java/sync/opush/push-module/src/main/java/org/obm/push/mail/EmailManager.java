@@ -472,11 +472,11 @@ public class EmailManager implements IEmailManager {
 		}
 	}
 
-	public void markEmailsAsSynced(Integer devId, Integer collectionId, Collection<Email> messages) throws DaoException {
+	private void markEmailsAsSynced(Integer devId, Integer collectionId, Collection<Email> messages) throws DaoException {
 		markEmailsAsSynced(devId, collectionId, DateUtils.getCurrentDate(), messages);
 	}
 
-	public void markEmailsAsSynced(Integer devId, Integer collectionId, Date lastSync, Collection<Email> emails) throws DaoException {
+	private void markEmailsAsSynced(Integer devId, Integer collectionId, Date lastSync, Collection<Email> emails) throws DaoException {
 		Set<Email> allEmailsToMark = Sets.newHashSet(emails);
 		Set<Email> alreadySyncedEmails = emailDao.alreadySyncedEmails(collectionId, devId, emails);
 		Set<Email> modifiedEmails = findModifiedEmails(allEmailsToMark, alreadySyncedEmails);
