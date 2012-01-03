@@ -81,7 +81,6 @@ public class EmailManager implements IEmailManager {
 	private final LoginService login;
 	private final MSEmailDiagnostic.Factory diagnosticMSEmailFactory;
 	private final boolean activateTLS;
-	private final boolean loginWithDomain;
 
 	private final ImapClientProvider imapClientProvider;
 
@@ -101,7 +100,6 @@ public class EmailManager implements IEmailManager {
 		this.imapClientProvider = imapClientProvider;
 		this.diagnosticMSEmailFactory = diagnosticMSEmailFactory;
 		this.activateTLS = emailConfiguration.activateTls();
-		this.loginWithDomain = emailConfiguration.loginWithDomain();
 	}
 
 	@Override
@@ -519,11 +517,6 @@ public class EmailManager implements IEmailManager {
 		});
 	}
 	
-	@Override
-	public boolean getLoginWithDomain() {
-		return loginWithDomain;
-	}
-
 	@Override
 	public boolean getActivateTLS() {
 		return activateTLS;

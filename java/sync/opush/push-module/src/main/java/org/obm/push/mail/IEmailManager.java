@@ -51,8 +51,6 @@ public interface IEmailManager {
 
 	Long storeInInbox(BackendSession bs, InputStream mailContent, boolean isRead) throws StoreEmailException, LocatorClientException;
 
-	boolean getLoginWithDomain();
-
 	boolean getActivateTLS();
 	
 	void updateData(Integer devId, Integer collectionId, Date lastSync, Collection<Long> removedEmailsIds, Collection<Email> updated)
