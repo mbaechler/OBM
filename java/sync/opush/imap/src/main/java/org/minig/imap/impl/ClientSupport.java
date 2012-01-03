@@ -28,9 +28,9 @@ import java.util.concurrent.Semaphore;
 import javax.net.ssl.SSLException;
 
 import org.apache.mina.common.ConnectFuture;
+import org.apache.mina.common.IoConnector;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.minig.imap.Envelope;
 import org.minig.imap.FastFetch;
 import org.minig.imap.FlagsList;
@@ -105,12 +105,12 @@ public class ClientSupport {
 	}
 
 	public boolean login(String login, String password,
-			SocketConnector connector, SocketAddress address) {
+			IoConnector connector, SocketAddress address) {
 		return this.login(login, password, connector, address, true);
 	}
 
 	public boolean login(String login, String password,
-			SocketConnector connector, SocketAddress address,
+			IoConnector connector, SocketAddress address,
 			Boolean activateTLS) {
 		if (session != null && session.isConnected()) {
 			throw new IllegalStateException(
