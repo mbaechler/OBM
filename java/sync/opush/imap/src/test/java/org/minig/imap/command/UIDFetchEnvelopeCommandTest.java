@@ -14,7 +14,7 @@ import com.google.common.collect.ImmutableList;
 public class UIDFetchEnvelopeCommandTest {
 
 	@Test
-	public void testMoreThanOneLine() {
+	public void testMoreThanOneLine() throws ImapException {
 		String firstLine = 
 			"* 20 FETCH (UID 20 ENVELOPE (\"Tue, 28 Apr 2009 17:10:03 +0200\" {43}";
 		String continuation =

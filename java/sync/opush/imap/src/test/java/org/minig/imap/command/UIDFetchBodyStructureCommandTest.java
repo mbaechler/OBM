@@ -29,7 +29,7 @@ public class UIDFetchBodyStructureCommandTest {
 
 	
 	@Test
-	public void testResponseReceived() {
+	public void testResponseReceived() throws ImapException {
 		BodyStructureParser resultCallback = EasyMock.createMock(BodyStructureParser.class);
 		Capture<String> result = new Capture<String>(CaptureType.FIRST);
 		EasyMock.expect(resultCallback.parseBodyStructure(EasyMock.capture(result))).andReturn(new MimeMessage(null));
