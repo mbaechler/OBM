@@ -17,13 +17,12 @@
 package org.minig.imap.command;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.minig.imap.impl.IMAPResponse;
 import org.minig.imap.impl.MessageSet;
 
-public class UIDCopyCommand extends Command<Collection<Long>> {
+public class UIDCopyCommand extends BatchCommand<Long> {
 
 	private Collection<Long> uids;
 	private String destMailbox;
@@ -49,22 +48,17 @@ public class UIDCopyCommand extends Command<Collection<Long>> {
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
-		IMAPResponse ok = rs.get(rs.size() - 1);
+	public void responseReceived(List<IMAPResponse> rs) throws ImapException {
+		IMAPResponse ok = checkStatusResponse(rs);
 
-		if (ok.isOk() && ok.getPayload().contains("[")) {
+		if (ok.getPayload().contains("[")) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("ok: " + ok.getPayload());
 			}
-			data = parseMessageSet(ok.getPayload());
+			data = wrapValues(parseMessageSet(ok.getPayload()));
 		} else {
-			if (ok.isOk()) {
-				logger.warn("cyrus did not send [COPYUID ...] token: "
-						+ ok.getPayload());
-			} else {
-				logger.error("error on uid copy: " + ok.getPayload());
-			}
-			data = Collections.emptyList();
+			throw new UnexpectedImapResponseException(
+					"cyrus did not send [COPYUID ...] token: " + ok.getPayload());
 		}
 	}
 

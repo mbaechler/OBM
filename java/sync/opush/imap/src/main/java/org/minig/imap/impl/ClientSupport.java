@@ -46,6 +46,7 @@ import org.minig.imap.command.CreateCommand;
 import org.minig.imap.command.DeleteCommand;
 import org.minig.imap.command.ExpungeCommand;
 import org.minig.imap.command.ICommand;
+import org.minig.imap.command.ImapReturn;
 import org.minig.imap.command.ListCommand;
 import org.minig.imap.command.LoginCommand;
 import org.minig.imap.command.LsubCommand;
@@ -274,32 +275,32 @@ public class ClientSupport {
 		return run(new UIDSearchCommand(sq));
 	}
 
-	public Collection<MimeMessage> uidFetchBodyStructure(Collection<Long> uid) {
+	public Collection<ImapReturn<MimeMessage>> uidFetchBodyStructure(Collection<Long> uid) {
 		return run(new UIDFetchBodyStructureCommand(new BodyStructureParser(), uid));
 	}
 
-	public Collection<IMAPHeaders> uidFetchHeaders(Collection<Long> uids,
+	public Collection<ImapReturn<IMAPHeaders>> uidFetchHeaders(Collection<Long> uids,
 			String[] headers) {
 		return run(new UIDFetchHeadersCommand(uids, headers));
 	}
 
-	public Collection<Envelope> uidFetchEnvelope(Collection<Long> uids) {
+	public Collection<ImapReturn<Envelope>> uidFetchEnvelope(Collection<Long> uids) {
 		return run(new UIDFetchEnvelopeCommand(uids));
 	}
 
-	public Collection<FlagsList> uidFetchFlags(Collection<Long> uids) {
+	public Collection<ImapReturn<FlagsList>> uidFetchFlags(Collection<Long> uids) {
 		return run(new UIDFetchFlagsCommand(uids));
 	}
 
-	public InternalDate[] uidFetchInternalDate(Collection<Long> uids) {
+	public Collection<ImapReturn<InternalDate>> uidFetchInternalDate(Collection<Long> uids) {
 		return run(new UIDFetchInternalDateCommand(uids));
 	}
 	
-	public Collection<FastFetch> uidFetchFast(Collection<Long> uids) {
+	public Collection<ImapReturn<FastFetch>> uidFetchFast(Collection<Long> uids) {
 		return run(new UIDFetchFastCommand(uids));
 	}
 
-	public Collection<Long> uidCopy(Collection<Long> uids, String destMailbox) {
+	public Collection<ImapReturn<Long>> uidCopy(Collection<Long> uids, String destMailbox) {
 		return run(new UIDCopyCommand(uids, destMailbox));
 	}
 

@@ -28,7 +28,7 @@ public interface ICommand<T> {
 	void execute(IoSession s, TagProducer tp, Semaphore lock,
 			List<IMAPResponse> lastResponses);
 
-	void responseReceived(List<IMAPResponse> rs);
+	void responseReceived(List<IMAPResponse> rs) throws ImapException;
 
 	T getReceivedData();
 

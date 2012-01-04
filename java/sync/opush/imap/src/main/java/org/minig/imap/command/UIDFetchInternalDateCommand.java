@@ -20,8 +20,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -29,7 +29,9 @@ import org.minig.imap.InternalDate;
 import org.minig.imap.impl.IMAPResponse;
 import org.minig.imap.impl.MessageSet;
 
-public class UIDFetchInternalDateCommand extends Command<InternalDate[]> {
+import com.google.common.collect.Lists;
+
+public class UIDFetchInternalDateCommand extends BatchCommand<InternalDate> {
 
 	private Collection<Long> uids;
 	DateFormat df;
@@ -52,67 +54,65 @@ public class UIDFetchInternalDateCommand extends Command<InternalDate[]> {
 			sb.append("NOOP");
 		}
 		String cmd = sb.toString();
-		if (logger.isDebugEnabled()) {
-			logger.debug("cmd: " + cmd);
-		}
+		logger.debug("cmd: {}", cmd);
 		CommandArgument args = new CommandArgument(cmd, null);
 		return args;
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
+	public void responseReceived(List<IMAPResponse> rs) throws UnexpectedImapErrorException {
 		if (uids.isEmpty()) {
-			data = new InternalDate[0];
+			data = Collections.emptyList();
 			return;
 		}
 		
-		IMAPResponse ok = rs.get(rs.size() - 1);
-		if (ok.isOk()) {
-			data = new InternalDate[rs.size() - 1];
-			Iterator<IMAPResponse> it = rs.iterator();
-			for (int i = 0; i < rs.size() - 1; i++) {
-				IMAPResponse r = it.next();
-				String payload = r.getPayload();
-
-				int fidx = payload.indexOf("INTERNALDATE \"") + "INTERNALDATE \"".length();
-				
-				if (fidx == -1 + "INTERNALDATE \"".length()) {
-					continue;
-				}
-				
-				int endDate = payload.indexOf("\"", fidx);
-				String internalDate = "";
-				if (fidx > 0 && endDate >= fidx) {
-					internalDate = payload.substring(fidx, endDate);
-				} else {
-					logger.error("Failed to get flags in fetch response: "
-							+ payload);
-				}
-
-				int uidIdx = payload.indexOf("UID ") + "UID ".length();
-				int endUid = uidIdx;
-				while (Character.isDigit(payload.charAt(endUid))) {
-					endUid++;
-				}
-				long uid = Long.parseLong(payload.substring(uidIdx, endUid));
-
-				// logger.info("payload: " + r.getPayload()+" uid: "+uid);
-
-				data[i] = new InternalDate(uid,parseDate(internalDate));
+		checkStatusResponse(rs);
+		List<ImapReturn<InternalDate>> tmp = Lists.newArrayListWithCapacity(rs.size());
+		for (IMAPResponse r: rs) {
+			try {
+				InternalDate internalDate = parseInternalDate(r);
+				tmp.add(value(internalDate));
+			} catch (RuntimeException e) {
+				tmp.add(error(e));
+			} catch (InternalDateParserException e) {
+				tmp.add(error(e));
 			}
-		} else {
-			logger.warn("error on fetch: " + ok.getPayload());
-			data = new InternalDate[0];
 		}
+		data = tmp;
 	}
 
-	private Date parseDate(String date) {
-		try {
-			return df .parse(date);
-		} catch (ParseException e) {
-			logger.error("Can't parse "+date);
+	private InternalDate parseInternalDate(IMAPResponse r) throws InternalDateParserException {
+		String payload = r.getPayload();
+		int fidx = payload.indexOf("INTERNALDATE \"") + "INTERNALDATE \"".length();
+		
+		if (fidx == -1 + "INTERNALDATE \"".length()) {
+			return null;
 		}
-		return new Date();
+		
+		int endDate = payload.indexOf("\"", fidx);
+		String internalDate = "";
+		if (fidx > 0 && endDate >= fidx) {
+			internalDate = payload.substring(fidx, endDate);
+		} else {
+			throw new InternalDateParserException("error parsing internaldate in response : " + payload);
+		}
+
+		int uidIdx = payload.indexOf("UID ") + "UID ".length();
+		int endUid = uidIdx;
+		while (Character.isDigit(payload.charAt(endUid))) {
+			endUid++;
+		}
+		long uid = Long.parseLong(payload.substring(uidIdx, endUid));
+
+		return new InternalDate(uid,parseDate(internalDate));
+	}
+	
+	private Date parseDate(String date) throws InternalDateParserException {
+		try {
+			return df.parse(date);
+		} catch (ParseException e) {
+			throw new InternalDateParserException("Failed to get parse date: " + date);
+		}
 	}
 
 }

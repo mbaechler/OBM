@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.mina.transport.socket.nio.SocketConnector;
+import org.minig.imap.command.ImapReturn;
 import org.minig.imap.impl.ClientHandler;
 import org.minig.imap.impl.ClientSupport;
 import org.minig.imap.impl.IResponseCallback;
@@ -181,31 +182,31 @@ public class StoreClient {
 		return cs.uidSearch(sq);
 	}
 
-	public Collection<MimeMessage> uidFetchBodyStructure(Collection<Long> uids) {
+	public Collection<ImapReturn<MimeMessage>> uidFetchBodyStructure(Collection<Long> uids) {
 		return cs.uidFetchBodyStructure(uids);
 	}
 
-	public Collection<IMAPHeaders> uidFetchHeaders(Collection<Long> uids, String[] headers) {
+	public Collection<ImapReturn<IMAPHeaders>> uidFetchHeaders(Collection<Long> uids, String[] headers) {
 		return cs.uidFetchHeaders(uids, headers);
 	}
 
-	public Collection<Envelope> uidFetchEnvelope(Collection<Long> uids) {
+	public Collection<ImapReturn<Envelope>> uidFetchEnvelope(Collection<Long> uids) {
 		return cs.uidFetchEnvelope(uids);
 	}
 
-	public Collection<FlagsList> uidFetchFlags(Collection<Long> uids) {
+	public Collection<ImapReturn<FlagsList>> uidFetchFlags(Collection<Long> uids) {
 		return cs.uidFetchFlags(uids);
 	}
 	
-	public InternalDate[] uidFetchInternalDate(Collection<Long> uids) {
+	public Collection<ImapReturn<InternalDate>> uidFetchInternalDate(Collection<Long> uids) {
 		return cs.uidFetchInternalDate(uids);
 	}
 	
-	public Collection<FastFetch> uidFetchFast(Collection<Long> uids) {
+	public Collection<ImapReturn<FastFetch>> uidFetchFast(Collection<Long> uids) {
 		return cs.uidFetchFast(uids);
 	}
 
-	public Collection<Long> uidCopy(Collection<Long> uids, String destMailbox) {
+	public Collection<ImapReturn<Long>> uidCopy(Collection<Long> uids, String destMailbox) {
 		return cs.uidCopy(uids, destMailbox);
 	}
 

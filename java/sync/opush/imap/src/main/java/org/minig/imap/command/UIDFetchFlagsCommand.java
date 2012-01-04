@@ -19,7 +19,6 @@ package org.minig.imap.command;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.minig.imap.Flag;
@@ -27,7 +26,7 @@ import org.minig.imap.FlagsList;
 import org.minig.imap.impl.IMAPResponse;
 import org.minig.imap.impl.MessageSet;
 
-public class UIDFetchFlagsCommand extends Command<Collection<FlagsList>> {
+public class UIDFetchFlagsCommand extends BatchCommand<FlagsList> {
 
 	private Collection<Long> uids;
 
@@ -47,66 +46,66 @@ public class UIDFetchFlagsCommand extends Command<Collection<FlagsList>> {
 			sb.append("NOOP");
 		}
 		String cmd = sb.toString();
-		if (logger.isDebugEnabled()) {
-			logger.debug("cmd: " + cmd);
-		}
+		logger.debug("cmd: {}", cmd);
 		CommandArgument args = new CommandArgument(cmd, null);
 		return args;
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
+	public void responseReceived(List<IMAPResponse> rs) throws ImapException {
 		if (uids.isEmpty()) {
 			data = Collections.emptyList();
 			return;
 		}
 		
-		IMAPResponse ok = rs.get(rs.size() - 1);
-		if (ok.isOk()) {
-			ArrayList<FlagsList> list = new ArrayList<FlagsList>(rs.size() - 1);
-			Iterator<IMAPResponse> it = rs.iterator();
-			for (int i = 0; i < rs.size() - 1; i++) {
-				IMAPResponse r = it.next();
-				String payload = r.getPayload();
-
-				int fidx = payload.indexOf("FLAGS (") + "FLAGS (".length();
-				
-				if (fidx == -1 + "FLAGS (".length()) {
-					continue;
+		checkStatusResponse(rs);
+		ArrayList<ImapReturn<FlagsList>> list = new ArrayList<ImapReturn<FlagsList>>(rs.size() - 1);
+		for (IMAPResponse r: rs) {
+			try {
+				FlagsList value = parseFlagsFromResponse(r);
+				if (value != null) {
+					list.add(value(value));
 				}
-				
-				int endFlags = payload.indexOf(")", fidx);
-				String flags = "";
-				if (fidx > 0 && endFlags >= fidx) {
-					flags = payload.substring(fidx, endFlags);
-				} else {
-					logger.error("Failed to get flags in fetch response: "
-							+ payload);
-				}
-
-				int uidIdx = payload.indexOf("UID ") + "UID ".length();
-				int endUid = uidIdx;
-				while (Character.isDigit(payload.charAt(endUid))) {
-					endUid++;
-				}
-				long uid = Long.parseLong(payload.substring(uidIdx, endUid));
-
-				// logger.info("payload: " + r.getPayload()+" uid: "+uid);
-
-				FlagsList flagsList = new FlagsList();
-				parseFlags(flags, flagsList);
-				flagsList.setUid(uid);
-				list.add(flagsList);
+			} catch (RuntimeException e) {
+				list.add(error(e));
+			} catch (FlagParserException e) {
+				list.add(error(e));
 			}
-			data = list;
-		} else {
-			logger.warn("error on fetch: " + ok.getPayload());
-			data = Collections.emptyList();
 		}
+		data = list;
 	}
 
+	private FlagsList parseFlagsFromResponse(IMAPResponse r) throws FlagParserException {
+		String payload = r.getPayload();
+
+		int fidx = payload.indexOf("FLAGS (") + "FLAGS (".length();
+		
+		if (fidx == -1 + "FLAGS (".length()) {
+			return null;
+		}
+		
+		int endFlags = payload.indexOf(")", fidx);
+		String flags = "";
+		if (fidx > 0 && endFlags >= fidx) {
+			flags = payload.substring(fidx, endFlags);
+		} else {
+			throw new FlagParserException("error parsing flag response : " + payload);
+		}
+
+		int uidIdx = payload.indexOf("UID ") + "UID ".length();
+		int endUid = uidIdx;
+		while (Character.isDigit(payload.charAt(endUid))) {
+			endUid++;
+		}
+		long uid = Long.parseLong(payload.substring(uidIdx, endUid));
+
+		FlagsList flagsList = new FlagsList();
+		parseFlags(flags, flagsList);
+		flagsList.setUid(uid);
+		return flagsList;
+	}
+	
 	private void parseFlags(String flags, FlagsList flagsList) {
-		// TODO this is probably slow as hell
 		if (flags.contains("\\Seen")) {
 			flagsList.add(Flag.SEEN);
 		}

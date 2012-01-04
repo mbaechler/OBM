@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,11 +34,7 @@ import org.minig.imap.mime.impl.AtomHelper;
 import org.minig.imap.mime.impl.ParenListParser;
 import org.minig.imap.mime.impl.ParenListParser.TokenType;
 
-/**
- * @author tom
- * 
- */
-public class UIDFetchEnvelopeCommand extends Command<Collection<Envelope>> {
+public class UIDFetchEnvelopeCommand extends BatchCommand<Envelope> {
 
 	private Collection<Long> uids;
 
@@ -66,67 +61,53 @@ public class UIDFetchEnvelopeCommand extends Command<Collection<Envelope>> {
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
+	public void responseReceived(List<IMAPResponse> rs) throws ImapException {
 		if (uids.isEmpty()) {
 			data = Collections.emptyList();
 			return;
 		}
 
-		// for (IMAPResponse r : rs) {
-		// logger.info("S: " + r.getPayload());
-		// }
-
-		IMAPResponse ok = rs.get(rs.size() - 1);
-		if (ok.isOk()) {
-			List<Envelope> tmp = new ArrayList<Envelope>(uids.size());
-			Iterator<IMAPResponse> it = rs.iterator();
-			for (int i = 0; it.hasNext() && i < uids.size();) {
-				IMAPResponse r = it.next();
-				String payload = r.getPayload();
-				if (!payload.contains(" FETCH")) {
-					logger.warn("not a fetch: " + payload);
-					continue;
+		checkStatusResponse(rs);
+		
+		List<ImapReturn<Envelope>> tmp = new ArrayList<ImapReturn<Envelope>>(uids.size());
+		for (IMAPResponse r: rs) {
+			try {
+				Envelope envelope = parseEnvelopeFromResponse(r);
+				if (envelope != null) {
+					tmp.add(value(envelope));
 				}
-				int uidIdx = payload.indexOf("(UID ") + "(UID ".length();
-				int endUid = payload.indexOf(' ', uidIdx);
-				String uidStr = payload.substring(uidIdx, endUid);
-				long uid = 0;
-				try {
-					uid = Long.parseLong(uidStr);
-				} catch (NumberFormatException nfe) {
-					logger.error("cannot parse uid for string '" + uid
-							+ "' (payload: " + payload + ")");
-					continue;
-				}
-
-				String envel = payload.substring(
-						endUid + " ENVELOPE (".length(), payload.length());
-
-				String envelData = AtomHelper.getFullResponse(envel,
-						r.getStreamData());
-
-				try {
-					Envelope envelope = parseEnvelope(envelData.substring(0, envelData.length() - 1).getBytes());
-					envelope.setUid(uid);
-					if (logger.isDebugEnabled()) {
-						logger.info("uid: " + uid + " env.from: "
-								+ envelope.getFrom());
-					}
-					tmp.add(envelope);
-				} catch (Throwable t) {
-					logger.error("fail parsing envelope for message UID " + uid, t);
-					data = Collections.emptyList();
-					return;
-				}
-				i++;
+			} catch (RuntimeException e) {
+				tmp.add(error(e));
+			} catch (ParseException e) {
+				tmp.add(error(e));
 			}
-			data = tmp;
-		} else {
-			logger.warn("error on fetch: " + ok.getPayload());
-			data = Collections.emptyList();
 		}
+		data = tmp;
 	}
 
+	private Envelope parseEnvelopeFromResponse(IMAPResponse r) throws ParseException {
+		String payload = r.getPayload();
+		if (!payload.contains(" FETCH")) {
+			logger.warn("not a fetch: " + payload);
+			return null;
+		}
+		int uidIdx = payload.indexOf("(UID ") + "(UID ".length();
+		int endUid = payload.indexOf(' ', uidIdx);
+		String uidStr = payload.substring(uidIdx, endUid);
+		long uid = Long.parseLong(uidStr);
+
+		String envel = payload.substring(
+				endUid + " ENVELOPE (".length(), payload.length());
+
+		String envelData = AtomHelper.getFullResponse(envel,
+				r.getStreamData());
+
+		Envelope envelope = parseEnvelope(envelData.substring(0, envelData.length() - 1).getBytes());
+		envelope.setUid(uid);
+		logger.info("uid: {} env.from: {}", uid, envelope.getFrom());
+		return envelope;
+	}
+	
 	/**
 	 * <pre>
 	 * (        
@@ -156,17 +137,13 @@ public class UIDFetchEnvelopeCommand extends Command<Collection<Envelope>> {
 	 * 		)
 	 * </pre>
 	 **/
-	private Envelope parseEnvelope(byte[] env) {
+	private Envelope parseEnvelope(byte[] env) throws ParseException {
 		ParenListParser parser = new ParenListParser();
 		int pos = 0;
 
 		pos = parser.consumeToken(pos, env);
 		String date = new String(parser.getLastReadToken());
-		Date d = null;
-		try {
-			d = DateParser.parse(date);
-		} catch (ParseException e) {
-		}
+		Date d = DateParser.parse(date);
 
 		pos = parser.consumeToken(pos, env);
 		String subject = "[Empty subject]";

@@ -17,8 +17,6 @@
 package org.minig.imap.command;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
@@ -29,7 +27,7 @@ import org.minig.imap.impl.MessageSet;
 import org.minig.imap.mime.MimeMessage;
 import org.minig.imap.mime.impl.AtomHelper;
 
-public class UIDFetchBodyStructureCommand extends Command<Collection<MimeMessage>> {
+public class UIDFetchBodyStructureCommand extends BatchCommand<MimeMessage> {
 
 	private TreeSet<Long> uids;
 	private final BodyStructureParser bodyStructureParser;
@@ -48,55 +46,54 @@ public class UIDFetchBodyStructureCommand extends Command<Collection<MimeMessage
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
+	public void responseReceived(List<IMAPResponse> rs) throws ImapException {
 		if (logger.isDebugEnabled()) {
 			for (IMAPResponse r : rs) {
 				logger.debug("ri: " + r.getPayload() + " [stream:"
 						+ (r.getStreamData() != null) + "]");
 			}
 		}
-		IMAPResponse ok = rs.get(rs.size() - 1);
-		if (ok.isOk()) {
-			List<MimeMessage> mts = new LinkedList<MimeMessage>();
-			Iterator<IMAPResponse> it = rs.iterator();
-			int len = rs.size() - 1;
-			for (int i = 0; i < len; i++) {
-				IMAPResponse ir = it.next();
-				String s = ir.getPayload();
-
-				int bsIdx = s.indexOf(" BODYSTRUCTURE ");
-				if (bsIdx == -1) {
-					continue;
+		
+		checkStatusResponse(rs);
+		
+		List<ImapReturn<MimeMessage>> mts = new LinkedList<ImapReturn<MimeMessage>>();
+		for (IMAPResponse ir: rs) {
+			try {
+				MimeMessage message = parseMimeMessageFromResponse(ir);
+				if (ir != null) {
+					mts.add(new ImapReturn<MimeMessage>(message));
 				}
-
-				String bs = s.substring(bsIdx + " BODYSTRUCTURE ".length());
-
-				if (bs.length() < 2) {
-					logger.warn("strange bs response: " + s);
-					continue;
-				}
-
-				int uidIdx = s.indexOf("(UID ");
-				long uid = Long.parseLong(s.substring(
-						uidIdx + "(UID ".length(), bsIdx));
-
-				String bsData = AtomHelper.getFullResponse(bs, ir.getStreamData());
-				try {
-					//remove closing brace
-					MimeMessage message = bodyStructureParser.parseBodyStructure(bsData.substring(0, bsData.length() - 1));
-					message.setUid(uid);
-					mts.add(message);
-				} catch (RuntimeException re) {
-					logger.error("error parsing:\n" + new String(bsData));
-					logger.error("payload was:\n" + s);
-					throw re;
-				}
+			} catch (RuntimeException e) {
+				mts.add(error(e));
 			}
-			data = mts;
-		} else {
-			logger.warn("bodystructure failed : " + ok.getPayload());
-			data = Collections.emptyList();
 		}
+		data = mts;
 	}
 
+	private MimeMessage parseMimeMessageFromResponse(IMAPResponse ir) {
+		String payload = ir.getPayload();
+
+		int bsIdx = payload.indexOf(" BODYSTRUCTURE ");
+		if (bsIdx == -1) {
+			return null;
+		}
+
+		String bs = payload.substring(bsIdx + " BODYSTRUCTURE ".length());
+
+		if (bs.length() < 2) {
+			logger.warn("strange bs response: " + payload);
+			return null;
+		}
+
+		int uidIdx = payload.indexOf("(UID ");
+		long uid = Long.parseLong(payload.substring(
+				uidIdx + "(UID ".length(), bsIdx));
+
+		String bsData = AtomHelper.getFullResponse(bs, ir.getStreamData());
+		String dataWithoutClosingBrace = bsData.substring(0, bsData.length() - 1);
+		MimeMessage message = bodyStructureParser.parseBodyStructure(dataWithoutClosingBrace);
+		message.setUid(uid);
+		return message;
+	}
+	
 }

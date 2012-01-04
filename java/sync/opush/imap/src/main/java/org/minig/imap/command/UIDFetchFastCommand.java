@@ -22,7 +22,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -38,10 +37,8 @@ import com.google.common.collect.ImmutableSet.Builder;
 /**
  * FAST
  *        Macro equivalent to: (FLAGS INTERNALDATE RFC822.SIZE)
- * @author adrienp
- *
  */
-public class UIDFetchFastCommand extends Command<Collection<FastFetch>> {
+public class UIDFetchFastCommand extends BatchCommand<FastFetch> {
 
 	private Collection<Long> uids;
 	DateFormat df;
@@ -64,48 +61,51 @@ public class UIDFetchFastCommand extends Command<Collection<FastFetch>> {
 			sb.append("NOOP");
 		}
 		String cmd = sb.toString();
-		if (logger.isDebugEnabled()) {
-			logger.debug("cmd: " + cmd);
-		}
+		logger.debug("cmd: {}", cmd);
 		CommandArgument args = new CommandArgument(cmd, null);
 		return args;
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
+	public void responseReceived(List<IMAPResponse> rs) throws UnexpectedImapErrorException {
 		if (uids.isEmpty()) {
 			data = ImmutableSet.of();
 			return;
 		}
-		IMAPResponse ok = rs.get(rs.size() - 1);
-		Builder<FastFetch> buildSet = ImmutableSet.builder();
-		if (ok.isOk()) {
-			Iterator<IMAPResponse> it = rs.iterator();
-			for (int i = 0; it.hasNext() && i < uids.size(); ) {
-				IMAPResponse r = it.next();
-				String payload = r.getPayload();
-				if (!payload.contains(" FETCH")) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("not a fetch: "+payload);
-					}
-					continue;
+		
+		checkStatusResponse(rs);
+		Builder<ImapReturn<FastFetch>> buildSet = ImmutableSet.builder();
+		for (IMAPResponse r: rs) {
+			try {
+				FastFetch value = parseFastFetchFromResponse(r);
+				if (value != null) {
+					buildSet.add(value(value));
 				}
-				
-				long uid = getUid(payload);
-				Date internalDate = getInternalDate(payload);
-				if (internalDate == null) {
-					logger.error("Failed to get internaldate in fetch response: {}", payload);
-				}
-				Set<Flag> flags = getFlags(payload);
-				buildSet.add(new FastFetch(uid, internalDate, flags));
+			} catch (FlagParserException e) {
+				buildSet.add(error(e));
+			} catch (InternalDateParserException e) {
+				buildSet.add(error(e));
+			} catch (RuntimeException e) {
+				buildSet.add(error(e));
 			}
-		} else {
-			logger.warn("error on fetch: " + ok.getPayload());
 		}
 		
 		data = buildSet.build();
 	}
 
+	private FastFetch parseFastFetchFromResponse(IMAPResponse r) throws FlagParserException, InternalDateParserException {
+		String payload = r.getPayload();
+		if (!payload.contains(" FETCH")) {
+			logger.debug("not a fetch: {}", payload);
+			return null;
+		}
+		
+		long uid = getUid(payload);
+		Date internalDate = getInternalDate(payload);
+		Set<Flag> flags = getFlags(payload);
+		return new FastFetch(uid, internalDate, flags);
+	}
+	
 	private long getUid(String payload) {
 		int uidIdx = payload.indexOf("UID ") + "UID ".length();
 		int endUid = uidIdx;
@@ -115,27 +115,26 @@ public class UIDFetchFastCommand extends Command<Collection<FastFetch>> {
 		return Long.parseLong(payload.substring(uidIdx, endUid));
 	}
 
-	private Date getInternalDate(String payload) {
+	private Date getInternalDate(String payload) throws InternalDateParserException {
 		int fidx = payload.indexOf("INTERNALDATE \"") + "INTERNALDATE \"".length();
 		
 		if (fidx == -1 + "INTERNALDATE \"".length()) {
-			return null;
+			throw new InternalDateParserException("Failed to get internaldate in fetch response: " + payload);
 		}
 		int endDate = payload.indexOf("\"", fidx);
 		String internalDate = "";
 		if (fidx > 0 && endDate >= fidx) {
 			internalDate = payload.substring(fidx, endDate);
 		} else {
-			logger.error("Failed to get flags in fetch response: "
-					+ payload);
+			throw new InternalDateParserException("Failed to get internaldate in fetch response: " + payload);
 		}
 		return parseDate(internalDate);
 	}
 	
-	private Set<Flag> getFlags(String payload) {
+	private Set<Flag> getFlags(String payload) throws FlagParserException {
 		int fidx = payload.indexOf("FLAGS (") + "FLAGS (".length();
 		if (fidx == -1 + "FLAGS (".length()) {
-			return new HashSet<Flag>(0);
+			throw new FlagParserException("payload is not a flag response : " + payload);
 		}
 		
 		int endFlags = payload.indexOf(")", fidx);
@@ -143,19 +142,17 @@ public class UIDFetchFastCommand extends Command<Collection<FastFetch>> {
 		if (fidx > 0 && endFlags >= fidx) {
 			flags = payload.substring(fidx, endFlags);
 		} else {
-			logger.error("Failed to get flags in fetch response: "
-					+ payload);
+			throw new FlagParserException("error parsing flag response : " + payload);
 		}
 		return parseFlags(flags);
 	}
 	
-	private Date parseDate(String date) {
+	private Date parseDate(String date) throws InternalDateParserException {
 		try {
-			return df .parse(date);
+			return df.parse(date);
 		} catch (ParseException e) {
-			logger.error("Can't parse internal date["+date+"]");
+			throw new InternalDateParserException("Failed to get parse date: " + date);
 		}
-		return null;
 	}
 	
 	private Set<Flag> parseFlags(String flags) {
