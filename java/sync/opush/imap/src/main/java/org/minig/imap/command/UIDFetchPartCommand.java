@@ -43,8 +43,7 @@ public class UIDFetchPartCommand extends Command<InputStream> {
 	public void responseReceived(List<IMAPResponse> rs) {
 		if (logger.isDebugEnabled()) {
 			for (IMAPResponse r : rs) {
-				logger.debug("r: " + r.getPayload() + " [stream:"
-						+ (r.getStreamData() != null) + "]");
+				logger.debug("response: {} , has binary stream : {}", r.getPayload(), r.hasStreamData());
 			}
 		}
 		IMAPResponse stream = rs.get(0);
@@ -55,8 +54,8 @@ public class UIDFetchPartCommand extends Command<InputStream> {
 			if (ok.isOk()) {
 				data = new ByteArrayInputStream("[empty]".getBytes());
 			} else {
-				logger.warn("Fetch of part " + section + " in uid " + uid
-						+ " failed: " + ok.getPayload());
+				logger.warn("Fetch of part {} in uid {} failed : {}",
+						new Object[] {section, uid, ok.getPayload()});
 			}
 		}
 	}

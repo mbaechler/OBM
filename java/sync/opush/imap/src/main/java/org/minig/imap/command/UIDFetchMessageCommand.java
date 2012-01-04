@@ -63,12 +63,11 @@ public class UIDFetchMessageCommand extends Command<InputStream> {
 				logger
 						.warn("fetch is ok with no stream in response. Printing received responses :");
 				for (IMAPResponse ir : rs) {
-					logger.warn("    <= " + ir.getPayload());
+					logger.warn("    <= {}", ir.getPayload());
 				}
 				data = new ByteArrayInputStream("".getBytes());
 			} else {
-				logger.error("UIDFetchMessage failed for uid " + uid + ": "
-						+ ok.getPayload());
+				logger.error("UIDFetchMessage failed for uid {}: {}", uid, ok.getPayload());
 			}
 		}
 	}

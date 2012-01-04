@@ -32,9 +32,6 @@ public class StartIdleCommand extends Command<Boolean> {
 	@Override
 	protected CommandArgument buildCommand() {
 		String cmd = "IDLE";
-		if (logger.isDebugEnabled()) {
-			logger.debug("cmd: " + cmd);
-		}
 		return new CommandArgument(cmd, null);
 	}
 

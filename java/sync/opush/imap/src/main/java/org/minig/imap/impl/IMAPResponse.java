@@ -90,4 +90,8 @@ public class IMAPResponse {
 	public void setStreamData(InputStream streamData) {
 		this.streamData = streamData;
 	}
+
+	public boolean hasStreamData() {
+		return streamData != null;
+	}
 }

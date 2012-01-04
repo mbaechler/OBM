@@ -53,9 +53,7 @@ public class UIDThreadCommand extends Command<List<MailThread>> {
 
 			if (threads != null) {
 				parseParenList(data, threads.substring("* THREAD ".length()));
-				if (logger.isDebugEnabled()) {
-					logger.debug("extracted " + data.size() + " threads");
-				}
+				logger.debug("extracted {} threads", data.size());
 			}
 		}
 	}

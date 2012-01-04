@@ -33,7 +33,7 @@ public class NoopCommand extends SimpleCommand<Boolean> {
 		if (!data) {
 			logger.warn("noop failed, printing server responses");
 			for (IMAPResponse r : rs) {
-				logger.warn("noop response: " + r.getPayload());
+				logger.warn("noop response: {}", r.getPayload());
 			}
 		}
 	}

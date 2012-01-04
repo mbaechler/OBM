@@ -49,8 +49,7 @@ public class UIDFetchBodyStructureCommand extends BatchCommand<MimeMessage> {
 	public void responseReceived(List<IMAPResponse> rs) throws ImapException {
 		if (logger.isDebugEnabled()) {
 			for (IMAPResponse r : rs) {
-				logger.debug("ri: " + r.getPayload() + " [stream:"
-						+ (r.getStreamData() != null) + "]");
+				logger.debug("response: {} , has binary stream : {}", r.getPayload(), r.hasStreamData());
 			}
 		}
 		
@@ -81,7 +80,7 @@ public class UIDFetchBodyStructureCommand extends BatchCommand<MimeMessage> {
 		String bs = payload.substring(bsIdx + " BODYSTRUCTURE ".length());
 
 		if (bs.length() < 2) {
-			logger.warn("strange bs response: " + payload);
+			logger.warn("strange bs response: {}", payload);
 			return null;
 		}
 

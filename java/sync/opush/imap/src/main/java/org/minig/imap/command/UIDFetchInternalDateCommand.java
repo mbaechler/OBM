@@ -54,7 +54,6 @@ public class UIDFetchInternalDateCommand extends BatchCommand<InternalDate> {
 			sb.append("NOOP");
 		}
 		String cmd = sb.toString();
-		logger.debug("cmd: {}", cmd);
 		CommandArgument args = new CommandArgument(cmd, null);
 		return args;
 	}

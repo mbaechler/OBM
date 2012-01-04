@@ -204,7 +204,7 @@ public class ClientSupport {
 	public void setResponses(List<IMAPResponse> rs) {
 		if (logger.isDebugEnabled()) {
 			for (IMAPResponse ir : rs) {
-				logger.debug("S: " + ir.getPayload());
+				logger.debug("S: {}", ir.getPayload());
 			}
 		}
 

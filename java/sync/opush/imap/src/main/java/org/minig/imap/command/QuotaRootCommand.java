@@ -35,9 +35,6 @@ public class QuotaRootCommand extends SimpleCommand<QuotaInfo> {
 		if (isOk(rs)) {
 			Pattern p = Pattern.compile("\\* QUOTA .* \\(STORAGE ");
 			for (IMAPResponse imapr : rs) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Payload " + imapr.getPayload());
-				}
 				Matcher m = p.matcher(imapr.getPayload());
 				if (m.find()) {
 					String rep = m.replaceAll("").replaceAll("\\)", "");

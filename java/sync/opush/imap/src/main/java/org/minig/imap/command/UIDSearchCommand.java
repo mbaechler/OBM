@@ -49,8 +49,6 @@ public class UIDSearchCommand extends Command<Collection<Long>> {
 			DateFormat df = new SimpleDateFormat("d-MMM-yyyy", Locale.ENGLISH);
 			cmd += " BEFORE " + df.format(sq.getBefore());
 		}
-		
-		// logger.info("cmd "+cmd);
 		CommandArgument args = new CommandArgument(cmd, null);
 		return args;
 	}

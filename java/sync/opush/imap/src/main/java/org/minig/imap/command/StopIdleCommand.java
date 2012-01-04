@@ -43,10 +43,6 @@ public class StopIdleCommand extends Command<Boolean> {
 	@Override
 	protected CommandArgument buildCommand() {
 		String cmd = "DONE";
-		if (logger.isDebugEnabled()) {
-			logger.debug("cmd: " + cmd);
-		}
-
 		return new CommandArgument(cmd, null);
 	}
 

@@ -40,9 +40,6 @@ public class UIDCopyCommand extends BatchCommand<Long> {
 		sb.append(' ');
 		sb.append(toUtf7(destMailbox));
 		String cmd = sb.toString();
-		if (logger.isDebugEnabled()) {
-			logger.debug("cmd: " + cmd);
-		}
 		CommandArgument args = new CommandArgument(cmd, null);
 		return args;
 	}
@@ -52,9 +49,6 @@ public class UIDCopyCommand extends BatchCommand<Long> {
 		IMAPResponse ok = checkStatusResponse(rs);
 
 		if (ok.getPayload().contains("[")) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("ok: " + ok.getPayload());
-			}
 			data = wrapValues(parseMessageSet(ok.getPayload()));
 		} else {
 			throw new UnexpectedImapResponseException(
@@ -66,9 +60,6 @@ public class UIDCopyCommand extends BatchCommand<Long> {
 		int idx = payload.lastIndexOf("]");
 		int space = payload.lastIndexOf(" ", idx);
 		String set = payload.substring(space + 1, idx);
-		if (logger.isDebugEnabled()) {
-			logger.debug("set to parse: " + set);
-		}
 		Collection<Long> ret = MessageSet.asLongCollection(set, uids.size());
 		return ret;
 	}
