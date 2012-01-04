@@ -6,8 +6,12 @@ public class ImapException extends Exception {
 		super(message);
 	}
 
-	public ImapException(RuntimeException e) {
-		super(e);
+	public ImapException(RuntimeException cause) {
+		super(cause);
+	}
+
+	public ImapException(String message, RuntimeException cause) {
+		super(message, cause);
 	}
 
 }

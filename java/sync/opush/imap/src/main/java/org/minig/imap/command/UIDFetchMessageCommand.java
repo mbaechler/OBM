@@ -22,7 +22,9 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.minig.imap.impl.IMAPResponse;
-import org.obm.push.utils.FileUtils;
+
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
 
 public class UIDFetchMessageCommand extends Command<InputStream> {
 
@@ -40,7 +42,7 @@ public class UIDFetchMessageCommand extends Command<InputStream> {
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
+	public void responseReceived(List<IMAPResponse> rs) throws IOException {
 		IMAPResponse stream = rs.get(0);
 		IMAPResponse ok = rs.get(rs.size() - 1);
 		if (ok.isOk() && stream.getStreamData() != null) {
@@ -49,10 +51,11 @@ public class UIDFetchMessageCommand extends Command<InputStream> {
 			// -1 pattern of the day to remove "\0" at end of stream
 			byte[] dest = new byte[0];
 			try {
-				byte[] byteData = FileUtils.streamBytes(in, true);
+				byte[] byteData = ByteStreams.toByteArray(in);
 				dest = new byte[byteData.length - 1];
 				System.arraycopy(byteData, 0, dest, 0, dest.length);
-			} catch (IOException e) {
+			} finally {
+				Closeables.closeQuietly(in);
 			}
 			data = new ByteArrayInputStream(dest);
 		} else {

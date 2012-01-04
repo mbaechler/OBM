@@ -6,4 +6,8 @@ public class UnexpectedImapResponseException extends ImapException {
 		super(message);
 	}
 
+	public UnexpectedImapResponseException(RuntimeException e, String payload) {
+		super("payload : " + payload, e);
+	}
+
 }

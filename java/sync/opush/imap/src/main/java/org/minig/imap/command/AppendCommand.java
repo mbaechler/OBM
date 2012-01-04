@@ -16,14 +16,15 @@
 
 package org.minig.imap.command;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import org.minig.imap.FlagsList;
 import org.minig.imap.impl.IMAPResponse;
-import org.obm.push.utils.FileUtils;
+
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closeables;
 
 public class AppendCommand extends Command<Long> {
 
@@ -38,7 +39,7 @@ public class AppendCommand extends Command<Long> {
 	}
 
 	@Override
-	protected CommandArgument buildCommand() {
+	protected CommandArgument buildCommand() throws IOException {
 		StringBuilder cmd = new StringBuilder(50);
 		cmd.append("APPEND ");
 		cmd.append(toUtf7(mailbox));
@@ -47,33 +48,27 @@ public class AppendCommand extends Command<Long> {
 			cmd.append(flags.toString());
 			cmd.append(" ");
 		}
-
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {
-			FileUtils.transfer(in, out, true);
-		} catch (IOException e) {
-			logger.error("Cannot create tmp buffer for append command", e);
+			byte[] input = ByteStreams.toByteArray(in);
+			cmd.append("{");
+			cmd.append(input.length);
+			cmd.append("}");
+			return new CommandArgument(cmd.toString(), input);
+		} finally {
+			Closeables.closeQuietly(in);
 		}
-
-		cmd.append("{");
-		cmd.append(out.toByteArray().length);
-		cmd.append("}");
-		return new CommandArgument(cmd.toString(), out.toByteArray());
 	}
 
 	@Override
-	public void responseReceived(List<IMAPResponse> rs) {
-		IMAPResponse r = rs.get(rs.size() - 1);
-		if (r.isOk()) {
-			String s = r.getPayload();
+	public void responseReceived(List<IMAPResponse> rs) throws ImapException {
+		IMAPResponse r = checkStatusResponse(rs);
+		String s = r.getPayload();
+		try {
 			int idx = s.lastIndexOf("]");
 			int space = s.lastIndexOf(' ', idx - 1);
 			data = Long.parseLong(s.substring(space + 1, idx));
-		} else {
-			data = -1l;
-			for (IMAPResponse resp : rs) {
-				logger.warn("S: '" + resp.getPayload() + "'");
-			}
+		} catch (RuntimeException e) {
+			throw new UnexpectedImapResponseException(e, s);
 		}
 	}
 

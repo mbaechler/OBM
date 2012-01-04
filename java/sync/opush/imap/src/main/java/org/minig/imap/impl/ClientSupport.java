@@ -179,12 +179,12 @@ public class ClientSupport {
 					+ cmd.getClass().getName() + " Permits: "
 					+ lock.availablePermits());
 		}
-		// grab lock, this one should be ok, except on first call
-		// where we might wait for cyrus welcome text.
-		lock();
-		cmd.execute(session, tagsProducer, lock, lastResponses);
-		lock(); // this one should wait until this.setResponses is called
 		try {
+			// grab lock, this one should be ok, except on first call
+			// where we might wait for cyrus welcome text.
+			lock();
+			cmd.execute(session, tagsProducer, lock, lastResponses);
+			lock(); // this one should wait until this.setResponses is called
 			cmd.responseReceived(lastResponses);
 		} catch (Throwable t) {
 			logger.error("receiving/parsing imap response to cmd "

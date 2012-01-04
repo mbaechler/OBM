@@ -16,6 +16,7 @@
 
 package org.minig.imap.command;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -26,9 +27,9 @@ import org.minig.imap.impl.TagProducer;
 public interface ICommand<T> {
 
 	void execute(IoSession s, TagProducer tp, Semaphore lock,
-			List<IMAPResponse> lastResponses);
+			List<IMAPResponse> lastResponses) throws IOException;
 
-	void responseReceived(List<IMAPResponse> rs) throws ImapException;
+	void responseReceived(List<IMAPResponse> rs) throws ImapException, IOException;
 
 	T getReceivedData();
 

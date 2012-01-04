@@ -16,6 +16,7 @@
 
 package org.minig.imap.command;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -26,6 +27,8 @@ import org.minig.imap.impl.TagProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Iterables;
+
 public abstract class Command<T> implements ICommand<T> {
 
 	protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -33,7 +36,7 @@ public abstract class Command<T> implements ICommand<T> {
 
 	@Override
 	public void execute(IoSession session, TagProducer tp, Semaphore lock,
-			List<IMAPResponse> lastResponses) {
+			List<IMAPResponse> lastResponses) throws IOException {
 		CommandArgument args = buildCommand();
 
 		String cmd = args.getCommandString();
@@ -48,6 +51,7 @@ public abstract class Command<T> implements ICommand<T> {
 		session.write(sent);
 		if (args.hasLiteralData()) {
 			lock(lock);
+			logger.debug("    => '{}'", args.getLiteralData());
 			session.write(args.getLiteralData());
 		}
 
@@ -66,7 +70,7 @@ public abstract class Command<T> implements ICommand<T> {
 		return data;
 	}
 
-	protected abstract CommandArgument buildCommand();
+	protected abstract CommandArgument buildCommand() throws IOException;
 
 	protected static String toUtf7(String mailbox) {
 		String ret = MailboxNameUTF7Converter.encode(mailbox);
@@ -83,5 +87,18 @@ public abstract class Command<T> implements ICommand<T> {
 
 	protected static String fromUtf7(String mailbox) {
 		return MailboxNameUTF7Converter.decode(mailbox);
+	}
+	
+	
+	protected IMAPResponse checkStatusResponse(List<IMAPResponse> rs)
+			throws UnexpectedImapErrorException {
+		IMAPResponse ok = Iterables.getLast(rs, null);
+		if (ok == null) {
+			throw new UnexpectedImapErrorException(getClass().getName() + " failed : no response");
+		}
+		if (!ok.isOk()) {
+			throw new UnexpectedImapErrorException(getClass().getName() + " failed : " + ok.getPayload());
+		}
+		return ok;
 	}
 }
