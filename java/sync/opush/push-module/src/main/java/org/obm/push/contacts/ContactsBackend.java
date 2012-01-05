@@ -21,6 +21,7 @@ import org.obm.push.exception.activesync.ServerItemNotFoundException;
 import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.store.CollectionDao;
 import org.obm.sync.auth.AccessToken;
+import org.obm.sync.auth.ContactNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.BookType;
@@ -28,8 +29,6 @@ import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
 import org.obm.sync.client.CalendarType;
 import org.obm.sync.client.login.LoginService;
-import org.obm.sync.exception.ContactAlreadyExistException;
-import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.ContactChanges;
 import org.obm.sync.items.FolderChanges;
 import org.obm.sync.services.IAddressBook;
@@ -217,10 +216,8 @@ public class ContactsBackend extends ObmSyncBackend {
 		IAddressBook bc = getBookClient();
 		AccessToken token = login(bs);
 
-		
 		String itemId = null;
 		try {
-			Integer addressBookId = findAddressBookIdFromCollectionId(bs, collectionId);
 			if (serverId != null) {
 				int idx = serverId.lastIndexOf(":");
 				itemId = serverId.substring(idx + 1);
@@ -228,17 +225,11 @@ public class ContactsBackend extends ObmSyncBackend {
 				convertedContact.setUid(Integer.parseInt(itemId));
 				bc.modifyContact(token, BookType.contacts, convertedContact);
 			} else {
-				Contact createdContact = bc.createContact(token, addressBookId,
+				Contact createdContact = bc.createContactWithoutDuplicate(token, BookType.contacts,
 						new ContactConverter().contact(data));
 				itemId = createdContact.getUid().toString();
 			}
 		} catch (ServerFault e) {
-			throw new UnknownObmSyncServerException(e);
-		} catch (NoPermissionException e) {
-			throw new UnknownObmSyncServerException(e);
-		} catch (ContactAlreadyExistException e) {
-			throw new UnknownObmSyncServerException(e);
-		} catch (DaoException e) {
 			throw new UnknownObmSyncServerException(e);
 		} finally {
 			logout(token);
