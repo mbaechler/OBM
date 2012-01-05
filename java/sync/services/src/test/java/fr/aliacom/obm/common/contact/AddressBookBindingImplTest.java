@@ -43,7 +43,7 @@ public class AddressBookBindingImplTest {
 	 */
 	@Test
 	public void testGetSyncGlobalAddressBookSync() throws ServerFault, SQLException {
-		Date timestamp = DateUtils.getEpochCalendar().getTime();
+		Date timestamp = DateUtils.getEpochPlusOneSecondCalendar().getTime();
 
 		AccessToken token = new AccessToken(1, "");
 
