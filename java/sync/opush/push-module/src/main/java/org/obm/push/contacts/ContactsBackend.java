@@ -209,61 +209,43 @@ public class ContactsBackend extends ObmSyncBackend {
 		return ic;
 	}
 
-	public String createOrUpdate(BackendSession bs, Integer collectionId, String serverId, MSContact data)
-			throws UnknownObmSyncServerException, DaoException, ServerItemNotFoundException {
-		
-		Integer contactId = getItemIdFromServerId(serverId);
-		Integer addressBookId = findAddressBookIdFromCollectionId(bs, collectionId);
-		try {
+	public String createOrUpdate(BackendSession bs, Integer collectionId, String serverId, MSContact data) throws UnknownObmSyncServerException {
+		logger.info("create contact ({} | {}) in collectionId {}", 
+				new Object[]{data.getFirstName(), data.getLastName(), collectionId});
 
+		IAddressBook bc = getBookClient();
+		AccessToken token = login(bs);
+
+		
+		String itemId = null;
+		try {
+			Integer addressBookId = findAddressBookIdFromCollectionId(bs, collectionId);
 			if (serverId != null) {
+				int idx = serverId.lastIndexOf(":");
+				itemId = serverId.substring(idx + 1);
 				Contact convertedContact = new ContactConverter().contact(data);
-				convertedContact.setUid(contactId);
-				modifyContact(bs, addressBookId, convertedContact);
+				convertedContact.setUid(Integer.parseInt(itemId));
+				bc.modifyContact(token, addressBookId, convertedContact);
 			} else {
-				Contact createdContact = createContact(bs, addressBookId, new ContactConverter().contact(data));
-				contactId = createdContact.getUid();
+				Contact createdContact = bc.createContact(token, addressBookId,
+						new ContactConverter().contact(data));
+				itemId = createdContact.getUid().toString();
 			}
-
-		} catch (ContactNotFoundException e) {
-			throw new ServerItemNotFoundException(e);
+		} catch (ServerFault e) {
+			throw new UnknownObmSyncServerException(e);
 		} catch (NoPermissionException e) {
-			logger.warn(e.getMessage());
-			return null;
+			throw new UnknownObmSyncServerException(e);
 		} catch (ContactAlreadyExistException e) {
-			logger.warn(e.getMessage());
-			return null;
+			throw new UnknownObmSyncServerException(e);
+		} catch (DaoException e) {
+			throw new UnknownObmSyncServerException(e);
+		} catch (ContactNotFoundException e) {
+			throw new UnknownObmSyncServerException(e);
+		} finally {
+			logout(token);
 		}
-		
-		return getServerIdFor(collectionId, String.valueOf(contactId));
-	}
 
-	private Contact modifyContact(BackendSession bs, Integer addressBookId, Contact contact) 
-			throws UnknownObmSyncServerException, NoPermissionException, ContactNotFoundException {
-		
-		IAddressBook bc = getBookClient();
-		AccessToken token = login(bs);
-		try {
-			return bc.modifyContact(token, addressBookId, contact);
-		} catch (ServerFault e) {
-			throw new UnknownObmSyncServerException(e);
-		} finally {
-			logout(token);
-		}
-	}
-	
-	private Contact createContact(BackendSession bs, Integer addressBookId, Contact contact) 
-			throws UnknownObmSyncServerException, NoPermissionException, ContactAlreadyExistException {
-		
-		IAddressBook bc = getBookClient();
-		AccessToken token = login(bs);
-		try {
-			return bc.createContact(token, addressBookId, contact);
-		} catch (ServerFault e) {
-			throw new UnknownObmSyncServerException(e);
-		} finally {
-			logout(token);
-		}
+		return getServerIdFor(collectionId, itemId);
 	}
 
 	public void delete(BackendSession bs, String serverId) 
