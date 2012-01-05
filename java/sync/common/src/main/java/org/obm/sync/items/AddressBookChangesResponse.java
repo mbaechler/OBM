@@ -38,19 +38,19 @@ public class AddressBookChangesResponse {
 		this.contactChanges = contactChanges;
 	}
 	
-	public void setUpdatedAddressBooks(Set<Folder> updated) {
+	public void setUpdatedAddressBooks(List<Folder> updated) {
 		this.booksChanges.setUpdated(updated);
 	}
 	
-	public Set<Folder> getUpdatedAddressBooks() {
+	public List<Folder> getUpdatedAddressBooks() {
 		return this.booksChanges.getUpdated();
 	}
 	
-	public void setRemovedAddressBooks(Set<Folder> removed) {
+	public void setRemovedAddressBooks(Set<Integer> removed) {
 		this.booksChanges.setRemoved(removed);
 	}
 	
-	public Set<Folder> getRemovedAddressBooks() {
+	public Set<Integer> getRemovedAddressBooks() {
 		return this.booksChanges.getRemoved();
 	}
 

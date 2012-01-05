@@ -61,32 +61,28 @@ public class StateMachine {
 	private Set<ServerId> itemChangesAsServerIdSet(Iterable<ItemChange> changes) throws InvalidServerId {
 		Set<ServerId> ids = Sets.newHashSet();
 		for (ItemChange change: changes) {
-			addServerItemId(ids, change);
+			ids.add(new ServerId(change.getServerId()));
 		}
 		return ids;
+	}
+
+	private void log(BackendSession bs, SyncState newState) {
+		String collectionPath = "obm:\\\\" + bs.getUser().getLoginAtDomain();
+		logger.info("Allocate new synckey {} for collectionPath {} with {} last sync", 
+				new Object[]{newState.getKey(), collectionPath, newState.getLastSync()});
 	}
 
 	private Set<ServerId> listNewItems(Collection<ItemChange> changes) throws InvalidServerId {
 		HashSet<ServerId> serverIds = Sets.newHashSet();
 		for (ItemChange change: changes) {
 			if (change.isNew()) {
-				addServerItemId(serverIds, change);
+				ServerId serverId = new ServerId(change.getServerId());
+				if (serverId.isItem()) {
+					serverIds.add(serverId);
+				}
 			}
 		}
 		return serverIds;
-	}
-
-	private void addServerItemId(Set<ServerId> serverIds, ItemChange change) throws InvalidServerId {
-		ServerId serverId = new ServerId( change.getServerId() );
-		if (serverId.isItem()) {
-			serverIds.add(serverId);
-		}
-	}
-	
-	private void log(BackendSession bs, SyncState newState) {
-		String collectionPath = "obm:\\\\" + bs.getUser().getLoginAtDomain();
-		logger.info("Allocate new synckey {} for collectionPath {} with {} last sync", 
-				new Object[]{newState.getKey(), collectionPath, newState.getLastSync()});
 	}
 	
 }

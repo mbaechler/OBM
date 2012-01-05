@@ -185,8 +185,9 @@ public class BookItemsWriter extends AbstractItemsWriter {
 
 	private void createFolderChanges(FolderChanges fc, Element root) {
 		Element removed = DOMUtils.createElement(root, "removed");
-		for (Folder ev : fc.getRemoved()) {
-			appendFolder(removed, ev);
+		for (int eid : fc.getRemoved()) {
+			Element e = DOMUtils.createElement(removed, "folder");
+			e.setAttribute("uid", "" + eid);
 		}
 
 		Element updated = DOMUtils.createElement(root, "updated");
