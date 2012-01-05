@@ -7,7 +7,6 @@
 // $Id$ //
 ///////////////////////////////////////////////////////////////////////////////
 
-include_once("$obminclude/global.inc");
 
 //---------------------------------------------------------------------------//
 // Fields that appear in result lists                                        //
@@ -3402,7 +3401,6 @@ function dis_user_display_pref($prefs) {
  * @return void
  */
 function dis_user_export_pdf($id) {
-  global $ini_array;
   $pdf = OBM_Pdf::load('user');
   $pdf->setFontSize(11);
   
@@ -3467,12 +3465,7 @@ function dis_user_export_pdf($id) {
   $Y = 420;
   $X = 98;
   $Y -= $pdf->getLineHeight();
-  if(array_key_exists('show-domain-in-login-pdf',$ini_array) && $ini_array['show-domain-in-login-pdf']  != 'false') {
-    $displayed_login = $login."@".$domain;
-  } else {
-    $displayed_login = $login;
-  }
-  $pdf->drawSplittedText($pdf->pages[0], $GLOBALS['l_login']." : ".$displayed_login, $user_login_max_length, $X, $Y);
+  $pdf->drawSplittedText($pdf->pages[0], $GLOBALS['l_login']." : ".$login, $user_login_max_length, $X, $Y);
   $pdf->drawSplittedText($pdf->pages[0], $GLOBALS['l_password']." : ".$password, $user_password_max_length, $X, $Y);
   for($i = 0; $i < 5 && $i < count($email); $i++) {
     $mail = $email[$i];
