@@ -1,17 +1,22 @@
 package org.obm.sync.push.client.commands;
 
+import java.io.IOException;
+
+import javax.xml.parsers.FactoryConfigurationError;
+
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.AccountInfos;
 import org.obm.sync.push.client.GetItemEstimateSingleFolderResponse;
 import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 public class GetItemEstimateEmailFolderCommand extends TemplateBasedCommand<GetItemEstimateSingleFolderResponse> {
 
 	private final String syncKey;
 	private final String collectionId;
 
-	public GetItemEstimateEmailFolderCommand(String syncKey, String collectionId) {
+	public GetItemEstimateEmailFolderCommand(String syncKey, String collectionId) throws SAXException, IOException, FactoryConfigurationError {
 		super(NS.GetItemEstimate, "GetItemEstimate", "GetItemEstimateRequestEmail.xml");
 		this.syncKey = syncKey;
 		this.collectionId = collectionId;

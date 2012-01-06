@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.obm.opush.ActiveSyncServletModule.OpushServer;
@@ -49,6 +50,7 @@ public class EmailExcpetionHandlingTest {
 		opushServer.stop();
 	}
 
+	@Ignore
 	@Test
 	public void testSyncOneInboxMail() throws Exception {
 		String initialSyncKey = "0";

@@ -25,7 +25,7 @@ public class EmailManagerTest {
 		SmtpSender smtpSender = EasyMock.createMock(SmtpSender.class);
 		BackendSession backendSession = EasyMock.createMock(BackendSession.class);
 		
-		EasyMock.expect(emailConfiguration.loginWithDomain()).andReturn(true).once();
+		//EasyMock.expect(emailConfiguration.loginWithDomain()).andReturn(true).once();
 		EasyMock.expect(emailConfiguration.activateTls()).andReturn(false).once();
 		Set<Address> addrs = Sets.newHashSet();
 		smtpSender.sendEmail(EasyMock.anyObject(BackendSession.class), EasyMock.anyObject(Address.class),

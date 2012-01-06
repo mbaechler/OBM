@@ -58,6 +58,7 @@ import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MessageClass;
 import org.obm.push.bean.MethodAttachment;
 import org.obm.push.exception.DaoException;
+import org.obm.push.exception.FatalFetchException;
 import org.obm.push.exception.UnfetchableMailException;
 import org.obm.push.impl.ObmSyncBackend;
 import org.obm.push.service.EventService;
@@ -110,17 +111,19 @@ public class MailMessageLoader {
 			msEmail.setSmtpId(toFetchEnvelope.getMessageId());
 			return msEmail;
 		} catch (IOException e) {
-			throw new UnfetchableMailException(e);
+			throw new UnfetchableMailException(messageId, e);
 		} catch (StoreException e) {
-			throw new UnfetchableMailException(e);
+			throw new UnfetchableMailException(messageId, e);
 		} catch (DaoException e) {
-			throw new UnfetchableMailException(e);
+			throw new UnfetchableMailException(messageId, e);
 		} catch (MimeException e) {
-			throw new UnfetchableMailException(e);
+			throw new UnfetchableMailException(messageId, e);
+		} catch (FatalFetchException e) {
+			throw new UnfetchableMailException(messageId, e);
 		}
 	}
 	
-	private <T> T getImapReturnValue(Collection<ImapReturn<T>> elements) throws UnfetchableMailException {
+	private <T> T getImapReturnValue(Collection<ImapReturn<T>> elements) throws FatalFetchException {
 		try {
 			ImapReturn<T> element = Iterables.getOnlyElement(elements);
 			if (element.isError()) {
@@ -128,21 +131,21 @@ public class MailMessageLoader {
 			}
 			return element.getValue();
 		} catch (IllegalArgumentException e) {
-			throw new UnfetchableMailException(e);
+			throw new FatalFetchException(e);
 		} catch (NoSuchElementException e) {
-			throw new UnfetchableMailException(e);
+			throw new FatalFetchException(e);
 		} catch (Exception e) {
-			throw new UnfetchableMailException(e);
+			throw new FatalFetchException(e);
 		}
 	}
 	
-	private MimeMessage getFirstMimeMessage(final List<Long> messageIdAsList) throws UnfetchableMailException {
+	private MimeMessage getFirstMimeMessage(final List<Long> messageIdAsList) throws FatalFetchException {
 		final Collection<ImapReturn<MimeMessage>> mts = storeClient.uidFetchBodyStructure(messageIdAsList);
 		final MimeMessage tree = getImapReturnValue(mts);
 		return tree;
 	}
 	
-	private void setMsEmailFlags(final MSEmail msEmail, final List<Long> messageIdAsList) throws UnfetchableMailException {
+	private void setMsEmailFlags(final MSEmail msEmail, final List<Long> messageIdAsList) throws FatalFetchException {
 		final Collection<ImapReturn<FlagsList>> fl = storeClient.uidFetchFlags(messageIdAsList);
 		FlagsList flags = getImapReturnValue(fl);
 		msEmail.setRead(flags.contains(Flag.SEEN));
@@ -164,7 +167,7 @@ public class MailMessageLoader {
 	}
 
 	private MSEmail convertMailMessageToMSEmail(final MailMessage mailMessage, final BackendSession bs, 
-			final long uid, final Integer collectionId, long messageId) throws IOException, DaoException, UnfetchableMailException {
+			final long uid, final Integer collectionId, long messageId) throws IOException, DaoException, UnfetchableMailException, FatalFetchException {
 		
 		final MSEmail msEmail = new MSEmail();
 		msEmail.setSubject(mailMessage.getSubject());
@@ -188,7 +191,7 @@ public class MailMessageLoader {
 	}
 
 	private void setInvitation(final MSEmail msEmail, final BackendSession bs, final MailMessageInvitation mailMessageInvitation, 
-			final long uid, final long messageId) throws IOException, DaoException, UnfetchableMailException {			
+			final long uid, final long messageId) throws IOException, DaoException, FatalFetchException {			
 		final IMimePart mimePart = mailMessageInvitation.getPart();
 		final InputStream inputStreamInvitation = extractInputStreamInvitation(mimePart, uid, messageId);
 		final MSEvent event = getInvitation(bs, inputStreamInvitation);
@@ -209,7 +212,7 @@ public class MailMessageLoader {
 		return null;
 	}
 	
-	private MSEvent getInvitation(BackendSession bs, InputStream invitation) throws IOException, DaoException, UnfetchableMailException {
+	private MSEvent getInvitation(BackendSession bs, InputStream invitation) throws IOException, DaoException, FatalFetchException {
 		final String ics = FileUtils.streamString(invitation, true);
 		if (ics != null && !"".equals(ics) && ics.startsWith("BEGIN")) {
 			List<Event> obmEvents = null; 
@@ -219,7 +222,7 @@ public class MailMessageLoader {
 			try {
 				obmEvents = calendarClient.parseICS(at, ics);
 			} catch (Exception e) {
-				throw new UnfetchableMailException(e);
+				throw new FatalFetchException(e);
 			} finally {
 				login.logout(at);
 			}
@@ -261,7 +264,7 @@ public class MailMessageLoader {
 	
 	private Set<MSEmail> convertAllMailMessageToMSEmail(final Set<MailMessage> set, final BackendSession bs, 
 			final long uid, final Integer collectionId, final long messageId) 
-					throws IOException, DaoException, UnfetchableMailException {
+					throws IOException, DaoException, UnfetchableMailException, FatalFetchException {
 		final Set<MSEmail> msEmails = new HashSet<MSEmail>();
 		for (final MailMessage mailMessage: set) {
 			msEmails.add(convertMailMessageToMSEmail(mailMessage, bs, uid, collectionId, messageId));

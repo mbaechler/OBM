@@ -140,7 +140,7 @@ public class EmailSyncTestUtils {
 		expect(itemTrackingDao.isServerIdSynced(anyObject(SyncState.class), anyObject(ServerId.class))).andReturn(false).anyTimes();
 	}
 
-	private static void mockCollectionDaoForEmailSync(CollectionDao collectionDao, String syncEmailSyncKey, int syncEmailCollectionId, List<OpushUser> fakeTestUsers) throws CollectionNotFoundException, DaoException {
+	private static void mockCollectionDaoForEmailSync(CollectionDao collectionDao, String syncEmailSyncKey, int syncEmailCollectionId, List<OpushUser> fakeTestUsers) throws DaoException {
 		expect(collectionDao.getCollectionMapping(anyObject(Device.class), anyObject(String.class)))
 				.andReturn(syncEmailCollectionId).anyTimes();
 		expect(collectionDao.updateState(anyObject(Device.class), anyInt(), anyObject(SyncState.class)))

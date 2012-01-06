@@ -1,6 +1,9 @@
 package org.obm.sync.push.client.commands;
 
+import java.io.IOException;
 import java.io.InputStream;
+
+import javax.xml.parsers.FactoryConfigurationError;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.obm.push.utils.DOMUtils;
@@ -11,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 public abstract class TemplateBasedCommand<T> implements IEasCommand<T> {
 
@@ -20,20 +24,11 @@ public abstract class TemplateBasedCommand<T> implements IEasCommand<T> {
 	private String namespace;
 	private String cmd;
 
-	protected TemplateBasedCommand(NS namespace, String cmd, String templateName) {
+	protected TemplateBasedCommand(NS namespace, String cmd, String templateName) throws SAXException, IOException, FactoryConfigurationError {
 		this.fromTemplate = true;
 		this.namespace = namespace.toString();
 		this.cmd = cmd;
-		InputStream in = loadDataFile(templateName);
-		if (in != null) {
-			try {
-				this.tpl = DOMUtils.parse(in);
-			} catch (Exception e) {
-				logger.error("error loading template " + templateName, e);
-			}
-		} else {
-			logger.error("template " + templateName + " not found.");
-		}
+		this.tpl = DOMUtils.parse(loadDataFile(templateName));
 	}
 
 	protected TemplateBasedCommand(NS namespace, String cmd, Document document) {

@@ -31,7 +31,7 @@ public class MessageLoader {
 	}
 	
 	private MSEmail makeErrorMailDiagnostic(UnfetchableMailException e, BackendSession bs) {
-		return diagnosticMSEmailFactory.buildDiagnosticMSEmail(e.getFetchingEnvelope(), 
+		return diagnosticMSEmailFactory.buildDiagnosticMSEmail(e.getUid(), e.getFetchingEnvelope(), 
 				bs.getUser().getDomain(), Throwables.getStackTraceAsString(e));
 	}
 	

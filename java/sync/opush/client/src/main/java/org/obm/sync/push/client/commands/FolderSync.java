@@ -1,7 +1,10 @@
 package org.obm.sync.push.client.commands;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.xml.parsers.FactoryConfigurationError;
 
 import org.obm.push.utils.DOMUtils;
 import org.obm.sync.push.client.AccountInfos;
@@ -11,6 +14,7 @@ import org.obm.sync.push.client.FolderType;
 import org.obm.sync.push.client.OPClient;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * Performs a FolderSync AS command with the given sync key
@@ -19,7 +23,7 @@ public class FolderSync extends TemplateBasedCommand<FolderSyncResponse> {
 
 	private String syncKey;
 
-	public FolderSync(String syncKey) {
+	public FolderSync(String syncKey) throws SAXException, IOException, FactoryConfigurationError {
 		super(NS.FolderHierarchy, "FolderSync", "FolderSyncRequest.xml");
 		this.syncKey = syncKey;
 	}
