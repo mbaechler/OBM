@@ -14,9 +14,6 @@ import org.w3c.dom.NodeList;
 
 /**
  * Performs a FolderSync AS command with the given sync key
- * 
- * @author tom
- * 
  */
 public class FolderSync extends TemplateBasedCommand<FolderSyncResponse> {
 
@@ -40,8 +37,15 @@ public class FolderSync extends TemplateBasedCommand<FolderSyncResponse> {
 		int count = Integer.parseInt(DOMUtils.getElementText(root, "Count"));
 		Map<FolderType, Folder> ret = new HashMap<FolderType, Folder>(count + 1);
 
-		// TODO process updates / deletions
-		NodeList nl = root.getElementsByTagName("Add");
+		// TODO process deletions
+		getFolders(ret, root, "Add");
+		getFolders(ret, root, "Update");
+		
+		return new FolderSyncResponse(key, ret);
+	}
+
+	private void getFolders(Map<FolderType, Folder> ret, Element root, String nodeName) {
+		NodeList nl = root.getElementsByTagName(nodeName);
 		for (int i = 0; i < nl.getLength(); i++) {
 			Element e = (Element) nl.item(i);
 			Folder f = new Folder();
@@ -51,8 +55,6 @@ public class FolderSync extends TemplateBasedCommand<FolderSyncResponse> {
 			f.setType(FolderType.getValue(Integer.parseInt(DOMUtils.getElementText(e, "Type"))));
 			ret.put(f.getType(), f);
 		}
-
-		return new FolderSyncResponse(key, ret);
 	}
 
 }
