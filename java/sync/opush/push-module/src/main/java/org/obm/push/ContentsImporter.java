@@ -18,7 +18,6 @@ import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
 import org.obm.push.exception.activesync.ServerItemNotFoundException;
 import org.obm.push.mail.MailBackend;
-import org.obm.sync.calendar.Event;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -29,17 +28,14 @@ public class ContentsImporter implements IContentsImporter {
 	private final MailBackend mailBackend;
 	private final CalendarBackend calBackend;
 	private final ContactsBackend contactBackend;
-	private final IInvitationFilterManager invitationFilterManager;
 
 	@Inject
 	private ContentsImporter(MailBackend mailBackend,
-			CalendarBackend calBackend, ContactsBackend contactBackend,
-			IInvitationFilterManager invitationFilterManager) {
+			CalendarBackend calBackend, ContactsBackend contactBackend) {
 
 		this.mailBackend = mailBackend;
 		this.calBackend = calBackend;
 		this.contactBackend = contactBackend;
-		this.invitationFilterManager = invitationFilterManager;
 	}
 
 	@Override
@@ -71,21 +67,13 @@ public class ContentsImporter implements IContentsImporter {
 		
 		switch (type) {
 		case CALENDAR:
-			Event event = calBackend.getEventFromServerId(bs, serverId);
 			calBackend.delete(bs, collectionId, serverId);
-			if (event.getObmId() != null) {
-				invitationFilterManager.deleteFilteredEvent(collectionId, event.getObmId());
-			}
 			break;
 		case CONTACTS:
 			contactBackend.delete(bs, serverId);
 			break;
 		case EMAIL:
-			Long emailUid = mailBackend.getEmailUidFromServerId(serverId);
 			mailBackend.delete(bs, serverId,moveToTrash);
-			if(emailUid != null){
-				invitationFilterManager.deleteFilteredEmail(collectionId, emailUid);
-			}
 			break;
 		case TASKS:
 			calBackend.delete(bs, collectionId, serverId);
@@ -125,10 +113,7 @@ public class ContentsImporter implements IContentsImporter {
 	@Override
 	public String importCalendarUserStatus(BackendSession bs,  Integer invitationCollexctionId, MSEmail invitation,
 			AttendeeStatus userResponse) throws DaoException, CollectionNotFoundException, UnknownObmSyncServerException, ServerItemNotFoundException {
-		
-		String serverId = calBackend.handleMeetingResponse(bs, invitation, userResponse);
-		invitationFilterManager.handleMeetingResponse(bs, invitationCollexctionId, invitation);
-		return serverId;
+		return calBackend.handleMeetingResponse(bs, invitation, userResponse);
 	}
 
 	@Override

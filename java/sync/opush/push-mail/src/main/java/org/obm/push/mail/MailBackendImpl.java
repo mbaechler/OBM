@@ -18,7 +18,6 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.minig.mime.QuotedPrintableDecoderInputStream;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.locator.LocatorClientException;
-import org.obm.push.IInvitationFilterManager;
 import org.obm.push.backend.DataDelta;
 import org.obm.push.bean.Address;
 import org.obm.push.bean.BackendSession;
@@ -65,7 +64,6 @@ public class MailBackendImpl implements MailBackend {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private final MailboxService emailManager;
-	private final IInvitationFilterManager filterManager;
 	private final ICalendar calendarClient;
 
 	private final LoginService login;
@@ -74,12 +72,10 @@ public class MailBackendImpl implements MailBackend {
 
 	@Inject
 	/* package */ MailBackendImpl(MailboxService emailManager, 
-			IInvitationFilterManager filterManager, 
 			@Named(CalendarType.CALENDAR) ICalendar calendarClient, 
 			LoginService login,
 			MappingService mappingService)  {
 		this.emailManager = emailManager;
-		this.filterManager = filterManager;
 		this.calendarClient = calendarClient;
 		this.login = login;
 		this.mappingService = mappingService;
@@ -283,7 +279,6 @@ public class MailBackendImpl implements MailBackend {
 				} else {
 					emailManager.delete(bs, devDbId, collectionName, collectionId, uid);
 				}
-				removeInvitationStatus(bs, collectionId, uid);
 			}	
 		} catch (MailException e) {
 			throw new ProcessingEmailException(e);
@@ -294,17 +289,6 @@ public class MailBackendImpl implements MailBackend {
 		}
 	}
 
-	private void removeInvitationStatus(BackendSession bs, Integer emailCollectionId, Long mailUid) 
-			throws CollectionNotFoundException, ProcessingEmailException {
-		
-		try {
-			String calPath = getDefaultCalendarName(bs);
-			Integer eventCollectionId = mappingService.getCollectionIdFor(bs.getDevice(), calPath);
-			filterManager.removeInvitationStatus(eventCollectionId, emailCollectionId, mailUid);
-		} catch (DaoException e) {
-			throw new ProcessingEmailException(e);
-		}
-	}
 
 	protected String getDefaultCalendarName(BackendSession bs) {
 		return "obm:\\\\" + bs.getUser().getLoginAtDomain() + "\\calendar\\"
@@ -343,7 +327,6 @@ public class MailBackendImpl implements MailBackend {
 			final Integer dstFolderId = mappingService.getCollectionIdFor(bs.getDevice(), dstFolder);
 			final Integer devDbId = bs.getDevice().getDatabaseId();
 			Long newUidMail = emailManager.moveItem(bs, devDbId, srcFolder, srcFolderId, dstFolder, dstFolderId, currentMailUid);
-			removeInvitationStatus(bs, srcFolderId, currentMailUid);
 			return dstFolderId + ":" + newUidMail;	
 		} catch (MailException e) {
 			throw new ProcessingEmailException(e);
