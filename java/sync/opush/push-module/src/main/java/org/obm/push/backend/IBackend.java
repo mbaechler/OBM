@@ -27,7 +27,7 @@ public interface IBackend {
 	 */
 	IListenerRegistration addChangeListener(ICollectionChangeListener ccl);
 
-	void startEmailMonitoring(BackendSession bs, Integer collectionId) throws CollectionNotFoundException;
+	void startEmailMonitoring(BackendSession bs, Integer collectionId) throws CollectionNotFoundException, DaoException;
 
 	void resetCollection(BackendSession bs, Integer collectionId) throws DaoException;
 

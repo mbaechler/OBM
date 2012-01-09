@@ -302,7 +302,7 @@ public class PingHandlerTest {
 	
 	private void mockLoginService(LoginService loginService) {
 		for (OpushUser user : fakeTestUsers) {
-			expect(loginService.login(user.user.getLoginAtDomain(), user.password, "o-push")).andReturn(user.accessToken).anyTimes();
+			expect(loginService.login(user.user.getLoginAtDomain(), user.password)).andReturn(user.accessToken).anyTimes();
 			loginService.logout(user.accessToken);
 			expectLastCall().anyTimes();
 		}

@@ -16,7 +16,7 @@ import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.FolderTypeNotFoundException;
 import org.obm.push.exception.activesync.ServerItemNotFoundException;
 import org.obm.push.impl.ObmSyncBackend;
-import org.obm.push.store.CollectionDao;
+import org.obm.push.service.impl.MappingService;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ContactNotFoundException;
 import org.obm.sync.auth.ServerFault;
@@ -36,11 +36,11 @@ import com.google.inject.name.Named;
 public class ContactsBackend extends ObmSyncBackend {
 
 	@Inject
-	private ContactsBackend(CollectionDao collectionDao, IAddressBook bookClient, 
+	private ContactsBackend(MappingService mappingService, IAddressBook bookClient, 
 			@Named(CalendarType.CALENDAR) ICalendar calendarClient, 
 			@Named(CalendarType.TODO) ICalendar todoClient,
 			LoginService login) {
-		super(collectionDao, bookClient, calendarClient, todoClient, login);
+		super(mappingService, bookClient, calendarClient, todoClient, login);
 	}
 
 	public List<ItemChange> getHierarchyChanges(BackendSession bs) throws DaoException {
@@ -50,10 +50,10 @@ public class ContactsBackend extends ObmSyncBackend {
 		String col = "obm:\\\\" + bs.getUser().getLoginAtDomain() + "\\contacts";
 		String serverId;
 		try {
-			Integer collectionId = getCollectionIdFor(bs.getDevice(), col);
-			serverId = collectionIdToString(collectionId);
+			Integer collectionId = mappingService.getCollectionIdFor(bs.getDevice(), col);
+			serverId = mappingService.collectionIdToString(collectionId);
 		} catch (CollectionNotFoundException e) {
-			serverId = createCollectionMapping(bs.getDevice(), col);
+			serverId = mappingService.createCollectionMapping(bs.getDevice(), col);
 			ic.setIsNew(true);
 		}
 
@@ -81,7 +81,7 @@ public class ContactsBackend extends ObmSyncBackend {
 			}
 
 			for (Integer del: changes.getRemoved()) {
-				ItemChange change = getItemChange(collectionId, "" + del);
+				ItemChange change = mappingService.getItemChange(collectionId, "" + del);
 				deletions.add(change);
 			}
 			lastSync = changes.getLastSync();
@@ -96,7 +96,7 @@ public class ContactsBackend extends ObmSyncBackend {
 	private ItemChange getContactChange( Integer collectionId,
 			Contact c) {
 		ItemChange ic = new ItemChange();
-		ic.setServerId(getServerIdFor(collectionId, ""
+		ic.setServerId(mappingService.getServerIdFor(collectionId, ""
 				+ c.getUid()));
 		MSContact cal = new ContactConverter().convert(c);
 		ic.setData(cal);
@@ -129,7 +129,7 @@ public class ContactsBackend extends ObmSyncBackend {
 			logout(token);
 		}
 
-		return getServerIdFor(collectionId, itemId);
+		return mappingService.getServerIdFor(collectionId, itemId);
 	}
 
 	public void delete(BackendSession bs, String serverId) throws UnknownObmSyncServerException, ServerItemNotFoundException {
@@ -158,7 +158,7 @@ public class ContactsBackend extends ObmSyncBackend {
 
 		List<ItemChange> ret = new LinkedList<ItemChange>();
 		for (String serverId: fetchServerIds) {
-			Integer id = getItemIdFor(serverId);
+			Integer id = mappingService.getItemIdFor(serverId);
 			if (id != null) {
 				try {
 					Contact c = bc.getContactFromId(token, BookType.contacts, id.toString());

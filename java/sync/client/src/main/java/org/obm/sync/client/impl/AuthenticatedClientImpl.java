@@ -16,7 +16,7 @@ public abstract class AuthenticatedClientImpl extends AbstractClientImpl impleme
 
 	@Override
 	public AccessToken login(String userAtDomain, String pass, String origin) {
-		return login.login(userAtDomain, pass, origin);
+		return login.login(userAtDomain, pass);
 	}
 	
 	@Override

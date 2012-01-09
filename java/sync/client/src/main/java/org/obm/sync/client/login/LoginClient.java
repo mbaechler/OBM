@@ -12,20 +12,24 @@ import org.w3c.dom.Element;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import fr.aliacom.obm.common.domain.ObmDomain;
 
 public class LoginClient extends AbstractClientImpl implements LoginService {
 
 	private final Locator locator;
+	private final String origin;
 
 	@Inject
-	private LoginClient(SyncClientException syncClientException, Locator locator) {
+	private LoginClient(@Named("origin")String origin,
+			SyncClientException syncClientException, Locator locator) {
 		super(syncClientException);
+		this.origin = origin;
 		this.locator = locator;
 	}
 	
-	public AccessToken login(String loginAtDomain, String password, String origin) {
+	public AccessToken login(String loginAtDomain, String password) {
 		Multimap<String, String> params = ArrayListMultimap.create();
 		params.put("login", loginAtDomain);
 		params.put("password", password);

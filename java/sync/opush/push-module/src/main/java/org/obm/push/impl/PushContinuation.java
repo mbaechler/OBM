@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.obm.push.backend.CollectionChangeListener;
+import org.obm.push.backend.ICollectionChangeListener;
 import org.obm.push.backend.IContinuation;
 import org.obm.push.backend.IListenerRegistration;
 import org.obm.push.bean.BackendSession;
@@ -114,7 +115,7 @@ public class PushContinuation implements IContinuation {
 	}
 
 	@Override
-	public void setCollectionChangeListener(CollectionChangeListener l) {
+	public void setCollectionChangeListener(ICollectionChangeListener l) {
 		c.setAttribute(KEY_COLLECTION_CHANGE_LISTENER, l);
 	}
 
