@@ -14,8 +14,8 @@ import java.util.Set;
 
 import org.fest.assertions.Assertions;
 import org.obm.opush.SingleUserFixture.OpushUser;
+import org.obm.push.IContentsExporter;
 import org.obm.push.backend.DataDelta;
-import org.obm.push.backend.IContentsExporter;
 import org.obm.push.bean.BackendSession;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
@@ -23,7 +23,6 @@ import org.obm.push.bean.FilterType;
 import org.obm.push.bean.ItemChange;
 import org.obm.push.bean.PIMDataType;
 import org.obm.push.bean.ServerId;
-import org.obm.push.bean.SyncCollection;
 import org.obm.push.bean.SyncState;
 import org.obm.push.exception.DaoException;
 import org.obm.push.exception.UnknownObmSyncServerException;
@@ -155,16 +154,11 @@ public class EmailSyncTestUtils {
 	private static void mockContentsExporter(IContentsExporter contentsExporter, DataDelta delta) 
 			throws CollectionNotFoundException, ProcessingEmailException, DaoException, UnknownObmSyncServerException {
 
-		expect(contentsExporter.getFilterChanges(
-				anyObject(BackendSession.class),
-				anyObject(SyncCollection.class)))
-				.andReturn(false).once();
-		
 		expect(contentsExporter.getChanged(
 				anyObject(BackendSession.class), 
 				anyObject(SyncState.class),
-				anyObject(FilterType.class),
 				anyInt(),
+				anyObject(FilterType.class),
 				anyObject(PIMDataType.class)))
 			.andReturn(delta).once();
 	}
