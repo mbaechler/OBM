@@ -69,6 +69,7 @@ import org.obm.push.exception.activesync.AttachementNotFoundException;
 import org.obm.push.exception.activesync.CollectionNotFoundException;
 import org.obm.push.exception.activesync.NotAllowedException;
 import org.obm.push.exception.activesync.ProcessingEmailException;
+import org.obm.push.exception.activesync.ServerItemNotFoundException;
 import org.obm.push.exception.activesync.StoreEmailException;
 import org.obm.push.service.impl.MappingService;
 import org.obm.push.tnefconverter.TNEFConverterException;
@@ -83,6 +84,7 @@ import org.obm.sync.services.ICalendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Maps;
@@ -194,18 +196,6 @@ public class MailBackendImpl implements MailBackend {
 	}
 	
 	@Override
-	public DataDelta getMailChanges(BackendSession bs, SyncState state, Integer collectionId, FilterType filterType) 
-			throws ProcessingEmailException, CollectionNotFoundException {
-		
-		MailChanges mailChanges = getSync(bs, state, collectionId, filterType);
-		try {
-			return getDataDelta(bs, collectionId, mailChanges);
-		} catch (DaoException e) {
-			throw new ProcessingEmailException(e);
-		}
-	}
-	
-	@Override
 	public DataDelta getChanged(BackendSession bs, SyncState state,
 			FilterType filterType, Integer collectionId) throws DaoException,
 			CollectionNotFoundException, UnknownObmSyncServerException,
@@ -289,8 +279,7 @@ public class MailBackendImpl implements MailBackend {
 		return ret;
 	}
 
-	@Override
-	public List<ItemChange> fetchItems(BackendSession bs, Integer collectionId, Collection<Long> uids) 
+	private List<ItemChange> fetchItems(BackendSession bs, Integer collectionId, Collection<Long> uids) 
 			throws CollectionNotFoundException, ProcessingEmailException {
 		
 		try {
@@ -314,20 +303,22 @@ public class MailBackendImpl implements MailBackend {
 	}
 
 	@Override
-	public void delete(BackendSession bs, String serverId, Boolean moveToTrash) throws CollectionNotFoundException, ProcessingEmailException {
+	public void delete(BackendSession bs, Integer collectionId, String serverId, Boolean moveToTrash)
+			throws CollectionNotFoundException, DaoException,
+			UnknownObmSyncServerException, ServerItemNotFoundException, ProcessingEmailException {
 		try {
-			if (moveToTrash) {
+			boolean trash = Objects.firstNonNull(moveToTrash, true);
+			if (trash) {
 				logger.info("move to trash serverId {}", serverId);
 			} else {
 				logger.info("delete serverId {}", serverId);
 			}
 			if (serverId != null) {
 				final Long uid = getEmailUidFromServerId(serverId);
-				final Integer collectionId = mappingService.getCollectionIdFromServerId(serverId);
 				final String collectionName = mappingService.getCollectionPathFor(collectionId);
 				final Integer devDbId = bs.getDevice().getDatabaseId();
 
-				if (moveToTrash) {
+				if (trash) {
 					String wasteBasketPath = getWasteBasketPath(bs);
 					Integer wasteBasketId = mappingService.getCollectionIdFor(bs.getDevice(), wasteBasketPath);
 					emailManager.moveItem(bs, devDbId, collectionName, collectionId, wasteBasketPath, wasteBasketId, uid);
@@ -350,16 +341,21 @@ public class MailBackendImpl implements MailBackend {
 				+ bs.getUser().getLoginAtDomain();
 	}
 	
+	
 	@Override
-	public String createOrUpdate(BackendSession bs, Integer collectionId, String serverId, String clientId, MSEmail data) 
-			throws CollectionNotFoundException, ProcessingEmailException {
+	public String createOrUpdate(BackendSession bs, Integer collectionId,
+			String serverId, String clientId, IApplicationData data)
+			throws CollectionNotFoundException, ProcessingEmailException,
+			DaoException, UnknownObmSyncServerException,
+			ServerItemNotFoundException {
 		
+		MSEmail email = (MSEmail) data;
 		try {
 			String collectionPath = mappingService.getCollectionPathFor(collectionId);
 			logger.info("createOrUpdate( {}, {}, {} )", new Object[]{collectionPath, serverId, clientId});
 			if (serverId != null) {
 				Long mailUid = getEmailUidFromServerId(serverId);
-				emailManager.updateReadFlag(bs, collectionPath, mailUid, data.isRead());
+				emailManager.updateReadFlag(bs, collectionPath, mailUid, email.isRead());
 			}
 			return serverId;
 		} catch (MailException e) {
@@ -624,9 +620,9 @@ public class MailBackendImpl implements MailBackend {
 	}
 
 	@Override
-	public void purgeFolder(BackendSession bs, String collectionPath, boolean deleteSubFolder) 
-			throws NotAllowedException, CollectionNotFoundException, ProcessingEmailException {
-
+	public void emptyFolderContent(BackendSession bs, String collectionPath,
+			boolean deleteSubFolder) throws NotAllowedException, CollectionNotFoundException, ProcessingEmailException {
+		
 		try {
 			String wasteBasketPath = getWasteBasketPath(bs);
 			if (!wasteBasketPath.equals(collectionPath)) {
@@ -652,5 +648,5 @@ public class MailBackendImpl implements MailBackend {
 	public Long getEmailUidFromServerId(String serverId){
 		return mappingService.getItemIdFromServerId(serverId).longValue();
 	}
-	
+
 }
