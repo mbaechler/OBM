@@ -19,8 +19,8 @@ import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.SyncRange;
-import org.obm.sync.client.ISyncClient;
 import org.obm.sync.client.calendar.CalendarClient;
+import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.EventChanges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,19 +29,11 @@ import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.utils.CalendarHelper;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
 
-/**
- * Maintains a connection to obm-sync through a {@link CalendarClient}.
- * 
- * Stores the result of the getSync call to provide updates and deletions
- * informations "on demand".
- * 
- * @author tom
- * 
- */
+
 public class CalendarManager extends ObmManager {
 
-	private CalendarClient binding;
-	private ObmEventConverter obmEventConverter;
+	private final CalendarClient calendarClient;
+	private final ObmEventConverter obmEventConverter;
 	
 	private String calendar;
 	private String userEmail;
@@ -52,8 +44,9 @@ public class CalendarManager extends ObmManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(CalendarManager.class);
 
-	public CalendarManager(CalendarClient binding, ObmEventConverter obmEventConverter) {
-		this.binding = binding;
+	public CalendarManager(final LoginService loginService, final CalendarClient calendarClient, final ObmEventConverter obmEventConverter) {
+		super(loginService);
+		this.calendarClient = calendarClient;
 		this.obmEventConverter = obmEventConverter;
 	}
 
@@ -65,13 +58,9 @@ public class CalendarManager extends ObmManager {
 		this.calendar = calendar;
 	}
 
-	public CalendarClient getBinding() {
-		return binding;
-	}
-
 	public void initUserEmail() throws OBMException {
 		try {
-			userEmail = binding.getUserEmail(token);
+			userEmail = calendarClient.getUserEmail(token);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
@@ -119,7 +108,7 @@ public class CalendarManager extends ObmManager {
 					+ " not found in updated -> get from sever");
 			try {
 				EventObmId id = new EventObmId(key);
-				event = binding.getEventFromId(token, calendar, id);
+				event = calendarClient.getEventFromId(token, calendar, id);
 			} catch (ServerFault e) {
 				throw new OBMException(e.getMessage());
 			} catch (EventNotFoundException e) {
@@ -138,7 +127,7 @@ public class CalendarManager extends ObmManager {
 		Event event = null;
 		try {
 			EventObmId id = new EventObmId(key);
-			event = binding.getEventFromId(token, calendar, id);
+			event = calendarClient.getEventFromId(token, calendar, id);
 			// log.info(" attendees size : "+event.getAttendees().length );
 			// log.info(" owner : "+event.getOwner()+" calendar : "+calendar);
 			if (event == null) {
@@ -152,7 +141,7 @@ public class CalendarManager extends ObmManager {
 				// no attendee (only the owner)
 				logger.info("not a meeting, removing event");
 				try {
-					binding.removeEventById(token, calendar, id, event.getSequence(), false);
+					calendarClient.removeEventById(token, calendar, id, event.getSequence(), false);
 				} catch (NotAllowedException e) {
 					refuseEvent(event);
 				}
@@ -171,7 +160,7 @@ public class CalendarManager extends ObmManager {
 		logger.info("meeting removed, refusing for " + userEmail);
 		CalendarHelper.refuseEvent(event, userEmail);
 		// event = binding.refuseEvent(token, calendar, event);
-		binding.modifyEvent(token, calendar, event, true, false);
+		calendarClient.modifyEvent(token, calendar, event, true, false);
 	}
 
 	public com.funambol.common.pim.calendar.Calendar updateItem(
@@ -180,7 +169,7 @@ public class CalendarManager extends ObmManager {
 
 		Event c = null;
 		try {
-			c = binding.modifyEvent(token, calendar,
+			c = calendarClient.modifyEvent(token, calendar,
 					obmEventConverter.foundationCalendarToObmEvent(event, false, userEmail), false, false);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
@@ -203,8 +192,8 @@ public class CalendarManager extends ObmManager {
 			Event forCreate = obmEventConverter.foundationCalendarToObmEvent(event, true, userEmail);
 			EventExtId ext = new EventExtId(UUID.randomUUID().toString());
 			forCreate.setExtId(ext);
-			EventObmId uid = binding.createEvent(token, calendar, forCreate, false);
-			evt = binding.getEventFromId(token, calendar, uid);
+			EventObmId uid = calendarClient.createEvent(token, calendar, forCreate, false);
+			evt = calendarClient.getEventFromId(token, calendar, uid);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		} catch (EventAlreadyExistException e) {
@@ -232,7 +221,7 @@ public class CalendarManager extends ObmManager {
 
 		try {
 			evt.setUid(null);
-			return binding.getEventTwinKeys(token, calendar, evt).getKeys();
+			return calendarClient.getEventTwinKeys(token, calendar, evt).getKeys();
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
@@ -250,7 +239,7 @@ public class CalendarManager extends ObmManager {
 		// get modified items
 		try {
 			SyncRange syncRange = getSyncRanges(rangeMin, rangeMax);
-			sync = binding.getSyncInRange(token, calendar, d, syncRange);
+			sync = calendarClient.getSyncInRange(token, calendar, d, syncRange);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
@@ -269,7 +258,7 @@ public class CalendarManager extends ObmManager {
 		// remove refused events and private events
 		updatedRest = new HashMap<String, Event>();
 		deletedRest = new ArrayList<String>();
-		String user = token.getUser();
+		String user = token.getUserWithDomain();
 
 		for (Event e : updated) {
 			logger.info("getSync: " + e.getTitle() + ", d: " + e.getDate());
@@ -305,11 +294,6 @@ public class CalendarManager extends ObmManager {
 		return new SyncRange(before, after);
 	}
 	
-	@Override
-	protected ISyncClient getSyncClient() {
-		return binding;
-	}
-
 	public void initSyncRange(String sourceQuery) {
 		//format:   /dr(-30,90)
 		try {

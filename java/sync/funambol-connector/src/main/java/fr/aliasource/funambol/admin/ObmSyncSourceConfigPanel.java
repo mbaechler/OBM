@@ -276,7 +276,6 @@ public class ObmSyncSourceConfigPanel
 	        restrictPublicWValue.setSelected(
 	        		(rs & Helper.RESTRICT_PUBLIC_W) == Helper.RESTRICT_PUBLIC_W );
         }
-        obmAddressValue.setText(syncSource.getObmAddress());
     }
 
  // ----------------------------------------------------------- Private methods
@@ -376,7 +375,6 @@ public class ObmSyncSourceConfigPanel
 				syncSource.setRestrictions(rs);
 			}
 		}
-        syncSource.setObmAddress(obmAddressValue.getText().trim());
     }
 
 }

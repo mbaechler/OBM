@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.obm.sync.book.BookType;
 import org.obm.sync.client.book.BookClient;
+import org.obm.sync.client.login.LoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,24 +34,27 @@ import fr.aliasource.obm.items.manager.ContactManager;
 public final class ContactSyncSource extends ObmSyncSource implements
 		SyncSource, Serializable, LazyInitBean {
 
-	private ContactManager manager;
-	private BookClient binding;
-	private ObmContactConverter contactConverter;
 	private static final Logger logger = LoggerFactory.getLogger(ContactSyncSource.class);
+	private final BookClient bookClient;
+	private final LoginService loginService;
+	private final ObmContactConverter contactConverter;
+	
+	private ContactManager manager;
 
 	public ContactSyncSource() {
 		super();
-		
 		Injector injector = ObmFunambolGuiceInjector.getInjector();
-		binding = injector.getProvider(BookClient.class).get();
-		contactConverter = injector.getProvider(ObmContactConverter.class).get();
+		this.bookClient = injector.getProvider(BookClient.class).get();
+		this.loginService = injector.getProvider(LoginService.class).get();
+		this.contactConverter = injector.getProvider(ObmContactConverter.class).get();
+		this.contactConfiguration = injector.getProvider(ContactConfiguration.class).get();
 	}
 
 	public void beginSync(SyncContext context) throws SyncSourceException {
 		super.beginSync(context);
 
 		logger.info("- Begin an OBM Contact sync -");
-		this.manager = new ContactManager(binding, contactConverter);
+		this.currentSyncBean = new ContactSyncBean(loginService, bookClient, contactConfiguration, contactConverter);
 		
 		try {
 			manager.logIn(context.getPrincipal().getUser().getUsername(),

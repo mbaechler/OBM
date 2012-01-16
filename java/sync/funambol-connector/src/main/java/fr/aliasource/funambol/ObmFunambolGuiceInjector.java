@@ -1,11 +1,15 @@
 package fr.aliasource.funambol;
 
+import org.obm.configuration.ConfigurationService;
+import org.obm.configuration.ConfigurationServiceImpl;
 import org.obm.locator.store.LocatorCache;
 import org.obm.locator.store.LocatorService;
+import org.obm.sync.ObmSyncHttpClientModule;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.name.Names;
 
 public class ObmFunambolGuiceInjector { 
 
@@ -27,7 +31,10 @@ public class ObmFunambolGuiceInjector {
 
 		@Override
 		protected void configure() {
+			install(new ObmSyncHttpClientModule());
 			bind(LocatorService.class).to(LocatorCache.class);
+			bind(ConfigurationService.class).to(ConfigurationServiceImpl.class);
+			bind(String.class).annotatedWith(Names.named("origin")).toInstance("funis");
 		}
 		
 		

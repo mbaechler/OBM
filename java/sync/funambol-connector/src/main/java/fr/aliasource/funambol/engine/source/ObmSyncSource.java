@@ -26,11 +26,6 @@ import com.funambol.server.config.Configuration;
 public abstract class ObmSyncSource extends AbstractSyncSource implements
 		SyncSource, Serializable, LazyInitBean {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8641196924967132469L;
-
 	protected Principal principal = null;
 
 	protected Sync4jDevice device = null;
@@ -44,7 +39,6 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 	private boolean encode = true;
 
 	private int restrictions = 1; // default private
-	private String obmAddress = null;
 
 	private static final Logger logger = LoggerFactory.getLogger(ObmSyncSource.class);
 
@@ -193,14 +187,6 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 			logger.trace(" setRestrcitions:" + restrictions);
 		}
 		this.restrictions = restrictions;
-	}
-
-	public String getObmAddress() {
-		return obmAddress;
-	}
-
-	public void setObmAddress(String obmAddress) {
-		this.obmAddress = obmAddress;
 	}
 
 	@Override

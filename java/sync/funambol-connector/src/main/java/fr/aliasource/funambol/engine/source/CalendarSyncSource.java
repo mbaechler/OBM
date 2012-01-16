@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.obm.sync.client.calendar.CalendarClient;
+import org.obm.sync.client.login.LoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,18 +36,18 @@ import fr.aliasource.obm.items.manager.CalendarManager;
 
 public class CalendarSyncSource extends ObmSyncSource {
 
-	private static final long serialVersionUID = 8820543271150832304L;
-
 	private static final Logger logger = LoggerFactory.getLogger(CalendarSyncSource.class);
 	
-	private CalendarClient binding;
+	private CalendarClient calendarClient;
+	private LoginService loginService;
 	private ObmEventConverter obmEventConverter;
 	private CalendarManager manager;
 	
 	public CalendarSyncSource(){
 		super();
 		Injector injector = ObmFunambolGuiceInjector.getInjector();
-		binding = injector.getProvider(CalendarClient.class).get();
+		calendarClient = injector.getProvider(CalendarClient.class).get();
+		loginService = injector.getProvider(LoginService.class).get();
 		obmEventConverter = injector.getProvider(ObmEventConverter.class).get();
 
 	}
@@ -55,7 +56,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 		logger.info("Begin an OBM-Funambol Calendar sync");
 		logger.info("context.getSourceQuery():" + context);
 		
-		manager = new CalendarManager(binding, obmEventConverter);
+		manager = new CalendarManager(loginService, calendarClient, obmEventConverter);
 		manager.initSyncRange(context.getSourceQuery());
 		
 		try {

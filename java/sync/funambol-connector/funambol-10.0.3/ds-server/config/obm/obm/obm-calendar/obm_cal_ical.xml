@@ -22,14 +22,5 @@
     </void> 
    </object> 
   </void> 
-  <void property="name"> 
-   <string>obm_cal_ical</string> 
-  </void> 
-  <void property="obmAddress"> 
-   <string>http://localhost:8080/obm-sync/services/Calendar</string> 
-  </void> 
-  <void property="sourceURI"> 
-   <string>obm_cal_ical</string> 
-  </void> 
  </object> 
 </java> 

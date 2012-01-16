@@ -3,7 +3,8 @@ package fr.aliasource.funambol.security;
 import java.security.Principal;
 
 import org.obm.sync.auth.AccessToken;
-import org.obm.sync.client.calendar.CalendarClient;
+import org.obm.sync.auth.AuthFault;
+import org.obm.sync.client.login.LoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,14 +32,14 @@ public class ObmOfficer implements Officer, java.io.Serializable {
 
 	private String serverAuth = Cred.AUTH_NONE;
 	
-	private CalendarClient client; 
+	private final LoginService loginService;
 
 	private static final Logger logger = LoggerFactory.getLogger(ObmOfficer.class);
 	
 	public ObmOfficer(){
 		Injector injector = ObmFunambolGuiceInjector.getInjector();
-		Provider<CalendarClient> p = injector.getProvider(CalendarClient.class);
-		client =  p.get();
+		Provider<LoginService> p = injector.getProvider(LoginService.class);
+		loginService =  p.get();
 	}
 
 	public String getClientAuth() {
@@ -149,7 +150,7 @@ public class ObmOfficer implements Officer, java.io.Serializable {
 			principalFound = true;
 		} catch (NotFoundException nfe) {
 			if (logger.isTraceEnabled()) {
-				logger.trace("Principal for " + username + " devid: "
+				logger.info("Principal for " + username + " devid: "
 						+ deviceId + " not found");
 			}
 		} catch (PersistentStoreException e) {
@@ -180,17 +181,18 @@ public class ObmOfficer implements Officer, java.io.Serializable {
 
 	private boolean checkObmCredentials(String login,
 			String password) {
-
-		boolean ret = false;
+		AccessToken token = null;
 		try {
-			AccessToken token = client.login(login, password, "funis");
-			ret = true;
-			client.logout(token);
-		} catch (Throwable e) {
+			token = loginService.authenticate(login, password);
+			return true;
+		} catch (AuthFault e) {
 			logger.error("Error on obm login: " + e);
-			ret = false;
+		} finally {
+			if(token != null){
+				loginService.logout(token);
+			}
 		}
-		return ret;
+		return false;
 	}
 
 }

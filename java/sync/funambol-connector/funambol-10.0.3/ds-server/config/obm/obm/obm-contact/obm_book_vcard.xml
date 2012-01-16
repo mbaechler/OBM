@@ -32,14 +32,5 @@
     </void> 
    </object> 
   </void> 
-  <void property="name"> 
-   <string>obm_book_vcard</string> 
-  </void> 
-  <void property="obmAddress"> 
-   <string>http://localhost:8080/obm-sync/services/AddressBook</string> 
-  </void> 
-  <void property="sourceURI"> 
-   <string>obm_book_vcard</string> 
-  </void> 
  </object> 
 </java> 

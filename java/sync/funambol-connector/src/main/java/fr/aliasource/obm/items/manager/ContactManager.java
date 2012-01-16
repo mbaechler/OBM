@@ -12,13 +12,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.obm.sync.auth.ContactNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
 import org.obm.sync.client.ISyncClient;
 import org.obm.sync.client.book.BookClient;
-import org.obm.sync.items.ContactChangesResponse;
+import org.obm.sync.client.login.LoginClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +35,9 @@ public class ContactManager extends ObmManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContactManager.class);
 	private TimeZone deviceTimeZone;
-
-	public ContactManager(BookClient binding, ObmContactConverter contactConverter) {
+	
+	public ContactManager(LoginClient loginClient, BookClient binding, ObmContactConverter contactConverter) {
+		super(loginClient);
 		this.binding = binding;
 		this.contactConverter = contactConverter;
 	}
@@ -107,7 +107,7 @@ public class ContactManager extends ObmManager {
 			logger.info(" item " + key
 					+ " not found in updated -> get from sever");
 			try {
-				contact = binding.getContactFromId(token, book, key);
+				contact = binding.getContactFromId(token, key);
 			} catch (ServerFault e) {
 				throw new OBMException(e.getMessage());
 			}
@@ -218,11 +218,6 @@ public class ContactManager extends ObmManager {
 		syncReceived = true;
 	}
 	
-	@Override
-	protected ISyncClient getSyncClient() {
-		return binding;
-	}
-
 	public void setDeviceTimeZone(TimeZone deviceTimeZone) {
 		this.deviceTimeZone = deviceTimeZone;
 		if (deviceTimeZone == null) {
