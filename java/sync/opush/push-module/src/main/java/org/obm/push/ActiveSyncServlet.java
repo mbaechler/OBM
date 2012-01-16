@@ -107,6 +107,12 @@ public class ActiveSyncServlet extends HttpServlet {
 	}
 
 	@Override
+	public void init() throws ServletException {
+		super.init();
+		backend.startMonitoring();
+	}
+	
+	@Override
 	@Transactional
 	protected void service(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
