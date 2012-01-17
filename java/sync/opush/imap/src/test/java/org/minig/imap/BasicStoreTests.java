@@ -103,16 +103,20 @@ public class BasicStoreTests extends LoggedTestCase {
 	public void testAppend() {
 		FlagsList fl = new FlagsList();
 		fl.add(Flag.SEEN);
-		long uid = sc.append("INBOX", getRfc822Message(), fl);
-		assertTrue(uid > 0);
-		long secondUid = sc.append("INBOX", getUtf8Rfc822Message(), fl);
-		assertTrue("Added uids : " + uid + " " + secondUid, secondUid == uid + 1);
+		boolean isOK = sc.append("INBOX", getRfc822Message(), fl);
+		assertTrue(isOK);
+		boolean secondIsOK = sc.append("INBOX", getUtf8Rfc822Message(), fl);
+		assertTrue("Added status : " + isOK + " " + secondIsOK, secondIsOK);
 	}
 
 	public void testUidFetchMessage() {
 		FlagsList fl = new FlagsList();
 		fl.add(Flag.SEEN);
-		long uid = sc.append("INBOX", getUtf8Rfc822Message(), fl);
+		boolean isOK = sc.append("INBOX", getUtf8Rfc822Message(), fl);
+		long uid = 0;
+		if (isOK) {
+			// TODO: fetch real uid 
+		}
 		sc.select("INBOX");
 		InputStream in = sc.uidFetchMessage(uid);
 		assertNotNull(in);
@@ -262,9 +266,10 @@ public class BasicStoreTests extends LoggedTestCase {
 	public void testUidFetchBodyStructure() {
 		FlagsList fl = new FlagsList();
 		fl.add(Flag.SEEN);
-		Collection<Long> uid = Arrays.asList(
+		Arrays.asList(
 				sc.append("INBOX", getUtf8Rfc822Message(), fl),
 				sc.append("INBOX", getRfc822Message(), fl));
+		Collection<Long> uid = null; // TODO: Get mail uids 
 		sc.select("INBOX");
 		sc.uidFetchBodyStructure(uid);
 

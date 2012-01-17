@@ -259,7 +259,7 @@ public class ClientSupport {
 		return run(new UnSubscribeCommand(mailbox));
 	}
 
-	public long append(String mailbox, InputStream in, FlagsList fl) {
+	public boolean append(String mailbox, InputStream in, FlagsList fl) {
 		return run(new AppendCommand(mailbox, in, fl));
 	}
 
