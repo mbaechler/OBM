@@ -86,5 +86,9 @@
                         <artifactId>icalendar</artifactId>
                         <version>${obm.version}</version>
                 </dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+		</dependency>
 	</dependencies>
 </project>
