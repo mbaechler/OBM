@@ -62,8 +62,7 @@ public interface MailboxService {
 	Long moveItem(BackendSession bs, Integer devId, String srcFolder, Integer srcFolderId, String dstFolder, Integer dstFolderId, 
 			Long uid) throws MailException, DaoException;
 
-	List<InputStream> fetchMIMEMails(BackendSession bs, ICalendar calendarClient, String collectionName, 
-			Set<Long> uids) throws MailException;
+	List<InputStream> fetchMIMEMails(BackendSession bs, String collectionName, Set<Long> uids) throws MailException;
 
 	void setAnsweredFlag(BackendSession bs, String collectionName, Long uid) throws MailException;
 

@@ -229,8 +229,7 @@ public class ImapMailboxService implements MailboxService {
 	}
 
 	@Override
-	public List<InputStream> fetchMIMEMails(BackendSession bs, ICalendar calendarClient, String collectionName, 
-			Set<Long> uids) throws MailException {
+	public List<InputStream> fetchMIMEMails(BackendSession bs, String collectionName, Set<Long> uids) throws MailException {
 		
 		List<InputStream> mails = new LinkedList<InputStream>();
 		StoreClient store = imapClientProvider.getImapClient(bs);
