@@ -31,7 +31,7 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.calendar;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -43,7 +43,7 @@ import java.util.Properties;
 
 import javax.xml.parsers.FactoryConfigurationError;
 
-import org.fest.assertions.Assertions;
+import org.fest.assertions.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -53,8 +53,8 @@ import org.obm.push.bean.BackendSession;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Device;
 import org.obm.push.bean.IApplicationData;
-import org.obm.push.bean.User;
 import org.obm.push.bean.MSEvent;
+import org.obm.push.bean.User;
 import org.obm.push.bean.User.Factory;
 import org.obm.push.protocol.data.CalendarDecoder;
 import org.obm.push.utils.DOMUtils;
@@ -98,7 +98,7 @@ public class EventConverterTest {
 		checkOrganizer(backendSession.getCredentials().getUser().getEmail(), organizer);
 		
 		assertThat(event.getAttendees()).hasSize(4);
-		assertThat(attendees).hasSize(3).excludes(organizer);
+		assertThat(attendees).hasSize(3).doesNotContain(organizer);
 		checkAttendeeParticipationState(attendees);
 	}
 	
@@ -119,7 +119,7 @@ public class EventConverterTest {
 		checkOrganizer("jribiera@obm.lng.org", organizer);
 		
 		assertThat(event.getAttendees()).hasSize(4);
-		assertThat(attendees).hasSize(3).excludes(organizer);
+		assertThat(attendees).hasSize(3).doesNotContain(organizer);
 		checkAttendeeParticipationState(attendees);
 	}
 
