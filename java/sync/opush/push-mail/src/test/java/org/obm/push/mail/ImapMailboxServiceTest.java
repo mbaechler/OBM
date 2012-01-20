@@ -31,6 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.push.mail;
 
+import static org.obm.push.mail.MailTestsUtils.loadEmail;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Set;
 
@@ -47,6 +51,8 @@ import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Email;
 import org.obm.push.bean.User;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
 import com.google.inject.Inject;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
@@ -177,6 +183,27 @@ public class ImapMailboxServiceTest {
 		Assertions.assertThat(result).isTrue();
 		Assertions.assertThat(after).isNotNull().containsOnly(
 				inbox(), newFolder);
+	}
+	
+	@Test
+	public void testFetchMime() throws Exception {
+		GreenMailUtil.sendTextEmailTest(mailbox, "from@localhost.com", "subject", "body");
+		greenMail.waitForIncomingEmail(1);
+		InputStream email = mailboxService.fetchMailStream(bs, "INBOX", 1L);
+		Assertions.assertThat(email).isNotNull();
+		String emailAsString = CharStreams.toString(new InputStreamReader(email, Charsets.UTF_8));
+		Assertions.assertThat(emailAsString).contains("from@localhost.com")
+			.contains("subject")
+			.contains("body");
+	}
+	
+	@Test
+	public void testFetchMimeBigMail() throws Exception {
+		InputStream expected = loadEmail("bigEml.eml");
+		InputStream inputStream = loadEmail("bigEml.eml");
+		mailboxService.storeInInbox(bs, inputStream, false);
+		InputStream email = mailboxService.fetchMailStream(bs, "INBOX", 1L);
+		Assertions.assertThat(email).isNotNull().hasContentEqualTo(expected);
 	}
 	
 	private MailboxFolder folder(String name) {
