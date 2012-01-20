@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.transform.TransformerException;
 
-import org.fest.assertions.Assertions;
+import org.fest.assertions.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

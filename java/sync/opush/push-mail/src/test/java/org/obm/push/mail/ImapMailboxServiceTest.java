@@ -34,7 +34,7 @@ package org.obm.push.mail;
 import java.util.Date;
 import java.util.Set;
 
-import org.fest.assertions.Assertions;
+import org.fest.assertions.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
