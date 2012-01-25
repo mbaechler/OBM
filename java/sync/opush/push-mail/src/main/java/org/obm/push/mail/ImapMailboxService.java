@@ -68,7 +68,6 @@ import org.obm.push.exception.activesync.StoreEmailException;
 import org.obm.push.mail.smtp.SmtpSender;
 import org.obm.push.service.EventService;
 import org.obm.push.utils.FileUtils;
-import org.obm.sync.services.ICalendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +106,7 @@ public class ImapMailboxService implements MailboxService, PrivateMailboxService
 	}
 
 	@Override
-	public List<MSEmail> fetchMails(BackendSession bs, ICalendar calendarClient, Integer collectionId, 
+	public List<MSEmail> fetchMails(BackendSession bs, Integer collectionId, 
 			String collectionName, Collection<Long> uids) throws MailException {
 		
 		final List<MSEmail> mails = new LinkedList<MSEmail>();
@@ -117,7 +116,7 @@ public class ImapMailboxService implements MailboxService, PrivateMailboxService
 			store.select(parseMailBoxName(bs, collectionName));
 			
 			final MailMessageLoader mailLoader = 
-					new MailMessageLoader(store, calendarClient, eventService, ical4jHelper, ical4jUserFactory);
+					new MailMessageLoader(store, eventService, ical4jHelper, ical4jUserFactory);
 			for (final Long uid: uids) {
 				final MSEmail email = mailLoader.fetch(collectionId, uid, bs);
 				if (email != null) {
@@ -262,7 +261,7 @@ public class ImapMailboxService implements MailboxService, PrivateMailboxService
 	}
 
 	@Override
-	public List<InputStream> fetchMIMEMails(BackendSession bs, ICalendar calendarClient, String collectionName, 
+	public List<InputStream> fetchMIMEMails(BackendSession bs, String collectionName, 
 			Set<Long> uids) throws MailException {
 		
 		List<InputStream> mails = new LinkedList<InputStream>();
