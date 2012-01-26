@@ -62,8 +62,4 @@ public class FastFetch {
 		return flags != null && flags.contains(Flag.SEEN);
 	}
 	
-	public boolean isAnswered() {
-		return flags != null && flags.contains(Flag.ANSWERED);
-	}
-	
 }
