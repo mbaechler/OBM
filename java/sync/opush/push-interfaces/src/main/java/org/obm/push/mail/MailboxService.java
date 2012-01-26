@@ -52,7 +52,7 @@ public interface MailboxService {
 	List<MSEmail> fetchMails(BackendSession bs, Integer collectionId, String collectionName, 
 			Collection<Long> uids) throws MailException;
 
-	void updateReadFlag(BackendSession bs, String collectionName, long uid, boolean read) throws MailException;
+	void updateReadFlag(BackendSession bs, String collectionName, Long uid, boolean read) throws MailException;
 
 	String parseMailBoxName(BackendSession bs, String collectionName) throws MailException;
 
