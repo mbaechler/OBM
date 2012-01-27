@@ -21,14 +21,13 @@ import org.obm.sync.client.login.LoginService;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.AddressBookChangesResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
 
+import fr.aliasource.funambol.InvalidFunambolKeyException;
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.obm.items.converter.ObmContactConverter;
 
@@ -41,7 +40,6 @@ public class ContactSyncBean extends ObmManager {
 	private final ContactConfiguration contactConfiguration;
 	private final ObmContactConverter contactConverter;
 
-	private static final Logger logger = LoggerFactory.getLogger(ContactSyncBean.class);
 	private TimeZone deviceTimeZone;
 	
 	public ContactSyncBean(final LoginService loginService, final BookClient bookClient, 
@@ -100,7 +98,7 @@ public class ContactSyncBean extends ObmManager {
 				contact = bookClient.getContactFromId(token, contactKey.getAddressBookId(), contactKey.getContactId());
 			} catch (ServerFault e) {
 				throw new OBMException(e.getMessage(),e);
-			} catch (InvalidFunambolKey e) {
+			} catch (InvalidFunambolKeyException e) {
 				throw new OBMException(e.getMessage(),e);
 			} catch (ContactNotFoundException e) {
 				throw new OBMException(e.getMessage(),e);
@@ -121,7 +119,7 @@ public class ContactSyncBean extends ObmManager {
 			throw new OBMException(e.getMessage(),e);
 		} catch (ContactNotFoundException e) {
 			throw new OBMException(e.getMessage(),e);
-		} catch (InvalidFunambolKey e) {
+		} catch (InvalidFunambolKeyException e) {
 			throw new OBMException(e.getMessage(),e);
 		} catch (NoPermissionException e) {
 			throw new OBMException(e.getMessage(),e);
@@ -206,15 +204,8 @@ public class ContactSyncBean extends ObmManager {
 			List<Contact> updated = getListUpdateContact(sync);
 			Set<RemovedContact> deleted = getRemovedContacts(sync);
 			
-			// apply restriction(s)
-			
 			updatedRest = transformAsFunambolUpdated(updated);
 			deletedRest = transformAsFunambolRemoved(deleted);
-			
-	
-			for (RemovedContact i : deleted) {
-				deletedRest.add(i.toString());
-			}
 		}catch (ServerFault e) {
 			throw new OBMException("The default address book is unobtainable");
 		}

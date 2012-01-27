@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
-import org.obm.sync.book.BookType;
+import org.obm.configuration.ContactConfiguration;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.client.login.LoginService;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.ObmFunambolGuiceInjector;
 import fr.aliasource.funambol.utils.Helper;
 import fr.aliasource.obm.items.converter.ObmContactConverter;
-import fr.aliasource.obm.items.manager.ContactManager;
+import fr.aliasource.obm.items.manager.ContactSyncBean;
 
 public final class ContactSyncSource extends ObmSyncSource implements
 		SyncSource, Serializable, LazyInitBean {
@@ -38,8 +38,9 @@ public final class ContactSyncSource extends ObmSyncSource implements
 	private final BookClient bookClient;
 	private final LoginService loginService;
 	private final ObmContactConverter contactConverter;
+	private final ContactConfiguration contactConfiguration;
 	
-	private ContactManager manager;
+	private ContactSyncBean currentSyncBean;
 
 	public ContactSyncSource() {
 		super();
@@ -57,14 +58,13 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		this.currentSyncBean = new ContactSyncBean(loginService, bookClient, contactConfiguration, contactConverter);
 		
 		try {
-			manager.logIn(context.getPrincipal().getUser().getUsername(),
+			currentSyncBean.logIn(context.getPrincipal().getUser().getUsername(),
 					context.getPrincipal().getUser().getPassword());
 
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
-		manager.setBook(BookType.contacts);
-		manager.setDeviceTimeZone(deviceTimezone);
+		currentSyncBean.setDeviceTimeZone(deviceTimezone);
 	}
 
 	public void setOperationStatus(String operation, int statusCode,
@@ -84,7 +84,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		try {
 			contact = getFoundationFromSyncItem(syncItem);
 			contact.setUid(null);
-			created = manager.addItem(contact);
+			created = currentSyncBean.addItem(contact);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -101,7 +101,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		logger.info("getAllSyncItemKeys(" + principal + ")");
 		List<String> keys = null;
 		try {
-			keys = manager.getAllItemKeys();
+			keys = currentSyncBean.getAllItemKeys();
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -120,7 +120,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 				+ " , " + until + ")");
 		List<String> keys = null;
 		try {
-			keys = manager.getDeletedItemKeys(since);
+			keys = currentSyncBean.getDeletedItemKeys(since);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -152,7 +152,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		try {
 			syncItem.getKey().setKeyValue("");
 			contact = getFoundationFromSyncItem(syncItem);
-			keys = manager.getContactTwinKeys(contact);
+			keys = currentSyncBean.getContactTwinKeys(contact);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -173,7 +173,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 
 		List<String> keys = null;
 		try {
-			keys = manager.getUpdatedItemKeys(since);
+			keys = currentSyncBean.getUpdatedItemKeys(since);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -193,7 +193,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 			return;
 		}
 		try {
-			manager.removeItem(syncItemKey.getKeyAsString());
+			currentSyncBean.removeItem(syncItemKey.getKeyAsString());
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -209,7 +209,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		Contact contact = null;
 		try {
 			contact = getFoundationFromSyncItem(syncItem);
-			contact = manager.updateItem(contact);
+			contact = currentSyncBean.updateItem(contact);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -227,7 +227,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		try {
 			com.funambol.common.pim.contact.Contact contact = null;
 			String key = syncItemKey.getKeyAsString();
-			contact = manager.getItemFromId(key);
+			contact = currentSyncBean.getItemFromId(key);
 			SyncItem ret = getSyncItemFromFoundation(contact,
 					SyncItemState.UNKNOWN);
 			return ret;
@@ -324,7 +324,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 	}
 	@Override
 	public void endSync() throws SyncSourceException {
-		manager.logout();
+		currentSyncBean.logout();
 		super.endSync();
 	}
 
