@@ -31,18 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.push.client;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
-import org.obm.push.utils.FileUtils;
 import org.obm.sync.push.client.commands.EmailSyncCommand;
 import org.obm.sync.push.client.commands.FolderSync;
 import org.obm.sync.push.client.commands.GetItemEstimateEmailFolderCommand;
@@ -149,15 +143,6 @@ public abstract class OPClient {
 					for (Header h : pm.getResponseHeaders()) {
 						logger.info(h.getName() + ": " + h.getValue());
 					}
-					InputStream is = pm.getResponseBodyAsStream();
-					File localCopy = File.createTempFile("pushresp_", ".bin");
-					FileUtils.transfer(is, new FileOutputStream(localCopy),
-							true);
-					logger.info("binary response stored in "
-							+ localCopy.getAbsolutePath());
-
-					FileInputStream in = new FileInputStream(localCopy);
-					return FileUtils.streamBytes(in, true);
 				}
 			} finally {
 				pm.releaseConnection();

@@ -1,9 +1,6 @@
 package org.obm.sync.push.client;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
@@ -78,19 +75,13 @@ public class WBXMLOPClient extends OPClient {
 						+ "\n" + pm.getResponseBodyAsString());
 			} else {
 				InputStream is = pm.getResponseBodyAsStream();
-				File localCopy = File.createTempFile("pushresp_", ".bin");
-				FileUtils.transfer(is, new FileOutputStream(localCopy), true);
-				logger.info("binary response stored in "
-						+ localCopy.getAbsolutePath());
-
-				InputStream in = new FileInputStream(localCopy);
 				if (pm.getResponseHeader("Content-Encoding") != null
 						&& pm.getResponseHeader("Content-Encoding").getValue()
 								.contains("gzip")) {
-					in = new GZIPInputStream(in);
+					is = new GZIPInputStream(is);
 				}
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				FileUtils.transfer(in, out, true);
+				FileUtils.transfer(is, out, true);
 				if (pm.getResponseHeader("Content-Type") != null
 						&& pm.getResponseHeader("Content-Type").getValue()
 								.contains("application/vnd.ms-sync.multipart")) {
