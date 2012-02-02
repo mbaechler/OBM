@@ -91,10 +91,10 @@ public class ImapClientProviderImpl implements ImapClientProvider {
 	
 	@Override
 	public String locateImap(BackendSession bs) throws LocatorClientException {
-		String locateImap = locatorService.
+		String imapLocation = locatorService.
 				getServiceLocation("mail/imap_frontend", bs.getUser().getLoginAtDomain());
-		logger.info("Using {} as imap host.", locateImap);
-		return locateImap;
+		logger.info("Using {} as imap host.", imapLocation);
+		return imapLocation;
 	}
 
 	@Override
