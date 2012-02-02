@@ -51,7 +51,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.naming.NoPermissionException;
@@ -79,6 +78,7 @@ import org.obm.sync.book.Email;
 import org.obm.sync.book.Folder;
 import org.obm.sync.book.InstantMessagingId;
 import org.obm.sync.book.Phone;
+import org.obm.sync.book.RemovedContact;
 import org.obm.sync.book.Website;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
@@ -95,6 +95,8 @@ import org.obm.sync.solr.SolrHelper.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -168,7 +170,7 @@ public class ContactDao {
 
 	private String getSelectForFindRemovalCandidates(AccessToken at) {
 		String q = "SELECT "
-			+ "deletedcontact_contact_id "
+			+ "deletedcontact_contact_id, deletedcontact_addressbook_id "
 			+ "FROM DeletedContact "
 			+ "INNER JOIN SyncedAddressbook s ON ( s.addressbook_id=deletedcontact_addressbook_id AND s.user_id= "
 			+ at.getObmId() + ")";
@@ -196,7 +198,7 @@ public class ContactDao {
 		try {
 
 			List<Contact> contacts = new ArrayList<Contact>();
-			Set<Integer> archivedContactIds = new TreeSet<Integer>();
+			Builder<RemovedContact> archivedContactIds = ImmutableSet.builder();
 
 			con = obmHelper.getConnection();
 			ps = con.prepareStatement(sql);
@@ -218,7 +220,8 @@ public class ContactDao {
 					entityContact.put(c.getEntityId(), c);
 					contacts.add(c);
 				} else {
-					archivedContactIds.add(c.getUid());
+					RemovedContact contact = new RemovedContact(rs.getInt(1), rs.getInt("contact_addressbook_id")); 
+					archivedContactIds.add(contact);
 				}
 			}
 			rs.close();
@@ -234,7 +237,7 @@ public class ContactDao {
 				loadAnniversary(con, entityContact);
 			}
 			
-			upd.setArchived(archivedContactIds);
+			upd.setArchived(archivedContactIds.build());
 			upd.setContacts(contacts);
 			
 		} finally {
@@ -1089,17 +1092,17 @@ public class ContactDao {
 		return removeContact(at, c);
 	}
 
-	public Set<Integer> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
+	public Set<RemovedContact> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
 		String sql = getSelectForFindRemovalCandidates(at);
 		return findRemovalCandidates(sql, d);
 	}
 	
-	private Set<Integer> findRemovalCandidates(String sql, Date d) throws SQLException {
+	private Set<RemovedContact> findRemovalCandidates(String sql, Date d) throws SQLException {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		Connection con = null;
 
-		Set<Integer> l = new HashSet<Integer>();
+		Builder<RemovedContact> builder = ImmutableSet.builder();
 		try {
 			con = obmHelper.getConnection();
 			ps = con.prepareStatement(sql);
@@ -1109,12 +1112,14 @@ public class ContactDao {
 			rs = ps.executeQuery();
 			
 			while (rs.next()) {
-				l.add(rs.getInt(1));
+				Integer contactId = rs.getInt(1);
+				Integer addressBookId = rs.getInt(2);
+				builder.add(new RemovedContact(contactId, addressBookId));
 			}
 		} finally {
 			obmHelper.cleanup(con, ps, rs);
 		}
-		return l;
+		return builder.build();
 	}
 
 	/**
@@ -1685,7 +1690,7 @@ public class ContactDao {
 		return findUpdatedContacts(sql, lastSync, token);
 	}
 
-	public Set<Integer> findRemovalCandidates(Date lastSync, Integer addressBookId, AccessToken token) throws SQLException {
+	public Set<RemovedContact> findRemovalCandidates(Date lastSync, Integer addressBookId, AccessToken token) throws SQLException {
 		String sql = getSelectForFindRemovalCandidates(addressBookId, token);
 		return findRemovalCandidates(sql, lastSync);
 	}

@@ -38,7 +38,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -46,10 +45,13 @@ import org.obm.configuration.ContactConfiguration;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Email;
+import org.obm.sync.book.RemovedContact;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -138,8 +140,8 @@ public class UserDao {
 		return m;
 	}
 
-	public Set<Integer> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
-		Set<Integer> ret = new HashSet<Integer>();
+	public Set<RemovedContact> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
+		Builder<RemovedContact> builder = ImmutableSet.builder();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		Connection con = null;
@@ -164,13 +166,14 @@ public class UserDao {
 			}
 			rs = ps.executeQuery();
 			while (rs.next()) {
-				ret.add(rs.getInt(1));
+				RemovedContact contact = new RemovedContact(rs.getInt(1), contactConfiguration.getAddressBookUserId()); 
+				builder.add(contact);
 			}
 
 		} finally {
 			obmHelper.cleanup(con, ps, rs);
 		}
-		return ret;
+		return builder.build();
 	}
 
 	public String getUserDomain(String login) {

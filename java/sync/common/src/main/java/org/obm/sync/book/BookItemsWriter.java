@@ -189,9 +189,10 @@ public class BookItemsWriter extends AbstractItemsWriter {
 	private void createContactChanges(ContactChanges cc, Element root) {
 		
 		Element removed = DOMUtils.createElement(root, "removed");
-		for (int eid : cc.getRemoved()) {
+		for (RemovedContact eid : cc.getRemoved()) {
 			Element e = DOMUtils.createElement(removed, "contact");
-			e.setAttribute("uid", "" + eid);
+			e.setAttribute("uid", "" + eid.getContactId());
+			e.setAttribute("addressBookUid", "" + eid.getAddressBookId());
 		}
 
 		Element updated = DOMUtils.createElement(root, "updated");

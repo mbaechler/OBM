@@ -48,6 +48,7 @@ import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
+import org.obm.sync.book.RemovedContact;
 import org.obm.sync.items.AddressBookChangesResponse;
 
 import com.google.common.collect.ImmutableList;
@@ -81,21 +82,26 @@ public class AddressBookBindingImplTest {
 		newContact.setLastname("newContact");
 
 		List<Contact> updatedContacts = ImmutableList.of(newContact);
-
-		Set<Integer> archivedContactIds = ImmutableSet.of(1, 2);
+		RemovedContact rc1 = new RemovedContact(1, 1);
+		RemovedContact rc2 = new RemovedContact(1, 1);
+		Set<RemovedContact> archivedContactIds = ImmutableSet.of(rc1, rc2);
 
 		ContactUpdates contactUpdates = new ContactUpdates();
 		contactUpdates.setContacts(updatedContacts);
 		contactUpdates.setArchived(archivedContactIds);
 
-		Set<Integer> removalCandidates = ImmutableSet.of(3);
+		RemovedContact rc3 = new RemovedContact(3, 2);
+		Set<RemovedContact> removalCandidates = ImmutableSet.of(rc3);
 
 		Contact newUser = new Contact();
 		newUser.setLastname("obmuser");
 
 		List<Contact> updatedUsers = ImmutableList.of(newUser);
 
-		Set<Integer> archivedUserIds = ImmutableSet.of(5, 7, 8);
+		RemovedContact rc5 = new RemovedContact(1, -1);
+		RemovedContact rc7 = new RemovedContact(1, -1);
+		RemovedContact rc8 = new RemovedContact(1, -1);
+		Set<RemovedContact> archivedUserIds = ImmutableSet.of(rc5, rc7, rc8);
 
 		ContactUpdates userUpdates = new ContactUpdates();
 		userUpdates.setContacts(updatedUsers);
@@ -105,7 +111,7 @@ public class AddressBookBindingImplTest {
 		allUpdatedContacts.addAll(updatedContacts);
 		allUpdatedContacts.addAll(updatedUsers);
 
-		Set<Integer> allRemovedContacts = new HashSet<Integer>();
+		Set<RemovedContact> allRemovedContacts = new HashSet<RemovedContact>();
 		allRemovedContacts.addAll(archivedContactIds);
 		allRemovedContacts.addAll(removalCandidates);
 		allRemovedContacts.addAll(archivedUserIds);
@@ -203,18 +209,21 @@ public class AddressBookBindingImplTest {
 
 		List<Contact> updatedContacts = ImmutableList.of(newContact);
 
-		Set<Integer> archivedContactIds = ImmutableSet.of(1, 2);
+		RemovedContact rc1 = new RemovedContact(1, 1);
+		RemovedContact rc2 = new RemovedContact(1, 1);
+		Set<RemovedContact> archivedContactIds = ImmutableSet.of(rc1, rc2);
 
 		ContactUpdates contactUpdates = new ContactUpdates();
 		contactUpdates.setContacts(updatedContacts);
 		contactUpdates.setArchived(archivedContactIds);
 
-		Set<Integer> removalCandidates = ImmutableSet.of(3);
+		RemovedContact rc3 = new RemovedContact(3, 2);
+		Set<RemovedContact> removalCandidates = ImmutableSet.of(rc3);
 
 		Set<Contact> allUpdatedContacts = new HashSet<Contact>();
 		allUpdatedContacts.addAll(updatedContacts);
 
-		Set<Integer> allRemovedContacts = new HashSet<Integer>();
+		Set<RemovedContact> allRemovedContacts = new HashSet<RemovedContact>();
 		allRemovedContacts.addAll(archivedContactIds);
 		allRemovedContacts.addAll(removalCandidates);
 

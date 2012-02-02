@@ -200,10 +200,12 @@ public class BookItemsParser extends AbstractItemsParser {
 		Element updated = DOMUtils.getUniqueElement(root, "updated");
 
 		NodeList rmed = removed.getElementsByTagName("contact");
-		Set<Integer> removedIds = new HashSet<Integer>();
+		Set<RemovedContact> removedIds = new HashSet<RemovedContact>();
 		for (int i = 0; i < rmed.getLength(); i++) {
 			Element e = (Element) rmed.item(i);
-			removedIds.add(Integer.parseInt(e.getAttribute("uid")));
+			Integer contactId = Integer.parseInt(e.getAttribute("uid"));
+			Integer addressBookId = Integer.parseInt(e.getAttribute("addressBookUid"));
+			removedIds.add(new RemovedContact(contactId, addressBookId));
 		}
 
 		NodeList upd = updated.getElementsByTagName("contact");

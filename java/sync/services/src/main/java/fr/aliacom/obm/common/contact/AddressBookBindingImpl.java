@@ -54,6 +54,7 @@ import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
+import org.obm.sync.book.RemovedContact;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.AddressBookChangesResponse;
@@ -182,15 +183,15 @@ public class AddressBookBindingImpl implements IAddressBook {
 		} else {
 			userUpdates = new ContactUpdates();
 		}
-		Set<Integer> removalCandidates = contactDao.findRemovalCandidates(timestamp, token);
+		Set<RemovedContact> removalCandidates = contactDao.findRemovalCandidates(timestamp, token);
 		
 		return new ContactChanges(getUpdatedContacts(contactUpdates, userUpdates),
 				getRemovedContacts(contactUpdates, userUpdates, removalCandidates), getLastSync());
 	}
 	
-	private Set<Integer> getRemovedContacts(ContactUpdates contactUpdates,
-			ContactUpdates userUpdates, Set<Integer> removalCandidates) {
-		SetView<Integer> archived = Sets.union( contactUpdates.getArchived(), userUpdates.getArchived());
+	private Set<RemovedContact> getRemovedContacts(ContactUpdates contactUpdates,
+			ContactUpdates userUpdates, Set<RemovedContact> removalCandidates) {
+		SetView<RemovedContact> archived = Sets.union( contactUpdates.getArchived(), userUpdates.getArchived());
 		return Sets.union(archived, removalCandidates);
 	}
 
@@ -372,7 +373,7 @@ public class AddressBookBindingImpl implements IAddressBook {
 	@Transactional
 	public ContactChanges listContactsChanged(AccessToken token, Date lastSync, Integer addressBookId) throws ServerFault {
 		try {
-			Set<Integer> removal = null;
+			Set<RemovedContact> removal = null;
 			ContactUpdates contactUpdates = null;
 			
 			if (addressBookId == contactConfiguration.getAddressBookUserId()) {
