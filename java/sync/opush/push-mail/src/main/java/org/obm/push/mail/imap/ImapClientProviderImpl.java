@@ -29,7 +29,7 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.push.mail;
+package org.obm.push.mail.imap;
 
 import java.util.Properties;
 
@@ -45,7 +45,7 @@ import org.obm.locator.LocatorClientException;
 import org.obm.locator.store.LocatorService;
 import org.obm.push.bean.BackendSession;
 import org.obm.push.exception.NoImapClientAvailableException;
-import org.obm.push.mail.imap.client.IMAPClient;
+import org.obm.push.mail.MailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,14 +60,11 @@ public class ImapClientProviderImpl implements ImapClientProvider {
 	private final boolean loginWithDomain;
 	private final int imapPort;
 	private final Session defaultSession;
-	private final IMAPClient imapClient;
 
 	@Inject
 	private ImapClientProviderImpl(EmailConfiguration emailConfiguration, 
-			LocatorService locatorService,
-			IMAPClient imapClient) {
+			LocatorService locatorService) {
 		this.locatorService = locatorService;
-		this.imapClient = imapClient;
 		this.loginWithDomain = emailConfiguration.loginWithDomain();
 		this.imapPort = emailConfiguration.imapPort();
 		
@@ -85,6 +82,8 @@ public class ImapClientProviderImpl implements ImapClientProvider {
 		int imapTimeout = emailConfiguration.imapTimeout();
 		logger.debug("Java Mail settings : TIMEOUT=" + imapTimeout);
 		properties.put("mail.imap.timeout", imapTimeout);
+		
+		properties.put("mail.debug", "false");
 		
 		return properties;
 	}
@@ -115,14 +114,13 @@ public class ImapClientProviderImpl implements ImapClientProvider {
 	public ImapStore getImapClientWithJM(BackendSession bs) throws LocatorClientException, NoImapClientAvailableException {
 		final String imapHost = locateImap(bs);
 		final String login = getLogin(bs);
-		Store javaMailStore;
 		
 		try {
 			logger.debug("Creating storeClient with login {} : loginWithDomain = {}", 
 					new Object[]{login, loginWithDomain});
 
-			javaMailStore = defaultSession.getStore(EmailConfiguration.IMAP_PROTOCOL);
-			return new ImapStore(imapClient, defaultSession, javaMailStore,
+			Store javaMailStore = defaultSession.getStore(EmailConfiguration.IMAP_PROTOCOL);
+			return new ImapStore(defaultSession, javaMailStore,
 					login, bs.getPassword(), imapHost, imapPort);
 		} catch (NoSuchProviderException e) {
 			throw new NoImapClientAvailableException(
