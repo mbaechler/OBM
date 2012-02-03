@@ -6,7 +6,7 @@ set -x
 CURDIR=$1
 maven_home=${HOME}
 MVN_BIN="/usr/bin/mvn -Dmaven.test.skip -Duser.home=${maven_home}"
-POM_FILE="pom.xml"
+MVN_PROJECT_NAME="funambol-connector"
 
 FUNAMBOL_BUILD_DEB_DIR="${CURDIR}/debian/obm-funambol-core"
 PROJECT_NAME="funambol-connector"
@@ -18,7 +18,7 @@ FUNAMBOL_INSTALL_DIR="${SHARE_INSTALL_DIR}/funambol-${FUNAMBOL_VERSION}"
 #funambol
 echo "Funambol preparing distribution..."
 
-cp -r obm-funambol/funambol-${FUNAMBOL_VERSION} ${FUNAMBOL_INSTALL_DIR}
+cp -r ${MVN_PROJECT_NAME}/funambol-${FUNAMBOL_VERSION} ${FUNAMBOL_INSTALL_DIR}
 
 echo "Funambol distribution done."
 
@@ -32,40 +32,25 @@ if [ $? -ne 0 ]; then
 fi
 
 # build project
-${MVN_BIN} -f ${PROJECT_NAME}/pom.xml install
+${MVN_BIN} -f ${MVN_PROJECT_NAME}/pom.xml install
 if [ $? -ne 0 ]; then
-  echo "FATAL: mvn package"
+  echo "FATAL: mvn install"
   exit 1
 fi
 
-JAR_OBM_FUNAMBOL=`find ${PROJECT_NAME}/target -name obm-funambol*.jar`
+JAR_OBM_FUNAMBOL=`find ${MVN_PROJECT_NAME}/target -name ${MVN_PROJECT_NAME}*.jar`
 cp ${JAR_OBM_FUNAMBOL} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
 
-JAR_OBM_SYNC_CLIENT=`find ${PROJECT_NAME}/target/dependencies -name client-*.jar`
-cp ${JAR_OBM_SYNC_CLIENT} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
-
-JAR_OBM_SYNC_COMMON=`find ${PROJECT_NAME}/target/dependencies -name common-*.jar`
-cp ${JAR_OBM_SYNC_COMMON} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
-
-JAR_OBM_UTILS=`find ${PROJECT_NAME}/target/dependencies -name utils-*.jar`
-cp ${JAR_OBM_UTILS} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
-
-JAR_OBM_CONFIGURATION=`find ${PROJECT_NAME}/target/dependencies -name configuration-*.jar`
-cp ${JAR_OBM_CONFIGURATION} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
-
-JAR_OBM_LOCATOR=`find ${PROJECT_NAME}/target/dependencies -name locator-*.jar`
-cp ${JAR_OBM_LOCATOR} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
-
-JAR_GUAVA=`find ${PROJECT_NAME}/target/dependencies -name guava-*.jar`
-cp ${JAR_GUAVA} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
+JAR_DEPENDENCIES=`find ${MVN_PROJECT_NAME}/target/dependencies -name *.jar`
+cp ${JAR_DEPENDENCIES} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
 
 # build s4j
-${MVN_BIN} -f obm-funambol/pom.xml funambol:s4j
+${MVN_BIN} -f ${MVN_PROJECT_NAME}/pom.xml funambol:s4j
 if [ $? -ne 0 ]; then
-  echo "FATAL: mvn package"
+  echo "FATAL: mvn funambol:s4j"
   exit 1
 fi
 
-S4J=`find ${PROJECT_NAME}/target -name *.s4j`
+S4J=`find ${MVN_PROJECT_NAME}/target -name *.s4j`
 cp ${S4J} ${FUNAMBOL_INSTALL_DIR}/ds-server/modules
 
