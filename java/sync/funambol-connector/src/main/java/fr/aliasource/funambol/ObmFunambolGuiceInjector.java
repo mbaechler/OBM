@@ -11,6 +11,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.name.Names;
 
+import fr.aliasource.obm.items.converter.IEventConverter;
+import fr.aliasource.obm.items.converter.ObmEventConverter;
+
 public class ObmFunambolGuiceInjector { 
 
 	private static Injector injector;
@@ -32,11 +35,11 @@ public class ObmFunambolGuiceInjector {
 		@Override
 		protected void configure() {
 			install(new ObmSyncHttpClientModule());
+			bind(String.class).annotatedWith(Names.named("origin")).toInstance("funis");
 			bind(LocatorService.class).to(LocatorCache.class);
 			bind(ConfigurationService.class).to(ConfigurationServiceImpl.class);
-			bind(String.class).annotatedWith(Names.named("origin")).toInstance("funis");
+			bind(IEventConverter.class).to(ObmEventConverter.class);
 		}
-		
 		
 	}
     
