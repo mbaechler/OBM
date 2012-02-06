@@ -15,7 +15,14 @@ public class RandomGeneratedInputStream extends InputStream {
 	@Override
 	public int read() throws IOException {
 		if (length-- > 0) {
-			return 66;
+			long modulo = length % 76;
+			if (modulo == 74) {
+				return '\r';
+			} else if (modulo == 75) {
+				return '\n';
+			} else {
+				return 66;
+			}
 		} else {
 			return -1;
 		}

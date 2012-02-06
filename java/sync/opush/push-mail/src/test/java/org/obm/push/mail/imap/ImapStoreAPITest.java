@@ -42,7 +42,6 @@ import java.util.Set;
 import org.fest.assertions.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.obm.opush.env.JUnitGuiceRule;
@@ -56,8 +55,6 @@ import org.obm.push.mail.MailException;
 import org.obm.push.mail.MailTestsUtils;
 import org.obm.push.mail.RandomGeneratedInputStream;
 import org.obm.push.mail.ThrowingInputStream;
-import org.obm.push.mail.imap.ImapMailBoxUtils;
-import org.obm.push.mail.imap.ImapMailboxService;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -92,7 +89,6 @@ public class ImapStoreAPITest {
 		greenMail.stop();
 	}
 	
-	@Ignore("GreeeMail BUG")
 	@Test
 	public void testStoreInInboxContentAfterStoring() throws Exception {
 		InputStream emailData = loadEmail("plainText.eml");
@@ -102,7 +98,6 @@ public class ImapStoreAPITest {
 		Assertions.assertThat(fetchedMailStream).hasContentEqualTo(expectedEmailData);
 	}
 
-	@Ignore("GreeeMail BUG")
 	@Test
 	public void testStoreInInboxContentAfterStoringStream() throws Exception {
 		InputStream emailData = loadEmail("plainText.eml");
@@ -112,7 +107,6 @@ public class ImapStoreAPITest {
 		Assertions.assertThat(fetchedMailStream).hasContentEqualTo(expectedEmailData);
 	}
 
-	@Ignore("try with new fetchMailStream")
 	@Test
 	public void testStoreInInboxInvitation() throws Exception {
 		InputStream emailData = loadEmail("androidInvit.eml");
@@ -123,18 +117,15 @@ public class ImapStoreAPITest {
 		Assertions.assertThat(fetchedContent).hasContentEqualTo(expected);
 	}
 
-	@Ignore("try with new fetchMailStream")
 	@Test
 	public void testStoreInInboxInvitationStream() throws Exception {
 		InputStream emailData = loadEmail("androidInvit.eml");
-		mailboxService.storeInInbox(bs, emailData, 3608, true);
-
+		mailboxService.storeInInbox(bs, emailData, 3660, true);
 		InputStream expected = loadEmail("androidInvit.eml");
 		InputStream fetchedContent = mailboxService.fetchMailStream(bs, IMAP_INBOX_NAME, 1);
 		Assertions.assertThat(fetchedContent).hasContentEqualTo(expected);
 	}
 
-	@Ignore("GreeeMail BUG")	
 	@Test
 	public void testStoreInInboxNotAnEmail() throws Exception {
 		byte[] data = new byte[]{'t','e','s','t', '\r', '\n', '\r', '\n'};
@@ -144,7 +135,6 @@ public class ImapStoreAPITest {
 		Assertions.assertThat(fetchedContent).hasContentEqualTo(new ByteArrayInputStream(data));
 	}
 
-	@Ignore("GreeeMail BUG")
 	@Test
 	public void testStoreInInboxNotAnEmailStream() throws Exception {
 		byte[] data = new byte[]{'t','e','s','t', '\r', '\n', '\r', '\n'};

@@ -51,6 +51,7 @@ import org.minig.imap.MailboxFolder;
 import org.minig.imap.MailboxFolders;
 import org.obm.configuration.EmailConfiguration;
 import org.obm.opush.env.JUnitGuiceRule;
+import org.obm.opush.mail.StreamMailTestsUtils;
 import org.obm.push.bean.BackendSession;
 import org.obm.push.bean.Credentials;
 import org.obm.push.bean.Email;
@@ -59,7 +60,6 @@ import org.obm.push.mail.ImapMessageNotFoundException;
 import org.obm.push.mail.MailEnvModule;
 import org.obm.push.mail.MailException;
 import org.obm.push.mail.MailTestsUtils;
-import org.obm.push.mail.StreamMailTestsUtils;
 import org.obm.push.utils.DateUtils;
 
 import com.google.common.base.Stopwatch;

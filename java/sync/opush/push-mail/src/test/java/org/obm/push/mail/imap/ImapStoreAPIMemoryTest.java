@@ -45,7 +45,6 @@ import javax.mail.util.SharedFileInputStream;
 import org.fest.assertions.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -113,8 +112,7 @@ public class ImapStoreAPIMemoryTest {
 	
 	private long getTwiceThisHeapSize() {
 		long thisHeapSizeInByte = Runtime.getRuntime().maxMemory();
-		return (thisHeapSizeInByte * 2) / 
-				emailConfiguration.getImapFetchBlockSize() * emailConfiguration.getImapFetchBlockSize();
+		return thisHeapSizeInByte * 2;
 	}
 	
 	@Test(expected=OutOfMemoryError.class)
@@ -143,14 +141,12 @@ public class ImapStoreAPIMemoryTest {
 		Assertions.assertThat(emails).hasSize(1);
 	}
 	
-	@Ignore("GreeeMail BUG")
 	@Test
 	public void testFetchMailStream() throws Exception {
 		long size = getTwiceThisHeapSize();
 		final InputStream heavyInputStream = new RandomGeneratedInputStream(size);
 		mailboxService.storeInInbox(bs, heavyInputStream, Ints.checkedCast(size), true);
 		InputStream stream = mailboxService.fetchMailStream(bs, EmailConfiguration.IMAP_INBOX_NAME, 1L);
-		ByteStreams.skipFully(stream, size);
 		Assertions.assertThat(stream).hasContentEqualTo(new RandomGeneratedInputStream(size));
 	}
 	
