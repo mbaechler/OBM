@@ -522,7 +522,7 @@ public class EventTest {
 		event.setOwnerEmail("owner email");
 		event.setPercent(1);
 		event.setPriority(1);
-		event.setPrivacy(1);
+		event.setPrivacy(EventPrivacy.PRIVATE);
 		event.setSequence(0);
 		event.setRecurrenceId(new Date());
 		event.setTimeCreate(new Date());
