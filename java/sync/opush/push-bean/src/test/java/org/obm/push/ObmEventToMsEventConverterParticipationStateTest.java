@@ -16,6 +16,11 @@ public class ObmEventToMsEventConverterParticipationStateTest {
 		converter = new ObmEventToMsEventConverter();
 	}
 
+	@Test(expected=NullPointerException.class)
+	public void testNullParticipationState() {
+		converter.status(null);
+	}
+	
 	@Test
 	public void testAcceptedParticipationState() {
 		AttendeeStatus status = converter.status(ParticipationState.ACCEPTED);
