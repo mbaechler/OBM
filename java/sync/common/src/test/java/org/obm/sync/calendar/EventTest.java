@@ -507,7 +507,6 @@ public class EventTest {
 		event.setAllday(true);
 		event.setAttendees( createAttendees(nbAttendees) );
 		event.setCategory("category");
-		event.setCompletion(new Date());
 		event.setDate(new Date());
 		event.setDescription("description");
 		event.setDomain("domain");

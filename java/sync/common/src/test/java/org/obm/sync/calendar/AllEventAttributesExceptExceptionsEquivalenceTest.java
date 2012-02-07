@@ -85,7 +85,6 @@ public class AllEventAttributesExceptExceptionsEquivalenceTest  {
 		ev.setDescription("description");
 		ev.setLocation("tlse");
 		ev.setOpacity(EventOpacity.OPAQUE);
-		ev.setCompletion(new Date(0));
 		ev.setPercent(1);
 		ev.setPriority(1);
 		List<Attendee> la = new LinkedList<Attendee>();
@@ -223,30 +222,6 @@ boolean result = comparator.equivalent(e1, e2);
 		Event e1 = getStubBeforeSequenceEvent();
 		Event e2 = getStubAfterSequenceEvent();
 		e2.setCategory("");
-		boolean result = comparator.equivalent(e1, e2);
-		
-		Assert.assertEquals(false, result);
-	}
-	
-	@Test
-	public void testCompareCompletionAfter(){
-		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
-		Event e1 = getStubBeforeSequenceEvent();
-		Event e2 = getStubAfterSequenceEvent();
-		Date completion = new Date(10 + e1.getCompletion().getTime());
-		e2.setCompletion(completion);
-		boolean result = comparator.equivalent(e1, e2);
-		
-		Assert.assertEquals(false, result);
-	}
-	
-	@Test
-	public void testCompareCompletionBefore(){
-		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
-		Event e1 = getStubBeforeSequenceEvent();
-		Event e2 = getStubAfterSequenceEvent();
-		Date completion = new Date(e1.getCompletion().getTime() - 10000);
-		e2.setCompletion(completion);
 		boolean result = comparator.equivalent(e1, e2);
 		
 		Assert.assertEquals(false, result);
@@ -640,30 +615,6 @@ boolean result = comparator.equivalent(e1, e2);
 		Event e1 = getStubBeforeTimeUpdateEvent();
 		Event e2 = getStubAfterTimeUpdateEvent();
 		e2.setCategory("");
-		boolean result = comparator.equivalent(e1, e2);
-		
-		Assert.assertEquals(false, result);
-	}
-	
-	@Test
-	public void testCompareCompletionAfterWithDifferentTimeUpdateEvent(){
-		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
-		Event e1 = getStubBeforeTimeUpdateEvent();
-		Event e2 = getStubAfterTimeUpdateEvent();
-		Date completion = new Date(10 + e1.getCompletion().getTime());
-		e2.setCompletion(completion);
-		boolean result = comparator.equivalent(e1, e2);
-		
-		Assert.assertEquals(false, result);
-	}
-	
-	@Test
-	public void testCompareCompletionBeforeWithDifferentTimeUpdateEvent(){
-		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
-		Event e1 = getStubBeforeTimeUpdateEvent();
-		Event e2 = getStubAfterTimeUpdateEvent();
-		Date completion = new Date(e1.getCompletion().getTime() - 10000);
-		e2.setCompletion(completion);
 		boolean result = comparator.equivalent(e1, e2);
 		
 		Assert.assertEquals(false, result);
