@@ -10,7 +10,6 @@ import java.util.TimeZone;
 
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.AttendeeType;
-import org.obm.push.bean.BackendSession;
 import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.MSAttendee;
@@ -19,6 +18,7 @@ import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.Recurrence;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
+import org.obm.push.bean.User;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventOpacity;
@@ -33,7 +33,7 @@ import com.google.common.base.Preconditions;
 
 public class ObmEventToMsEventConverter {
 
-	public MSEvent convert(BackendSession bs, Event e, MSEventUid uid) {
+	public MSEvent convert(Event e, MSEventUid uid, User user) {
 		MSEvent mse = new MSEvent();
 
 		mse.setSubject(e.getTitle());
@@ -49,12 +49,12 @@ public class ObmEventToMsEventConverter {
 		c.add(Calendar.SECOND, e.getDuration());
 		mse.setEndTime(c.getTime());
 		
-		appendAttendeesAndOrganizer(bs, e, mse);
+		appendAttendeesAndOrganizer(e, mse, user);
 		
 		
 		mse.setAllDayEvent(e.isAllday());
 		mse.setRecurrence(getRecurrence(e.getRecurrence()));
-		mse.setExceptions(getException(bs, e.getRecurrence()));
+		mse.setExceptions(getException(e.getRecurrence(), user));
 
 		if (e.getAlert() != null && e.getAlert() > 0) {
 			mse.setReminder(e.getAlert() / 60);
@@ -68,14 +68,15 @@ public class ObmEventToMsEventConverter {
 		return mse;
 	}
 
-	private void appendAttendeesAndOrganizer(BackendSession bs, Event e, MSEvent mse) {
+	private void appendAttendeesAndOrganizer(Event e, MSEvent mse, User user) {
+		String userEmail = user.getEmail();
 		boolean hasOrganizer = false;
 		for (Attendee at: e.getAttendees()) {
 			if (at.isOrganizer()) {
 				hasOrganizer = true;
 				appendOrganizer(mse, at);
 			} 
-			if (!hasOrganizer && bs.getCredentials().getUser().getEmail().equalsIgnoreCase(at.getEmail())) {
+			if (!hasOrganizer && userEmail.equalsIgnoreCase(at.getEmail())) {
 				appendOrganizer(mse, at);
 			}
 			mse.addAttendee(convertAttendee(at));
@@ -223,7 +224,7 @@ public class ObmEventToMsEventConverter {
 	}
 	
 
-	private List<MSEvent> getException(BackendSession bs, EventRecurrence recurrence) {
+	private List<MSEvent> getException(EventRecurrence recurrence, User user) {
 		List<MSEvent> ret = new LinkedList<MSEvent>();
 		if(recurrence == null){
 			return ret;
@@ -239,7 +240,7 @@ public class ObmEventToMsEventConverter {
 		}
 
 		for (Event excp : recurrence.getEventExceptions()) {
-			MSEvent e = convert(bs, excp, null);
+			MSEvent e = convert(excp, null, user);
 			ret.add(e);
 		}
 		return ret;
