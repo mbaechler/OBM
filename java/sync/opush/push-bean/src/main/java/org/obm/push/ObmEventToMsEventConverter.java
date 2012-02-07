@@ -103,13 +103,15 @@ public class ObmEventToMsEventConverter {
 		throw new IllegalArgumentException("EventPrivacy " + privacy + " can't be converted to MSEvent property");
 	}
 
-	private CalendarBusyStatus busyStatus(EventOpacity opacity) {
+	@VisibleForTesting CalendarBusyStatus busyStatus(EventOpacity opacity) {
+		Preconditions.checkNotNull(opacity);
 		switch (opacity) {
 		case TRANSPARENT:
 			return CalendarBusyStatus.FREE;
-		default:
+		case OPAQUE:
 			return CalendarBusyStatus.BUSY;
 		}
+		throw new IllegalArgumentException("EventOpacity " + opacity + " can't be converted to MSEvent property");
 	}
 	
 	private MSAttendee convertAttendee(Attendee at) {
