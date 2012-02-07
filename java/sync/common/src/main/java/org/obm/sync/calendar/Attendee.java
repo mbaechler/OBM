@@ -31,15 +31,12 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.calendar;
 
-import java.util.List;
-
 import com.google.common.base.Objects;
 
 public class Attendee {
 
 	private ParticipationState state;
 	private String email;
-	private List<String> emailAlias;
 	private ParticipationRole participationRole;
 	private String displayName;
 	private int percent;
@@ -61,14 +58,6 @@ public class Attendee {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
- 
-	public List<String> getEmailAlias() {
-		return emailAlias;
-	}
-	
-	public void setEmailAlias(List<String> emailAlias) {
-		this.emailAlias = emailAlias;
 	}
 	
 	public ParticipationRole getParticipationRole() {
