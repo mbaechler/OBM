@@ -320,7 +320,7 @@ public class EventRecurrenceTest {
 			attendee.setObmUser(true);
 			attendee.setOrganizer(isOrganizer(i));
 			attendee.setPercent(1);
-			attendee.setRequired(ParticipationRole.REQ);
+			attendee.setParticipationRole(ParticipationRole.REQ);
 			attendee.setState(ParticipationState.NEEDSACTION);
 			attendees.add(attendee);
 		}

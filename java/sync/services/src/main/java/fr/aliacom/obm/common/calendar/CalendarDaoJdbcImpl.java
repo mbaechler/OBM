@@ -1459,7 +1459,7 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
 			att.setDisplayName(getAttendeeDisplayName(rs));
 			att.setEmail(getUserObmEmail(rs, domainName));
 			att.setState(getAttendeeState(rs));
-			att.setRequired(getAttendeeRequired(rs));
+			att.setParticipationRole(getAttendeeRequired(rs));
 			att.setPercent(getAttendeePercent(rs));
 			att.setOrganizer(getAttendeeOrganizer(rs));
 			att.setEntityId(rs.getInt("userentity_user_id"));
@@ -1942,7 +1942,7 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
 	}
 
 	private Object getJdbcObjectParticipationRole(final Attendee at) throws SQLException {
-		final ParticipationRole pRole = RFC2445.getParticipationRoleOrDefault(at.getRequired());
+		final ParticipationRole pRole = RFC2445.getParticipationRoleOrDefault(at.getParticipationRole());
 		return pRole.getJdbcObject(obmHelper.getType());
 	}
 	
@@ -1993,7 +1993,7 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
 				ps.setObject(idx++,
 						at.getState().getJdbcObject(obmHelper.getType()));
 				ps.setObject(idx++,
-						at.getRequired().getJdbcObject(obmHelper.getType()));
+						at.getParticipationRole().getJdbcObject(obmHelper.getType()));
 				ps.setInt(idx++, updater.getObmId());
 				ps.setInt(idx++, at.getPercent());
 				ps.setInt(idx++, ev.getObmId().getObmId());

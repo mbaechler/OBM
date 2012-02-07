@@ -24,6 +24,7 @@ import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventOpacity;
 import org.obm.sync.calendar.EventPrivacy;
 import org.obm.sync.calendar.EventRecurrence;
+import org.obm.sync.calendar.ParticipationRole;
 import org.obm.sync.calendar.ParticipationState;
 import org.obm.sync.calendar.RecurrenceKind;
 
@@ -120,7 +121,7 @@ public class ObmEventToMsEventConverter {
 		msa.setAttendeeStatus(status(at.getState()));
 		msa.setEmail(at.getEmail());
 		msa.setName(at.getDisplayName());
-		msa.setAttendeeType(type());
+		msa.setAttendeeType(participationRole(at.getParticipationRole()));
 
 		return msa;
 	}
@@ -144,8 +145,17 @@ public class ObmEventToMsEventConverter {
 		}
 	}
 
-	private AttendeeType type() {
-		return AttendeeType.REQUIRED;
+	@VisibleForTesting AttendeeType participationRole(ParticipationRole role) {
+		Preconditions.checkNotNull(role);
+		switch (role) {
+		case REQ:
+		case CHAIR:
+			return AttendeeType.REQUIRED;
+		case NON:
+		case OPT:
+			return AttendeeType.OPTIONAL;
+		}
+		throw new IllegalArgumentException("ParticipationRole " + role + " can't be converted to MSEvent property");
 	}
 
 	private Recurrence getRecurrence(EventRecurrence recurrence) {
