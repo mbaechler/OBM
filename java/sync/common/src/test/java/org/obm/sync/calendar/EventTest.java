@@ -47,7 +47,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(1970, 0, 0);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		Assert.assertTrue(event.isEventInThePast());
 	}
 	
@@ -56,7 +56,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.DAY_OF_YEAR, -1);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		Assert.assertTrue(event.isEventInThePast());
 	}
 	
@@ -65,7 +65,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.HOUR, -1);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		Assert.assertTrue(event.isEventInThePast());
 	}
 	
@@ -74,7 +74,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.SECOND, -1);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		Assert.assertTrue(event.isEventInThePast());
 	}
 	
@@ -83,7 +83,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.MINUTE, 1);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		Assert.assertFalse(event.isEventInThePast());
 	}
 	
@@ -92,7 +92,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.YEAR, 1);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		Assert.assertFalse(event.isEventInThePast());
 	}
 	
@@ -101,7 +101,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.MINUTE, -10);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		event.setDuration(3600);
 		Assert.assertFalse(event.isEventInThePast());
 	}
@@ -111,7 +111,7 @@ public class EventTest {
 		Event event = new Event();
 		Calendar calendar = Calendar.getInstance();
 		calendar.set(Calendar.DAY_OF_MONTH, 1);
-		event.setDate(calendar.getTime());
+		event.setStartDate(calendar.getTime());
 		event.setDuration(3600);
 		EventRecurrence recurrence = new EventRecurrence();
 		recurrence.setKind(RecurrenceKind.daily);
@@ -189,7 +189,7 @@ public class EventTest {
 		Calendar calendarUpdate = calendar;
 		calendarUpdate.add(Calendar.HOUR, 1);
 		event.setTimeCreate(dateStart);
-		event.setDate(dateStart);
+		event.setStartDate(dateStart);
 		
 		EventRecurrence recurrence = new EventRecurrence();
 		recurrence.setKind(RecurrenceKind.daily);
@@ -214,7 +214,7 @@ public class EventTest {
 		Calendar calendarUpdate = calendar;
 		calendarUpdate.add(Calendar.HOUR, 1);
 		event.setTimeCreate(dateStart);
-		event.setDate(dateStart);
+		event.setStartDate(dateStart);
 		
 		EventRecurrence recurrence = new EventRecurrence();
 		recurrence.setKind(RecurrenceKind.daily);
@@ -279,7 +279,7 @@ public class EventTest {
 		updateEvent.setDescription("Date updated");
 		Calendar calendarUpdate = Calendar.getInstance();
 		calendarUpdate.add(Calendar.HOUR, 4);
-		updateEvent.setDate(calendarUpdate.getTime());
+		updateEvent.setStartDate(calendarUpdate.getTime());
 		
 		Assert.assertTrue(updateEvent.hasImportantChanges(newEvent));
 	}
@@ -343,11 +343,11 @@ public class EventTest {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.HOUR, 10);
 		Event one = newEvent.clone();
-		one.setDate(cal.getTime());
+		one.setStartDate(cal.getTime());
 		
 		cal.add(Calendar.HOUR, 2);
 		Event two = newEvent.clone();
-		two.setDate(cal.getTime());
+		two.setStartDate(cal.getTime());
 		
 		EventRecurrence recurrence = createRecurrence(newEvent);
 		newEvent.setRecurrence(recurrence);
@@ -359,7 +359,7 @@ public class EventTest {
 		
 		Calendar calendarUpdate = Calendar.getInstance();
 		calendarUpdate.add(Calendar.HOUR, 4);
-		updateRecurrence.getEventExceptions().get(0).setDate(calendarUpdate.getTime());
+		updateRecurrence.getEventExceptions().get(0).setStartDate(calendarUpdate.getTime());
 		
 		Assert.assertTrue(updateEvent.hasImportantChanges(newEvent));
 	}
@@ -456,7 +456,7 @@ public class EventTest {
 	public void getEventInstanceWithRecurrenceIdWithoutExistedException(){
 		Event ev1 = createOneEvent(3);
 		Calendar cal = Calendar.getInstance();
-		cal.setTime(ev1.getDate());
+		cal.setTime(ev1.getStartDate());
 		cal.set(2012, 12, 12);
 		Date recurrenceId = cal.getTime();
 		
@@ -469,7 +469,7 @@ public class EventTest {
 		Event instance = ev1.getEventInstanceWithRecurrenceId(recurrenceId);
 		
 		Assert.assertNotNull(instance);
-		Assert.assertEquals(recurrenceId, instance.getDate());
+		Assert.assertEquals(recurrenceId, instance.getStartDate());
 		Assert.assertEquals(recurrenceId, instance.getRecurrenceId());
 		Assert.assertEquals(RecurrenceKind.none, instance.getRecurrence().getKind());
 	}
@@ -507,7 +507,7 @@ public class EventTest {
 		event.setAllday(true);
 		event.setAttendees( createAttendees(nbAttendees) );
 		event.setCategory("category");
-		event.setDate(new Date());
+		event.setStartDate(new Date());
 		event.setDescription("description");
 		event.setDomain("domain");
 		event.setDuration(10);

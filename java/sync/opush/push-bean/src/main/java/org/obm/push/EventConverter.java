@@ -224,7 +224,7 @@ public class EventConverter {
 		}
 		
 		e.setLocation(data.getLocation());
-		e.setDate(data.getStartTime());
+		e.setStartDate(data.getStartTime());
 		
 		int duration = (int) (data.getEndTime().getTime() - data.getStartTime().getTime()) / 1000;
 		e.setDuration(duration);

@@ -58,7 +58,7 @@ public class Event implements Indexed<Integer> {
 	private String creatorDisplayName;
 	private String creatorEmail;
 	private String location;
-	private Date date;
+	private Date startDate;
 	private int duration;
 	private Integer alert;
 	private String category;
@@ -99,12 +99,12 @@ public class Event implements Indexed<Integer> {
 		this.title = title;
 	}
 
-	public Date getDate() {
-		return date;
+	public Date getStartDate() {
+		return startDate;
 	}
 
-	public void setDate(Date date) {
-		this.date = date;
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
 	}
 
 	/**
@@ -280,7 +280,7 @@ public class Event implements Indexed<Integer> {
 		event.setAllday(allday);
 		event.addAttendees(new LinkedList<Attendee>(attendees));
 		event.setCategory(category);
-		event.setDate(date);
+		event.setStartDate(startDate);
 		event.setDescription(description);
 		event.setDomain(domain);
 		event.setDuration(duration);
@@ -350,11 +350,11 @@ public class Event implements Indexed<Integer> {
 	}
 
 	public Date getEndDate() {
-		if (getDate() == null) {
+		if (getStartDate() == null) {
 			return null;
 		}
 		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(getDate());
+		calendar.setTime(getStartDate());
 		calendar.add(Calendar.SECOND, getDuration());
 		Date end = calendar.getTime();
 		return end;
@@ -512,7 +512,7 @@ public class Event implements Indexed<Integer> {
 		Event instance = recurrence.getEventExceptionWithRecurrenceId(recurrenceId);
 		if(instance == null){
 			instance = clone();
-			instance.date = recurrenceId;
+			instance.startDate = recurrenceId;
 			instance.recurrenceId = recurrenceId;
 			instance.recurrence = new EventRecurrence();
 			instance.recurrence.setKind(RecurrenceKind.none);
@@ -528,7 +528,7 @@ public class Event implements Indexed<Integer> {
 	public final int hashCode() {
 		return Objects.hashCode(title, domain, description, uid, extId, privacy, owner,
 				ownerDisplayName, ownerEmail, creatorDisplayName, creatorEmail, location,
-				date, duration, alert, category, priority, allday, attendees, recurrence, type,
+				startDate, duration, alert, category, priority, allday, attendees, recurrence, type,
 				completion, percent, opacity, entityId, timeUpdate, timeCreate, timezoneName,
 				recurrenceId, internalEvent, sequence);
 	}
@@ -549,7 +549,7 @@ public class Event implements Indexed<Integer> {
 				&& Objects.equal(this.creatorDisplayName, that.creatorDisplayName)
 				&& Objects.equal(this.creatorEmail, that.creatorEmail)
 				&& Objects.equal(this.location, that.location)
-				&& Objects.equal(this.date, that.date)
+				&& Objects.equal(this.startDate, that.startDate)
 				&& Objects.equal(this.duration, that.duration)
 				&& Objects.equal(this.alert, that.alert)
 				&& Objects.equal(this.category, that.category)
@@ -578,7 +578,7 @@ public class Event implements Indexed<Integer> {
 			.add("super", super.toString())
 			.add("title", title)
 			.add("uid", uid)
-			.add("date", date)
+			.add("date", startDate)
 			.toString();
 	}
 	

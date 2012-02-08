@@ -71,7 +71,7 @@ public class AllEventAttributesExceptExceptionsEquivalenceTest  {
 		ev.setInternalEvent(true);
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(1295258400000L);
-		ev.setDate(cal.getTime());
+		ev.setStartDate(cal.getTime());
 		cal.set(Calendar.MONTH, cal.get(Calendar.MONTH) - 1);
 		ev.setTimeUpdate(cal.getTime());
 		
@@ -106,7 +106,7 @@ public class AllEventAttributesExceptExceptionsEquivalenceTest  {
 		EventRecurrence er = new EventRecurrence();
 		er.setKind(RecurrenceKind.daily);
 		er.setFrequence(1);
-		er.addException(ev.getDate());
+		er.addException(ev.getStartDate());
 		cal.add(Calendar.MONTH, 1);
 		er.addException(cal.getTime());
 		er.setEnd(null);
@@ -386,8 +386,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeSequenceEvent();
 		Event e2 = getStubAfterSequenceEvent();
-		Date start = new Date( e1.getDate().getTime() - 1000);
-		e2.setDate(start);
+		Date start = new Date( e1.getStartDate().getTime() - 1000);
+		e2.setStartDate(start);
 		boolean result = comparator.equivalent(e1, e2);
 		
 		Assert.assertEquals(false, result);
@@ -398,8 +398,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeSequenceEvent();
 		Event e2 = getStubAfterSequenceEvent();
-		Date start = new Date( e1.getDate().getTime() + 1000);
-		e2.setDate(start);
+		Date start = new Date( e1.getStartDate().getTime() + 1000);
+		e2.setStartDate(start);
 		boolean result = comparator.equivalent(e1, e2);
 		
 		Assert.assertEquals(false, result);
@@ -454,8 +454,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeSequenceEvent();
 		Event e2 = getStubAfterSequenceEvent();
-		Date end = new Date( e1.getDate().getTime() - 1000);
-		e2.setDate(end);
+		Date end = new Date( e1.getStartDate().getTime() - 1000);
+		e2.setStartDate(end);
 		e2.getRecurrence().setEnd(end);
 		boolean result = comparator.equivalent(e1, e2);
 		
@@ -467,8 +467,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeSequenceEvent();
 		Event e2 = getStubAfterSequenceEvent();
-		Date end = new Date( e1.getDate().getTime() + 1000);
-		e2.setDate(end);
+		Date end = new Date( e1.getStartDate().getTime() + 1000);
+		e2.setStartDate(end);
 		e2.getRecurrence().setEnd(end);
 		boolean result = comparator.equivalent(e1, e2);
 		
@@ -779,8 +779,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeTimeUpdateEvent();
 		Event e2 = getStubAfterTimeUpdateEvent();
-		Date start = new Date( e1.getDate().getTime() - 1000);
-		e2.setDate(start);
+		Date start = new Date( e1.getStartDate().getTime() - 1000);
+		e2.setStartDate(start);
 		boolean result = comparator.equivalent(e1, e2);
 		
 		Assert.assertEquals(false, result);
@@ -791,8 +791,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeTimeUpdateEvent();
 		Event e2 = getStubAfterTimeUpdateEvent();
-		Date start = new Date( e1.getDate().getTime() + 1000);
-		e2.setDate(start);
+		Date start = new Date( e1.getStartDate().getTime() + 1000);
+		e2.setStartDate(start);
 		boolean result = comparator.equivalent(e1, e2);
 		
 		Assert.assertEquals(false, result);
@@ -847,8 +847,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeTimeUpdateEvent();
 		Event e2 = getStubAfterTimeUpdateEvent();
-		Date end = new Date( e1.getDate().getTime() - 1000);
-		e2.setDate(end);
+		Date end = new Date( e1.getStartDate().getTime() - 1000);
+		e2.setStartDate(end);
 		e2.getRecurrence().setEnd(end);
 		boolean result = comparator.equivalent(e1, e2);
 		
@@ -860,8 +860,8 @@ boolean result = comparator.equivalent(e1, e2);
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		Event e1 = getStubBeforeTimeUpdateEvent();
 		Event e2 = getStubAfterTimeUpdateEvent();
-		Date end = new Date( e1.getDate().getTime() + 1000);
-		e2.setDate(end);
+		Date end = new Date( e1.getStartDate().getTime() + 1000);
+		e2.setStartDate(end);
 		e2.getRecurrence().setEnd(end);
 		boolean result = comparator.equivalent(e1, e2);
 		

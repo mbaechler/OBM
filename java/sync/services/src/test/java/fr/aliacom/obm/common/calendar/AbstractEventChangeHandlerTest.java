@@ -81,7 +81,7 @@ public abstract class AbstractEventChangeHandlerTest {
 	public void testDefaultEvent()  {
 	
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		ObmUser defaultObmUser = getDefaultObmUser();
 		
 		EventChangeMailer mailer = EasyMock.createMock(EventChangeMailer.class);
@@ -95,7 +95,7 @@ public abstract class AbstractEventChangeHandlerTest {
 
 	public void testNoAttendee() {
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		event.setAttendees(new ArrayList<Attendee>());
 		ObmUser defaultObmUser = getDefaultObmUser();
 		
@@ -111,7 +111,7 @@ public abstract class AbstractEventChangeHandlerTest {
 	public void testOnlyOwnerIsAttendee() {
 		ObmUser defaultObmUser = getDefaultObmUser();
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@test";
 		event.setOwnerEmail(ownerEmail);
 		event.addAttendee(createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED));
@@ -127,7 +127,7 @@ public abstract class AbstractEventChangeHandlerTest {
 	public void testObmUserIsNotOwner() {
 		ObmUser defaultObmUser = getDefaultObmUser();
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@domain.net";
 		Attendee owner = createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED);
 		event.setOwnerEmail(ownerEmail);
@@ -144,7 +144,7 @@ public abstract class AbstractEventChangeHandlerTest {
 	public void testEventInThePast() {
 		ObmUser defaultObmUser = getDefaultObmUser();
 		Event event = new Event();
-		event.setDate(before());
+		event.setStartDate(before());
 		event.setOwnerEmail("user@test");
 		event.addAttendee(createRequiredAttendee("attendee1@test", ParticipationState.ACCEPTED));
 		EventChangeMailer mailer = EasyMock.createMock(EventChangeMailer.class);
@@ -159,7 +159,7 @@ public abstract class AbstractEventChangeHandlerTest {
 		Attendee attendeeAccepted = createRequiredAttendee("attendee1@test", ParticipationState.ACCEPTED);
 		
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@test";
 		event.setOwnerEmail(ownerEmail);
 		event.addAttendee(createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED));
@@ -180,7 +180,7 @@ public abstract class AbstractEventChangeHandlerTest {
 		Attendee attendeeNeedAction = createRequiredAttendee("attendee1@test", ParticipationState.NEEDSACTION);
 		
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@test";
 		event.setOwnerEmail(ownerEmail);
 		event.addAttendee(createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED));
@@ -199,7 +199,7 @@ public abstract class AbstractEventChangeHandlerTest {
 		Attendee attendeeDeclined = createRequiredAttendee("attendee1@test", ParticipationState.DECLINED);
 		
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@test";
 		event.setOwnerEmail(ownerEmail);
 		event.addAttendee(createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED));
@@ -222,7 +222,7 @@ public abstract class AbstractEventChangeHandlerTest {
 		Attendee attendeeNotAccepted = createRequiredAttendee("attendee2@test", ParticipationState.NEEDSACTION);
 		
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@test";
 		event.setOwnerEmail(ownerEmail);
 		event.addAttendee(createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED));
@@ -244,7 +244,7 @@ public abstract class AbstractEventChangeHandlerTest {
 		Attendee attendeeOne = createRequiredAttendee("attendee1@test", ParticipationState.NEEDSACTION);
 		
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@test";
 		event.setOwnerEmail(ownerEmail);
 		event.addAttendee(createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED));
@@ -267,7 +267,7 @@ public abstract class AbstractEventChangeHandlerTest {
 		List<Attendee> needActionAttendees = createRequiredAttendees("attendee", "@test", ParticipationState.NEEDSACTION, 5, 5);
 		
 		Event event = new Event();
-		event.setDate(after());
+		event.setStartDate(after());
 		String ownerEmail = "user@test";
 		event.setOwnerEmail(ownerEmail);
 		event.addAttendee(createRequiredAttendee(ownerEmail, ParticipationState.ACCEPTED));

@@ -428,7 +428,7 @@ public class EventChangeHandlerTest {
 		@Test
 		public void testDefaultEventNoChange() throws JMSException {
 			Event event = new Event();
-			event.setDate(after());
+			event.setStartDate(after());
 			ObmUser defaultObmUser = getDefaultObmUser();
 			
 			EventChangeMailer mailer = createMock(EventChangeMailer.class);
@@ -453,9 +453,9 @@ public class EventChangeHandlerTest {
 		@Test
 		public void testDefaultEventDateChangeZeroUser() throws JMSException {
 			Event event = new Event();
-			event.setDate(after());
+			event.setStartDate(after());
 			Event eventAfter = new Event();
-			eventAfter.setDate(longAfter());
+			eventAfter.setStartDate(longAfter());
 			ObmUser defaultObmUser = getDefaultObmUser();
 			
 			EventChangeMailer mailer = createMock(EventChangeMailer.class);
@@ -479,10 +479,10 @@ public class EventChangeHandlerTest {
 		public void testDefaultEventDateChangeOneNeedActionUser() throws JMSException {
 			Attendee attendee = createRequiredAttendee("attendee1@test", ParticipationState.NEEDSACTION);
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 			Event currentEvent = new Event();
-			currentEvent.setDate(longAfter());
+			currentEvent.setStartDate(longAfter());
 			currentEvent.addAttendee(attendee);
 			ObmUser defaultObmUser = getDefaultObmUser();
 
@@ -512,10 +512,10 @@ public class EventChangeHandlerTest {
 		public void testDefaultEventDateChangeOneAcceptedUser() throws JMSException {
 			Attendee attendee = createRequiredAttendee("attendee1@test", ParticipationState.ACCEPTED);
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 			Event currentEvent = new Event();
-			currentEvent.setDate(longAfter());
+			currentEvent.setStartDate(longAfter());
 			currentEvent.addAttendee(attendee);
 			ObmUser defaultObmUser = getDefaultObmUser();
 			
@@ -546,7 +546,7 @@ public class EventChangeHandlerTest {
 		public void testDefaultEventNoChangeOneNeedActionUser() throws JMSException {
 			Attendee attendee = createRequiredAttendee("attendee1@test", ParticipationState.NEEDSACTION);
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 			ObmUser defaultObmUser = getDefaultObmUser();
 			
@@ -572,7 +572,7 @@ public class EventChangeHandlerTest {
 		public void testDefaultEventNoChangeOneAcceptedUser() throws JMSException {
 			Attendee attendee = createRequiredAttendee("attendee1@test", ParticipationState.ACCEPTED);
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 			ObmUser defaultObmUser = getDefaultObmUser();
 			
@@ -600,11 +600,11 @@ public class EventChangeHandlerTest {
 			Attendee addedAttendee = createRequiredAttendee("addedeAttendee@test", ParticipationState.NEEDSACTION);
 			
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 
 			Event currentEvent = new Event();
-			currentEvent.setDate(after());
+			currentEvent.setStartDate(after());
 			currentEvent.addAttendee(attendee);
 			currentEvent.addAttendee(addedAttendee);
 			ObmUser defaultObmUser = getDefaultObmUser();
@@ -637,11 +637,11 @@ public class EventChangeHandlerTest {
 			Attendee addedAttendee = createRequiredAttendee("addedeAttendee@test", ParticipationState.ACCEPTED);
 			
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 
 			Event currentEvent = new Event();
-			currentEvent.setDate(after());
+			currentEvent.setStartDate(after());
 			currentEvent.addAttendee(attendee);
 			currentEvent.addAttendee(addedAttendee);
 			ObmUser defaultObmUser = getDefaultObmUser();
@@ -672,10 +672,10 @@ public class EventChangeHandlerTest {
 			Attendee attendee = createRequiredAttendee("attendee1@test", ParticipationState.ACCEPTED);
 			attendee.setCanWriteOnCalendar(true);
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 			Event currentEvent = new Event();
-			currentEvent.setDate(longAfter());
+			currentEvent.setStartDate(longAfter());
 			currentEvent.addAttendee(attendee);
 			ObmUser defaultObmUser = getDefaultObmUser();
 			
@@ -707,12 +707,12 @@ public class EventChangeHandlerTest {
 			Attendee addedAttendee = createRequiredAttendee("addedeAttendee@test", ParticipationState.ACCEPTED);
 
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 			previousEvent.setOwnerEmail("attendee1@test");
 
 			Event currentEvent = new Event();
-			currentEvent.setDate(after());
+			currentEvent.setStartDate(after());
 			currentEvent.addAttendee(attendee);
 			currentEvent.addAttendee(addedAttendee);
 			currentEvent.setOwnerEmail("attendee1@test");
@@ -744,11 +744,11 @@ public class EventChangeHandlerTest {
 		public void testUserIsNotEventOwnerDefaultEventDateChangeOneAcceptedUser() throws JMSException {
 			Attendee attendee = createRequiredAttendee("attendee1@test", ParticipationState.ACCEPTED);
 			Event previousEvent = new Event();
-			previousEvent.setDate(after());
+			previousEvent.setStartDate(after());
 			previousEvent.addAttendee(attendee);
 			previousEvent.setOwnerEmail("attendee1@test");
 			Event currentEvent = new Event();
-			currentEvent.setDate(longAfter());
+			currentEvent.setStartDate(longAfter());
 			currentEvent.addAttendee(attendee);
 			currentEvent.setOwnerEmail("attendee1@test");
 			ObmUser defaultObmUser = getDefaultObmUser();
@@ -786,7 +786,7 @@ public class EventChangeHandlerTest {
 			EventChangeMailer mailer = createMock(EventChangeMailer.class);
 			
 			Event event = new Event();
-			event.setDate(after());
+			event.setStartDate(after());
 			event.addAttendee(attendee);
 			event.addAttendee(organizer);
 			
@@ -841,7 +841,7 @@ public class EventChangeHandlerTest {
 			EventChangeMailer mailer = createMock(EventChangeMailer.class);
 			
 			Event event = new Event();
-			event.setDate(after());
+			event.setStartDate(after());
 			event.addAttendee(attendee);
 			event.addAttendee(organizer);
 			
@@ -889,7 +889,7 @@ public class EventChangeHandlerTest {
 			EventChangeMailer mailer = createMock(EventChangeMailer.class);
 			
 			Event event = new Event();
-			event.setDate(after());
+			event.setStartDate(after());
 			event.addAttendee(attendee);
 			event.addAttendee(organizer);
 			

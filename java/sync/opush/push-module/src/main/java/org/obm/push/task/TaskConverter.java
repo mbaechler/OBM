@@ -83,7 +83,7 @@ public class TaskConverter {
 			mse.setComplete(e.getPercent() >= 100);
 		}
 
-		Date dateTimeEnd = new Date(e.getDate().getTime() + e.getDuration()
+		Date dateTimeEnd = new Date(e.getStartDate().getTime() + e.getDuration()
 				* 1000);
 
 		mse.setUtcDueDate(dateTimeEnd);
@@ -97,8 +97,8 @@ public class TaskConverter {
 		// mse.setReminderTime(cal.getTime());
 		// }
 
-		mse.setStartDate(getDateInTimeZone(e.getDate(), e.getTimezoneName()));
-		mse.setUtcStartDate(e.getDate());
+		mse.setStartDate(getDateInTimeZone(e.getStartDate(), e.getTimezoneName()));
+		mse.setUtcStartDate(e.getStartDate());
 		mse.setRecurrence(getRecurrence(e.getRecurrence()));
 
 		return mse;
@@ -251,7 +251,7 @@ public class TaskConverter {
 
 		e.setDescription(task.getDescription());
 		if (task.getUtcStartDate() != null) {
-			e.setDate(task.getUtcStartDate());
+			e.setStartDate(task.getUtcStartDate());
 			e.setTimezoneName("GMT");
 		} else {
 			Calendar cal = Calendar.getInstance();
@@ -259,7 +259,7 @@ public class TaskConverter {
 			cal.set(Calendar.SECOND, 0);
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.HOUR, 0);
-			e.setDate(cal.getTime());
+			e.setStartDate(cal.getTime());
 		}
 
 		int importance = Objects.firstNonNull(task.getImportance(), TASK_IMPORTANCE_NORMAL);

@@ -305,7 +305,7 @@ public class EventRecurrenceTest {
 		
 		Date d1 = getDate(2011, Calendar.DECEMBER, 20);
 		event.setRecurrenceId(d1);
-		event.setDate(d1);
+		event.setStartDate(d1);
 		return event;
 	}
 	
