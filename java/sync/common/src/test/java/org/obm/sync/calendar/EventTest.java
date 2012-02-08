@@ -509,7 +509,6 @@ public class EventTest {
 		event.setCategory("category");
 		event.setStartDate(new Date());
 		event.setDescription("description");
-		event.setDomain("domain");
 		event.setDuration(10);
 		event.setEntityId(1);
 		event.setExtId(new EventExtId("1"));
