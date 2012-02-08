@@ -249,14 +249,6 @@ public class Event implements Indexed<Integer> {
 		this.opacity = opacity;
 	}
 
-	public Integer getEntityId() {
-		return entityId;
-	}
-
-	public void setEntityId(Integer entityId) {
-		this.entityId = entityId;
-	}
-
 	public EventExtId getExtId() {
 		return extId;
 	}
@@ -282,7 +274,6 @@ public class Event implements Indexed<Integer> {
 		event.setStartDate(startDate);
 		event.setDescription(description);
 		event.setDuration(duration);
-		event.setEntityId(entityId);
 		event.setExtId(extId);
 		event.setLocation(location);
 		event.setOpacity(opacity);
