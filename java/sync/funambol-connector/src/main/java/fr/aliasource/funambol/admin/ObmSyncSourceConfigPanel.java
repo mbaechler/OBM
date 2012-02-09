@@ -27,7 +27,6 @@ import com.funambol.framework.engine.source.SyncSourceInfo;
 import fr.aliasource.funambol.engine.source.CalendarSyncSource;
 import fr.aliasource.funambol.engine.source.ContactSyncSource;
 import fr.aliasource.funambol.engine.source.ObmSyncSource;
-import fr.aliasource.funambol.utils.Helper;
 
 /**
  * 
@@ -36,6 +35,15 @@ public class ObmSyncSourceConfigPanel
 	extends SourceManagementPanel
 	implements Serializable {
 
+	public static final int RESTRICT_PRIVATE = 1;
+	public static final int RESTRICT_OWNER 	= 2;
+	public static final int RESTRICT_REFUSED = 4;
+	public static final int RESTRICT_PUBLIC_R = 8;
+	public static final int RESTRICT_PUBLIC_W = 16;
+	
+	public static final int RESTRICTS_DEFAULT = 1;
+	
+	
 	// --------------------------------------------------------------- Constants
 
 	/**
@@ -269,12 +277,12 @@ public class ObmSyncSourceConfigPanel
         	int rs = syncSource.getRestrictions();
 	   
 	        restrictPrivateValue.setSelected(
-	        		(rs & Helper.RESTRICT_PRIVATE) == Helper.RESTRICT_PRIVATE );
+	        		(rs & RESTRICT_PRIVATE) == RESTRICT_PRIVATE );
 	        restrictPublicRValue.setSelected(
-	        		(rs & Helper.RESTRICT_PUBLIC_R) == Helper.RESTRICT_PUBLIC_R
-	        		|| (rs & Helper.RESTRICT_PUBLIC_W) == Helper.RESTRICT_PUBLIC_W );
+	        		(rs & RESTRICT_PUBLIC_R) == RESTRICT_PUBLIC_R
+	        		|| (rs & RESTRICT_PUBLIC_W) == RESTRICT_PUBLIC_W );
 	        restrictPublicWValue.setSelected(
-	        		(rs & Helper.RESTRICT_PUBLIC_W) == Helper.RESTRICT_PUBLIC_W );
+	        		(rs & RESTRICT_PUBLIC_W) == RESTRICT_PUBLIC_W );
         }
     }
 
@@ -363,14 +371,14 @@ public class ObmSyncSourceConfigPanel
 			if (syncSource instanceof ContactSyncSource) {
 				int rs = 0;
 				if (restrictPrivateValue.isSelected()) {
-					rs += Helper.RESTRICT_PRIVATE;
+					rs += RESTRICT_PRIVATE;
 				}
 				if (restrictPublicRValue.isSelected()
 						|| restrictPublicWValue.isSelected()) {
-					rs += Helper.RESTRICT_PUBLIC_R;
+					rs += RESTRICT_PUBLIC_R;
 				}
 				if (restrictPublicWValue.isSelected()) {
-					rs += Helper.RESTRICT_PUBLIC_W;
+					rs += RESTRICT_PUBLIC_W;
 				}
 				syncSource.setRestrictions(rs);
 			}

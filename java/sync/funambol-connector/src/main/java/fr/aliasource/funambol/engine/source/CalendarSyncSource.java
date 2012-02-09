@@ -30,7 +30,6 @@ import com.google.inject.Injector;
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.ObmFunambolGuiceInjector;
 import fr.aliasource.funambol.utils.FunisHelper;
-import fr.aliasource.funambol.utils.Helper;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
 import fr.aliasource.obm.items.manager.CalendarManager;
 
@@ -351,7 +350,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 			throws OBMException {
 		Calendar foundationCalendar = null;
 
-		String content = Helper.getContentOfSyncItem(item);
+		String content = getContentOfSyncItem(item);
 		logger.info("foundFromSync:\n" + content);
 		logger.info(" ===> syncItemKey: " + item.getKey());
 

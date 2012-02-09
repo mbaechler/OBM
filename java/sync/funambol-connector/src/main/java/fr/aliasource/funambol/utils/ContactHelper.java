@@ -2,6 +2,8 @@ package fr.aliasource.funambol.utils;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.funambol.common.pim.contact.Address;
 import com.funambol.common.pim.contact.BusinessDetail;
 import com.funambol.common.pim.contact.ContactDetail;
@@ -10,7 +12,7 @@ import com.funambol.common.pim.contact.Note;
 import com.funambol.common.pim.contact.Phone;
 import com.funambol.common.pim.contact.Title;
 
-public class ContactHelper extends Helper {
+public class ContactHelper {
 
 	public static final String WORK_PHONE = "BusinessTelephoneNumber";
 	public static final String WORK_FAX = "BusinessFaxNumber";
@@ -26,7 +28,7 @@ public class ContactHelper extends Helper {
 	public static void setFoundationPhone(ContactDetail detail, String phone,
 			String type) {
 
-		if (!nullToEmptyString(phone).equals("")) {
+		if (!StringUtils.trimToEmpty(phone).equals("")) {
 			Phone ph = new Phone();
 
 			ph.setPhoneType(type);
@@ -53,7 +55,7 @@ public class ContactHelper extends Helper {
 
 	public static void setFoundationTitle(BusinessDetail bus, String title,
 			String type) {
-		if (!nullToEmptyString(title).equals("")) {
+		if (!StringUtils.trimToEmpty(title).equals("")) {
 			Title t = new Title();
 
 			t.setTitleType(type);
@@ -81,7 +83,7 @@ public class ContactHelper extends Helper {
 	public static void setFoundationEmail(ContactDetail detail, String email,
 			String type) {
 
-		if (!nullToEmptyString(email).equals("")) {
+		if (!StringUtils.trimToEmpty(email).equals("")) {
 			Email em = new Email();
 
 			em.setEmailType(type);
@@ -111,7 +113,7 @@ public class ContactHelper extends Helper {
 			com.funambol.common.pim.contact.Contact foundation, String note,
 			String type) {
 
-		if (!nullToEmptyString(note).equals("")) {
+		if (!StringUtils.trimToEmpty(note).equals("")) {
 			Note nt = new Note();
 
 			nt.setNoteType(type);
@@ -122,12 +124,12 @@ public class ContactHelper extends Helper {
 	}
 
 	public static String getCountry(Address addr) {
-		return nullToEmptyString(addr.getCountry().getPropertyValueAsString());
+		return StringUtils.trimToEmpty(addr.getCountry().getPropertyValueAsString());
 	}
 
 	public static String getLastName(
 			com.funambol.common.pim.contact.Contact foundation) {
-		String result = nullToEmptyString(foundation.getName().getLastName()
+		String result = StringUtils.trimToEmpty(foundation.getName().getLastName()
 				.getPropertyValueAsString());
 		return result;
 	}

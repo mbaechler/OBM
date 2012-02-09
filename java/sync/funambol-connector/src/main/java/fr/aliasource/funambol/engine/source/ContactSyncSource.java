@@ -27,7 +27,6 @@ import com.google.inject.Injector;
 
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.ObmFunambolGuiceInjector;
-import fr.aliasource.funambol.utils.Helper;
 import fr.aliasource.obm.items.converter.ObmContactConverter;
 import fr.aliasource.obm.items.manager.ContactSyncBean;
 
@@ -282,7 +281,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		Contact contact = null;
 		String content = null;
 
-		content = Helper.getContentOfSyncItem(item);
+		content = getContentOfSyncItem(item);
 
 		if (MSG_TYPE_VCARD.equals(getSourceType())) {
 			contact = getFoundationContactFromVCard(content);

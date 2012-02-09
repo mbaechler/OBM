@@ -21,7 +21,7 @@ import com.funambol.common.pim.calendar.ExceptionToRecurrenceRule;
 import com.funambol.common.pim.calendar.RecurrencePattern;
 import com.funambol.common.pim.calendar.RecurrencePatternException;
 
-public class CalendarHelper extends Helper {
+public class CalendarHelper {
 
 	// --------------------------------------------------------------- Constants
 	private static final String DATE_UTC_PATTERN = "yyyyMMdd'T'HHmmss'Z'";
@@ -140,15 +140,15 @@ public class CalendarHelper extends Helper {
 	 * @param obmrec
 	 * @return
 	 */
-	public static RecurrencePattern getRecurrence(Date dstart, Date dend,
-			EventRecurrence obmrec) {
+	public static RecurrencePattern getRecurrence(Event event) {
 
+		EventRecurrence obmrec = event.getRecurrence();
+		
 		RecurrencePattern result = null;
 
 		int interval = obmrec.getFrequence();
 		Date cend = obmrec.getEnd();
 		boolean noEndDate = true;
-		Date endrec = dend;
 
 		if (cend != null) {
 			Calendar cal = Calendar.getInstance();
@@ -158,11 +158,10 @@ public class CalendarHelper extends Helper {
 				cal.set(Calendar.YEAR, 2017);
 			}
 			noEndDate = false;
-			endrec = cal.getTime();
 		}
 
-		String sPatternStart = getUTCFormat(dstart);
-		String sPatternEnd = getUTCFormat(endrec);
+		String sPatternStart = getUTCFormat(event.getDate());
+		String sPatternEnd = getUTCFormat(event.getDate());
 		short dayOfWeekMask = getDayOfWeekMask(obmrec.getDays());
 
 		try {
@@ -179,19 +178,19 @@ public class CalendarHelper extends Helper {
 			} else if (obmrec.getKind() == RecurrenceKind.monthlybydate) {
 
 				result = RecurrencePattern.getMonthlyRecurrencePattern(
-						interval, getDayOfMonth(dstart), sPatternStart,
+						interval, getDayOfMonth(event.getDate()), sPatternStart,
 						sPatternEnd, noEndDate);
 
 			} else if (obmrec.getKind() == RecurrenceKind.monthlybyday) {
 
 				result = RecurrencePattern.getMonthNthRecurrencePattern(
-						interval, getDayOfWeek(dstart), getNthDay(dstart),
+						interval, getDayOfWeek(event.getDate()), getNthDay(event.getDate()),
 						sPatternStart, sPatternEnd);
 
 			} else if (obmrec.getKind() == RecurrenceKind.yearly) {
 
 				result = RecurrencePattern.getYearlyRecurrencePattern(interval,
-						getDayOfMonth(dstart), getMonthOfYear(dstart),
+						getDayOfMonth(event.getDate()), getMonthOfYear(event.getDate()),
 						sPatternStart, sPatternEnd, noEndDate);
 
 			}

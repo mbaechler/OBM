@@ -8,6 +8,7 @@ import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.funambol.framework.engine.SyncItem;
 import com.funambol.framework.engine.SyncItemKey;
 import com.funambol.framework.engine.source.AbstractSyncSource;
 import com.funambol.framework.engine.source.SyncContext;
@@ -224,4 +225,17 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 	@Override
 	public void init() throws BeanInitializationException {
 	}
+	
+	public String getContentOfSyncItem(SyncItem item) {
+		
+		String result = null;
+		
+		byte[] itemContent = item.getContent();
+		
+		   // Add content processing here, if needed
+		result = new String(itemContent == null ? new byte[0] : itemContent);
+		
+		return result.trim();
+	}
+
 }

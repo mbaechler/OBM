@@ -182,13 +182,13 @@ public class ObmContactConverter {
 		BusinessDetail bd = funis.getBusinessDetail();
 		PersonalDetail pd = funis.getPersonalDetail();
 
-		contact.setFirstname(ContactHelper.nullToEmptyString(funis.getName()
+		contact.setFirstname(StringUtils.trimToEmpty(funis.getName()
 				.getFirstName().getPropertyValueAsString()));
 		contact.setLastname(ContactHelper.getLastName(funis));
-		contact.setCommonname(ContactHelper.nullToEmptyString(funis.getName().getDisplayName().getPropertyValueAsString()));
-		contact.setMiddlename(ContactHelper.nullToEmptyString(funis.getName().getMiddleName().getPropertyValueAsString()));
-		contact.setSuffix(ContactHelper.nullToEmptyString(funis.getName().getSuffix().getPropertyValueAsString()));
-		contact.setAka(ContactHelper.nullToEmptyString(s(funis.getName()
+		contact.setCommonname(StringUtils.trimToEmpty(funis.getName().getDisplayName().getPropertyValueAsString()));
+		contact.setMiddlename(StringUtils.trimToEmpty(funis.getName().getMiddleName().getPropertyValueAsString()));
+		contact.setSuffix(StringUtils.trimToEmpty(funis.getName().getSuffix().getPropertyValueAsString()));
+		contact.setAka(StringUtils.trimToEmpty(s(funis.getName()
 				.getNickname())));
 		contact.setCompany(s(bd.getCompany()));
 		contact.setService(s(bd.getDepartment()));
@@ -256,7 +256,7 @@ public class ObmContactConverter {
 			}
 		}
 
-		contact.setComment(ContactHelper.nullToEmptyString(getNote(funis.getNotes(), ContactHelper.COMMENT)));
+		contact.setComment(StringUtils.trimToEmpty(getNote(funis.getNotes(), ContactHelper.COMMENT)));
 
 		if (!StringUtils.isEmpty(pd.getBirthday())) {
 			try {
