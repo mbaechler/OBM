@@ -1,6 +1,7 @@
 package fr.aliasource.funambol.engine.source;
 
 import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import com.funambol.common.pim.converter.VCalendarConverter;
 import com.funambol.common.pim.converter.VComponentWriter;
 import com.funambol.common.pim.icalendar.ICalendarParser;
 import com.funambol.common.pim.model.VCalendar;
+import com.funambol.common.pim.xvcalendar.ParseException;
 import com.funambol.common.pim.xvcalendar.XVCalendarParser;
 import com.funambol.framework.engine.InMemorySyncItem;
 import com.funambol.framework.engine.SyncItem;
@@ -25,11 +27,12 @@ import com.funambol.framework.engine.source.SyncContext;
 import com.funambol.framework.engine.source.SyncSource;
 import com.funambol.framework.engine.source.SyncSourceException;
 import com.funambol.framework.tools.Base64;
+import com.funambol.framework.tools.codec.CodecException;
+import com.funambol.framework.tools.codec.QuotedPrintableCodec;
 import com.google.inject.Injector;
 
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.ObmFunambolGuiceInjector;
-import fr.aliasource.funambol.utils.FunisHelper;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
 import fr.aliasource.obm.items.manager.CalendarManager;
 
@@ -318,16 +321,15 @@ public class CalendarSyncSource extends ObmSyncSource {
 		String toParse = content;
 		toParse = toParse.replace("encoding", "ENCODING");
 		toParse = toParse.replace("PRINTABLE:", "PRINTABLE;CHARSET=UTF-8:");
-		toParse = FunisHelper.removeQuotedPrintableFromVCalString(toParse);
-		ByteArrayInputStream buffer = new ByteArrayInputStream(toParse
-				.getBytes());
+		QuotedPrintableCodec codec = new QuotedPrintableCodec("UTF-8");
 
 		try {
+			toParse = codec.decode(toParse);
+			ByteArrayInputStream buffer = new ByteArrayInputStream(toParse
+					.getBytes());
 			VCalendar vcal = null;
 			if (toParse.contains("VERSION:1.0")) {
 				logger.info("Parsing version 1.0 as xvcalendar");
-//				XVCalendarParser parser = new XVCalendarParser(buffer,
-//						deviceCharset);
 				XVCalendarParser parser = new XVCalendarParser(buffer);
 				vcal = parser.XVCalendar();
 			} else {
@@ -340,7 +342,15 @@ public class CalendarSyncSource extends ObmSyncSource {
 
 			Calendar ret = vconvert.vcalendar2calendar(vcal);
 			return ret;
-		} catch (Exception e) {
+		} catch (UnsupportedEncodingException e) {
+			throw new OBMException("Error converting from ical ", e);
+		} catch (CodecException e) {
+			throw new OBMException("Error converting from ical ", e);
+		} catch (ParseException e) {
+			throw new OBMException("Error converting from ical ", e);
+		} catch (com.funambol.common.pim.icalendar.ParseException e) {
+			throw new OBMException("Error converting from ical ", e);
+		} catch (ConverterException e) {
 			throw new OBMException("Error converting from ical ", e);
 		}
 
