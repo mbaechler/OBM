@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
-import org.obm.sync.NotAllowedException;
 import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
@@ -25,6 +24,7 @@ import org.obm.sync.items.EventChanges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.aliasource.funambol.ConvertionException;
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.utils.CalendarHelper;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
@@ -98,36 +98,31 @@ public class CalendarManager extends ObmManager {
 	}
 
 	public com.funambol.common.pim.calendar.Calendar getItemFromId(String key) throws OBMException {
-
-		Event event = null;
-
-		event = updatedRest.get(key);
-
-		if (event == null) {
-			logger.info(" item " + key
-					+ " not found in updated -> get from sever");
-			try {
-				EventObmId id = new EventObmId(key);
-				event = calendarClient.getEventFromId(token, calendar, id);
-			} catch (ServerFault e) {
-				throw new OBMException(e.getMessage());
-			} catch (EventNotFoundException e) {
-				throw new OBMException(e.getMessage());
+		try {
+			Event event = updatedRest.get(key);
+			if (event == null) {
+				logger.info(" item " + key + " not found in updated -> get from sever");
+				EventExtId id = new EventExtId(key);
+				event = calendarClient.getEventFromExtId(token, calendar, id);
 			}
+			com.funambol.common.pim.calendar.Calendar ret = obmEventConverter.obmEventToFoundationCalendar(event);
+			return ret;
+		} catch (ServerFault e) {
+			throw new OBMException(e.getMessage(),e);
+		} catch (EventNotFoundException e) {
+			throw new OBMException(e.getMessage(),e);
+		} catch (ConvertionException e) {
+			throw new OBMException(e.getMessage(),e);
 		}
 
-		com.funambol.common.pim.calendar.Calendar ret = obmEventConverter.obmEventToFoundationCalendar(
-				event);
-
-		return ret;
 	}
 
 	public void removeItem(String key) throws OBMException {
 
 		Event event = null;
 		try {
-			EventObmId id = new EventObmId(key);
-			event = calendarClient.getEventFromId(token, calendar, id);
+			EventExtId id = new EventExtId(key);
+			event = calendarClient.getEventFromExtId(token, calendar, id);
 			// log.info(" attendees size : "+event.getAttendees().length );
 			// log.info(" owner : "+event.getOwner()+" calendar : "+calendar);
 			if (event == null) {
@@ -140,11 +135,7 @@ public class CalendarManager extends ObmManager {
 					|| event.getAttendees().size() == 1) {
 				// no attendee (only the owner)
 				logger.info("not a meeting, removing event");
-				try {
-					calendarClient.removeEventById(token, calendar, id, event.getSequence(), false);
-				} catch (NotAllowedException e) {
-					refuseEvent(event);
-				}
+				calendarClient.removeEventByExtId(token, calendar, id, event.getSequence(), false);
 			} else {
 				refuseEvent(event);
 			}
@@ -170,50 +161,49 @@ public class CalendarManager extends ObmManager {
 		Event c = null;
 		try {
 			c = calendarClient.modifyEvent(token, calendar,
-					obmEventConverter.foundationCalendarToObmEvent(event, false, userEmail), false, false);
+					obmEventConverter.foundationCalendarToObmEvent(event, userEmail), false, false);
+			if (c == null) {
+				return null;
+			} else {
+				return obmEventConverter.obmEventToFoundationCalendar(c);
+			}
 		} catch (ServerFault e) {
-			throw new OBMException(e.getMessage());
+			throw new OBMException(e.getMessage(), e);
+		} catch (ConvertionException e) {
+			throw new OBMException(e.getMessage(), e);
 		}
 
-		if (c == null) {
-			return null;
-		} else {
-			return obmEventConverter.obmEventToFoundationCalendar(c);
-		}
+		
 	}
 
 	public com.funambol.common.pim.calendar.Calendar addItem(
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
 
-		Event evt = null;
-
 		try {
-			Event forCreate = obmEventConverter.foundationCalendarToObmEvent(event, true, userEmail);
+			Event forCreate = obmEventConverter.foundationCalendarToObmEvent(event, userEmail);
 			EventExtId ext = new EventExtId(UUID.randomUUID().toString());
 			forCreate.setExtId(ext);
 			EventObmId uid = calendarClient.createEvent(token, calendar, forCreate, false);
-			evt = calendarClient.getEventFromId(token, calendar, uid);
-		} catch (ServerFault e) {
-			throw new OBMException(e.getMessage());
-		} catch (EventAlreadyExistException e) {
-			throw new OBMException(e.getMessage());
-		} catch (EventNotFoundException e) {
-			throw new OBMException(e.getMessage());
-		}
-
-		if (evt == null) {
-			return null;
-		} else {
+			Event evt = calendarClient.getEventFromId(token, calendar, uid);
 			return obmEventConverter.obmEventToFoundationCalendar(evt);
+		} catch (ServerFault e) {
+			throw new OBMException(e.getMessage(), e);
+		} catch (EventAlreadyExistException e) {
+			throw new OBMException(e.getMessage(), e);
+		} catch (EventNotFoundException e) {
+			throw new OBMException(e.getMessage(), e);
+		} catch (ConvertionException e) {
+			throw new OBMException(e.getMessage(), e);
 		}
 	}
+
 
 	public List<String> getEventTwinKeys(
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
 
-		Event evt = obmEventConverter.foundationCalendarToObmEvent(event, true, userEmail);
+		Event evt = obmEventConverter.foundationCalendarToObmEvent(event, userEmail);
 
 		if (evt == null) {
 			return new LinkedList<String>();
@@ -230,54 +220,49 @@ public class CalendarManager extends ObmManager {
 	// ---------------- Private methods ----------------------------------
 
 	private void getSync(Timestamp since) throws OBMException {
-		Date d = null;
-		if (since != null) {
-			d = new Date(since.getTime());
-		}
-
-		EventChanges sync = null;
-		// get modified items
 		try {
+			Date d = null;
+			if (since != null) {
+				d = new Date(since.getTime());
+			}
+	
+			// get modified items
+			
 			SyncRange syncRange = getSyncRanges(rangeMin, rangeMax);
-			sync = calendarClient.getSyncInRange(token, calendar, d, syncRange);
+			EventChanges sync = calendarClient.getSyncInRange(token, calendar, d, syncRange);
+			
+			logger.info("getSync(" + calendar + ", " + d + " (since == " + since
+					+ ")) => upd: " + sync.getUpdated().length + " del: "
+					+ sync.getRemoved().length);
+			
+			// remove refused events and private events
+			updatedRest = new HashMap<String, Event>();
+			deletedRest = new ArrayList<String>();
+			String user = token.getUserWithDomain();
+			if (sync.getUpdated() != null) {
+				for (Event e : sync.getUpdated()) {
+					logger.info("getSync: " + e.getTitle() + ", d: " + e.getDate());
+					if ((e.getPrivacy() == 1 && !calendar.equals(user))
+							|| CalendarHelper
+									.isUserRefused(userEmail, e.getAttendees())) {
+						if (d != null) {
+							deletedRest.add((e.getObmId().serializeToString()));
+						}
+					} else {
+						updatedRest.put(e.getObmId().serializeToString(), e);
+					}
+				}
+			}
+			if(sync.getRemovedExtIds() != null){
+				for (EventExtId del : sync.getRemovedExtIds()) {
+					deletedRest.add(del.getExtId());
+				}
+			}
+	
+			syncReceived = true;
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
-		logger.info("getSync(" + calendar + ", " + d + " (since == " + since
-				+ ")) => upd: " + sync.getUpdated().length + " del: "
-				+ sync.getRemoved().length);
-		Event[] updated = new Event[0];
-		if (sync.getUpdated() != null) {
-			updated = sync.getUpdated();
-		}
-		EventObmId[] deleted = new EventObmId[0];
-		if (sync.getRemoved() != null) {
-			deleted = sync.getRemoved();
-		}
-
-		// remove refused events and private events
-		updatedRest = new HashMap<String, Event>();
-		deletedRest = new ArrayList<String>();
-		String user = token.getUserWithDomain();
-
-		for (Event e : updated) {
-			logger.info("getSync: " + e.getTitle() + ", d: " + e.getDate());
-			if ((e.getPrivacy() == 1 && !calendar.equals(user))
-					|| CalendarHelper
-							.isUserRefused(userEmail, e.getAttendees())) {
-				if (d != null) {
-					deletedRest.add((e.getObmId().serializeToString()));
-				}
-			} else {
-				updatedRest.put(e.getObmId().serializeToString(), e);
-			}
-		}
-
-		for (EventObmId del : deleted) {
-			deletedRest.add("" + del);
-		}
-
-		syncReceived = true;
 	}
 	
 	private SyncRange getSyncRanges(String min, String max) {
@@ -309,19 +294,4 @@ public class CalendarManager extends ObmManager {
 		}
 	}
 
-	public void setRangeMin(String rangeMin) {
-		this.rangeMin = rangeMin;
-	}
-
-	public String getRangeMin() {
-		return rangeMin;
-	}
-
-	public void setRangeMax(String rangeMax) {
-		this.rangeMax = rangeMax;
-	}
-
-	public String getRangeMax() {
-		return rangeMax;
-	}
 }

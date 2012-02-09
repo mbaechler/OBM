@@ -32,6 +32,7 @@
 package org.obm.sync.calendar;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -39,6 +40,10 @@ import com.google.common.base.Strings;
 public class EventExtId implements Serializable {
 
 	private final String extId;
+	
+	public EventExtId(UUID uuid) {
+		this.extId = Strings.emptyToNull(uuid.toString());
+	}
 	
 	public EventExtId(String extId) {
 		this.extId = Strings.emptyToNull(extId);
