@@ -44,6 +44,10 @@ public class Attendee {
 	private boolean obmUser;
 	private boolean canWriteOnCalendar;
 	
+	public Attendee() {
+		super();
+	}
+	
 	public ParticipationState getState() {
 		return state;
 	}
