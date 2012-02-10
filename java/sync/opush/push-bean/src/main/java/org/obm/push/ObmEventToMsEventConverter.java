@@ -3,7 +3,6 @@ package org.obm.push;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -11,13 +10,14 @@ import java.util.TimeZone;
 import org.obm.push.bean.AttendeeStatus;
 import org.obm.push.bean.AttendeeType;
 import org.obm.push.bean.CalendarBusyStatus;
+import org.obm.push.bean.CalendarMeetingStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.MSAttendee;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSEventCommon;
 import org.obm.push.bean.MSEventException;
 import org.obm.push.bean.MSEventUid;
-import org.obm.push.bean.Recurrence;
+import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.bean.User;
@@ -31,8 +31,8 @@ import org.obm.sync.calendar.ParticipationState;
 import org.obm.sync.calendar.RecurrenceKind;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 public class ObmEventToMsEventConverter {
 
@@ -68,10 +68,21 @@ public class ObmEventToMsEventConverter {
 		mse.setAllDayEvent(e.isAllday());
 		
 
-		mse.setReminder(Objects.firstNonNull(e.getAlert(), 0) / 60);
+		mse.setReminder(reminder(e));
 		mse.setBusyStatus(busyStatus(e.getOpacity()));
 		mse.setSensitivity(sensitivity(e.getPrivacy()));
 
+		mse.setCategories(Lists.newArrayList(e.getCategory()));
+		mse.setMeetingStatus(CalendarMeetingStatus.IS_A_MEETING);
+	}
+
+	private Integer reminder(Event e) {
+		Integer alert = e.getAlert();
+		if (alert == null) {
+			return null;
+		} else {
+			return alert / 60;
+		}
 	}
 
 	private MSEventException convertException(Event exception) {
@@ -173,12 +184,12 @@ public class ObmEventToMsEventConverter {
 		throw new IllegalArgumentException("ParticipationRole " + role + " can't be converted to MSEvent property");
 	}
 
-	private Recurrence getRecurrence(EventRecurrence recurrence) {
+	private MSRecurrence getRecurrence(EventRecurrence recurrence) {
 		if (recurrence == null || recurrence.getKind() == RecurrenceKind.none) {
 			return null;
 		}
 
-		Recurrence r = new Recurrence();
+		MSRecurrence r = new MSRecurrence();
 		switch (recurrence.getKind()) {
 		case daily:
 			r.setType(RecurrenceType.DAILY);
@@ -239,17 +250,13 @@ public class ObmEventToMsEventConverter {
 	
 
 	private List<MSEventException> getException(EventRecurrence recurrence) {
-		List<MSEventException> ret = new LinkedList<MSEventException>();
-		if(recurrence == null){
+		List<MSEventException> ret = Lists.newArrayList();
+		if (recurrence == null || recurrence.getKind() == RecurrenceKind.none) {
 			return ret;
 		}
 		
 		for (Date excp : recurrence.getExceptions()) {
-			MSEventException e = new MSEventException();
-			e.setDeleted(true);
-			e.setExceptionStartTime(excp);
-			e.setStartTime(excp);
-			e.setDtStamp(new Date());
+			MSEventException e = deletionException(excp);
 			ret.add(e);
 		}
 
@@ -258,6 +265,13 @@ public class ObmEventToMsEventConverter {
 			ret.add(e);
 		}
 		return ret;
+	}
+
+	private MSEventException deletionException(Date excp) {
+		MSEventException e = new MSEventException();
+		e.setDeleted(true);
+		e.setExceptionStartTime(excp);
+		return e;
 	}
 
 }

@@ -44,7 +44,7 @@ import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSEventCommon;
 import org.obm.push.bean.MSEventException;
 import org.obm.push.bean.MSEventUid;
-import org.obm.push.bean.Recurrence;
+import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.RecurrenceType;
 import org.obm.push.tnefconverter.RTFUtils;
@@ -184,7 +184,7 @@ public class CalendarDecoder extends Decoder implements IDataDecoder {
 		containerNode = DOMUtils.getUniqueElement(syncData, "Recurrence");
 		if (containerNode != null) {
 			logger.info("decode recurrence");
-			Recurrence recurrence = new Recurrence();
+			MSRecurrence recurrence = new MSRecurrence();
 
 			recurrence.setUntil(parseDOMDate(DOMUtils.getUniqueElement(
 					containerNode, "RecurrenceUntil")));
@@ -323,9 +323,9 @@ public class CalendarDecoder extends Decoder implements IDataDecoder {
 		switch (parseDOMNoNullInt(DOMUtils.getUniqueElement(domSource,
 				"MeetingStatus"))) {
 		case 0:
-			return CalendarMeetingStatus.IS_NOT_IN_MEETING;
+			return CalendarMeetingStatus.IS_NOT_A_MEETING;
 		case 1:
-			return CalendarMeetingStatus.IS_IN_MEETING;
+			return CalendarMeetingStatus.IS_A_MEETING;
 		case 3:
 			return CalendarMeetingStatus.MEETING_RECEIVED;
 		case 5:

@@ -68,10 +68,7 @@ public class MSEventException implements MSEventCommon, Serializable {
 	}
 
 	public Date getDtStamp() {
-		if (dtStamp != null) {
-			return dtStamp;
-		}
-		return new Date(0);
+		return dtStamp;
 	}
 
 	public void setDtStamp(Date dtStamp) {

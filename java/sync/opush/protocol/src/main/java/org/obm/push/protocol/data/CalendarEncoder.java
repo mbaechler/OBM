@@ -46,7 +46,7 @@ import org.obm.push.bean.MSAttendee;
 import org.obm.push.bean.MSEvent;
 import org.obm.push.bean.MSEventException;
 import org.obm.push.bean.MSEventUid;
-import org.obm.push.bean.Recurrence;
+import org.obm.push.bean.MSRecurrence;
 import org.obm.push.bean.RecurrenceDayOfWeek;
 import org.obm.push.bean.SyncCollection;
 import org.obm.push.utils.DOMUtils;
@@ -157,11 +157,11 @@ public class CalendarEncoder extends Encoder implements IDataEncoder {
 
 		if (bs.checkHint("hint.loadAttendees", true)
 				&& ev.getAttendees().size() > 1) {
-			s(p, "Calendar:MeetingStatus", CalendarMeetingStatus.IS_IN_MEETING
+			s(p, "Calendar:MeetingStatus", CalendarMeetingStatus.IS_A_MEETING
 					.asIntString());
 		} else {
 			s(p, "Calendar:MeetingStatus",
-					CalendarMeetingStatus.IS_NOT_IN_MEETING.asIntString());
+					CalendarMeetingStatus.IS_NOT_A_MEETING.asIntString());
 		}
 
 		if (isReponse && bs.getProtocolVersion().compareTo(TWELVE) > 0) {
@@ -194,10 +194,10 @@ public class CalendarEncoder extends Encoder implements IDataEncoder {
 					if (bs.checkHint("hint.loadAttendees", true)
 						&& parent.getAttendees().size() > 1) {
 						s(e, "Calendar:MeetingStatus",
-							CalendarMeetingStatus.IS_IN_MEETING.asIntString());
+							CalendarMeetingStatus.IS_A_MEETING.asIntString());
 					} else {
 						s(e, "Calendar:MeetingStatus",
-							CalendarMeetingStatus.IS_NOT_IN_MEETING
+							CalendarMeetingStatus.IS_NOT_A_MEETING
 							.asIntString());
 					}
 
@@ -272,7 +272,7 @@ public class CalendarEncoder extends Encoder implements IDataEncoder {
 		}
 	}
 
-	private Recurrence rec(MSEvent ev) {
+	private MSRecurrence rec(MSEvent ev) {
 		return ev.getRecurrence();
 	}
 }
