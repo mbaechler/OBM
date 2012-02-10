@@ -14,6 +14,8 @@ import org.obm.push.bean.CalendarBusyStatus;
 import org.obm.push.bean.CalendarSensitivity;
 import org.obm.push.bean.MSAttendee;
 import org.obm.push.bean.MSEvent;
+import org.obm.push.bean.MSEventCommon;
+import org.obm.push.bean.MSEventException;
 import org.obm.push.bean.MSEventUid;
 import org.obm.push.bean.Recurrence;
 import org.obm.push.bean.RecurrenceDayOfWeek;
@@ -36,38 +38,51 @@ public class ObmEventToMsEventConverter {
 	public MSEvent convert(Event e, MSEventUid uid, User user) {
 		MSEvent mse = new MSEvent();
 
+		fillEventCommonProperties(e, mse);
+		
+		mse.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+		appendAttendeesAndOrganizer(e, mse, user);
+		mse.setUid(uid);
+		mse.setRecurrence(getRecurrence(e.getRecurrence()));
+		mse.setExceptions(getException(e.getRecurrence()));
+		mse.setExtId(e.getExtId());
+		mse.setObmId(e.getObmId());
+		mse.setObmSequence(e.getSequence());
+		appendCreatedLastUpdate(mse, e);
+
+		return mse;
+	}
+
+	private void fillEventCommonProperties(Event e, MSEventCommon mse) {
 		mse.setSubject(e.getTitle());
 		mse.setDescription(e.getDescription());
 		mse.setLocation(e.getLocation());
-		mse.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
 		mse.setStartTime(e.getStartDate());
-		mse.setExceptionStartTime(e.getRecurrenceId());
-		mse.setUid(uid);
 		
 		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 		c.setTimeInMillis(e.getStartDate().getTime());
 		c.add(Calendar.SECOND, e.getDuration());
 		mse.setEndTime(c.getTime());
 		
-		appendAttendeesAndOrganizer(e, mse, user);
-		
-		
 		mse.setAllDayEvent(e.isAllday());
-		mse.setRecurrence(getRecurrence(e.getRecurrence()));
-		mse.setExceptions(getException(e.getRecurrence(), user));
+		
 
 		if (e.getAlert() != null && e.getAlert() > 0) {
 			mse.setReminder(e.getAlert() / 60);
 		}
-		mse.setExtId(e.getExtId());
-		mse.setObmId(e.getObmId());
 		mse.setBusyStatus(busyStatus(e.getOpacity()));
 		mse.setSensitivity(sensitivity(e.getPrivacy()));
-		mse.setObmSequence(e.getSequence());
-		appendCreatedLastUpdate(mse, e);
-		return mse;
+
 	}
 
+	private MSEventException convertException(Event exception) {
+		MSEventException msEventException = new MSEventException();
+		fillEventCommonProperties(exception, msEventException);
+		msEventException.setExceptionStartTime(exception.getRecurrenceId());
+
+		return msEventException;
+	}
+	
 	private void appendAttendeesAndOrganizer(Event e, MSEvent mse, User user) {
 		String userEmail = user.getEmail();
 		boolean hasOrganizer = false;
@@ -224,14 +239,14 @@ public class ObmEventToMsEventConverter {
 	}
 	
 
-	private List<MSEvent> getException(EventRecurrence recurrence, User user) {
-		List<MSEvent> ret = new LinkedList<MSEvent>();
+	private List<MSEventException> getException(EventRecurrence recurrence) {
+		List<MSEventException> ret = new LinkedList<MSEventException>();
 		if(recurrence == null){
 			return ret;
 		}
 		
 		for (Date excp : recurrence.getExceptions()) {
-			MSEvent e = new MSEvent();
+			MSEventException e = new MSEventException();
 			e.setDeleted(true);
 			e.setExceptionStartTime(excp);
 			e.setStartTime(excp);
@@ -239,12 +254,11 @@ public class ObmEventToMsEventConverter {
 			ret.add(e);
 		}
 
-		for (Event excp : recurrence.getEventExceptions()) {
-			MSEvent e = convert(excp, null, user);
+		for (Event exception : recurrence.getEventExceptions()) {
+			MSEventException e = convertException(exception);
 			ret.add(e);
 		}
 		return ret;
 	}
-
 
 }

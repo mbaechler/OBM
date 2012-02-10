@@ -51,7 +51,7 @@ public class Encoder {
 
 	protected void s(Element p, String name, Integer val) {
 		if (val != null) {
-			DOMUtils.createElementAndText(p, name, val.toString());
+			DOMUtils.createElementAndText(p, name, String.valueOf(val));
 		}
 	}
 
