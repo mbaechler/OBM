@@ -31,6 +31,7 @@ import org.obm.sync.calendar.ParticipationState;
 import org.obm.sync.calendar.RecurrenceKind;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 public class ObmEventToMsEventConverter {
@@ -67,9 +68,7 @@ public class ObmEventToMsEventConverter {
 		mse.setAllDayEvent(e.isAllday());
 		
 
-		if (e.getAlert() != null && e.getAlert() > 0) {
-			mse.setReminder(e.getAlert() / 60);
-		}
+		mse.setReminder(Objects.firstNonNull(e.getAlert(), 0) / 60);
 		mse.setBusyStatus(busyStatus(e.getOpacity()));
 		mse.setSensitivity(sensitivity(e.getPrivacy()));
 

@@ -359,7 +359,7 @@ public class Ical4jHelperTest {
 		VEvent vEvent = new VEvent();
 		vEvent.getAlarms().add(va);
 		Event event = getIcal4jHelper().convertVEventToEvent(getDefaultObmUser(), vEvent);
-		assertEquals(new Integer(-1), event.getAlert());
+		assertNull(event.getAlert());
 	}
 	
 	@Test
@@ -388,7 +388,7 @@ public class Ical4jHelperTest {
 		VEvent vEvent = new VEvent();
 		vEvent.getAlarms().add(va);
 		Event event = getIcal4jHelper().convertVEventToEvent(getDefaultObmUser(), vEvent);
-		assertEquals(new Integer(-1), event.getAlert());
+		assertNull(event.getAlert());
 	}
 	
 	@Test
