@@ -27,11 +27,12 @@ import com.funambol.common.pim.contact.WebPage;
 import com.google.common.collect.Lists;
 import com.google.inject.Singleton;
 
-import fr.aliasource.funambol.utils.ContactHelper;
 import fr.aliasource.obm.items.manager.LabelMapping;
 
 @Singleton
-public class ObmContactConverter {
+public class ObmContactConverter implements IContactConverter {
+	
+	public static final String COMMENT = "Body";
 	
 	private LabelMapping lm;
 	private SimpleDateFormat funisDate;
@@ -43,6 +44,7 @@ public class ObmContactConverter {
 		funisDate = new SimpleDateFormat("yyyyMMdd");
 	}
 	
+	@Override
 	public com.funambol.common.pim.contact.Contact obmContactTofoundation(
 			Contact obmcontact) {
 		com.funambol.common.pim.contact.Contact contact = new com.funambol.common.pim.contact.Contact();
@@ -123,8 +125,7 @@ public class ObmContactConverter {
 		obmToFunis(pd.getOtherAddress(), obmcontact.getAddresses().get(
 				lm.toOBM("other")));
 
-		ContactHelper.setFoundationNote(contact, obmcontact.getComment(),
-				ContactHelper.COMMENT);
+		appendNote(contact, obmcontact.getComment());
 
 		contact.setSensitivity(new Short((short) 2)); // olPrivate
 
@@ -135,6 +136,18 @@ public class ObmContactConverter {
 			pd.setAnniversary(funisDate.format(obmcontact.getAnniversary()));
 		}
 		return contact;
+	}
+	
+	public void appendNote(com.funambol.common.pim.contact.Contact foundation, String note) {
+
+		if (!StringUtils.trimToEmpty(note).equals("")) {
+			Note nt = new Note();
+
+			nt.setNoteType(COMMENT);
+			nt.setPropertyValue(note);
+
+			foundation.addNote(nt);
+		}
 	}
 
 	private List<Phone> getFiltredFunambolPhone(Map<String, org.obm.sync.book.Phone> phones) {
@@ -169,6 +182,7 @@ public class ObmContactConverter {
 		}
 	}
 	
+	@Override
 	public Contact foundationContactToObm(
 			com.funambol.common.pim.contact.Contact funis) {
 		LabelMapping lm = new LabelMapping();
@@ -184,7 +198,7 @@ public class ObmContactConverter {
 
 		contact.setFirstname(StringUtils.trimToEmpty(funis.getName()
 				.getFirstName().getPropertyValueAsString()));
-		contact.setLastname(ContactHelper.getLastName(funis));
+		contact.setLastname(getLastName(funis));
 		contact.setCommonname(StringUtils.trimToEmpty(funis.getName().getDisplayName().getPropertyValueAsString()));
 		contact.setMiddlename(StringUtils.trimToEmpty(funis.getName().getMiddleName().getPropertyValueAsString()));
 		contact.setSuffix(StringUtils.trimToEmpty(funis.getName().getSuffix().getPropertyValueAsString()));
@@ -256,7 +270,7 @@ public class ObmContactConverter {
 			}
 		}
 
-		contact.setComment(StringUtils.trimToEmpty(getNote(funis.getNotes(), ContactHelper.COMMENT)));
+		contact.setComment(StringUtils.trimToEmpty(getNote(funis.getNotes(), COMMENT)));
 
 		if (!StringUtils.isEmpty(pd.getBirthday())) {
 			try {
@@ -279,6 +293,12 @@ public class ObmContactConverter {
 		return contact;
 	}
 	
+	public static String getLastName(
+			com.funambol.common.pim.contact.Contact foundation) {
+		return Property.stringFrom(foundation.getName().getLastName());
+	}
+
+
 	private String sanitizeFunambolDate(String funisDate) {
 		return funisDate.replaceAll("-", "");
 	}

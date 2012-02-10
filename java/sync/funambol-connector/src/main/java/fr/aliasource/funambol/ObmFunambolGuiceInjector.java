@@ -11,8 +11,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.name.Names;
 
+import fr.aliasource.obm.items.converter.IContactConverter;
 import fr.aliasource.obm.items.converter.IEventConverter;
 import fr.aliasource.obm.items.converter.ISyncItemConverter;
+import fr.aliasource.obm.items.converter.ObmContactConverter;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
 import fr.aliasource.obm.items.converter.SyncItemConverterImpl;
 
@@ -41,6 +43,7 @@ public class ObmFunambolGuiceInjector {
 			bind(LocatorService.class).to(LocatorCache.class);
 			bind(ConfigurationService.class).to(ConfigurationServiceImpl.class);
 			bind(IEventConverter.class).to(ObmEventConverter.class);
+			bind(IContactConverter.class).to(ObmContactConverter.class);
 			bind(ISyncItemConverter.class).to(SyncItemConverterImpl.class);
 		}
 		

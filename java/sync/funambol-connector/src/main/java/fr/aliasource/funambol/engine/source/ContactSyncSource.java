@@ -204,7 +204,7 @@ public final class ContactSyncSource extends ObmSyncSource implements
 			com.funambol.common.pim.contact.Contact contact = null;
 			String key = syncItemKey.getKeyAsString();
 			contact = currentSyncBean.getItemFromId(key);
-			SyncItem ret = syncItemConverter.getSyncItemFromFunambolContact(this, contact, SyncItemState.UNKNOWN, getSourceType(), deviceTimezone, key, isEncode());
+			SyncItem ret = syncItemConverter.getSyncItemFromFunambolContact(this, contact, SyncItemState.UNKNOWN, getSourceType(), deviceTimezone, deviceCharset, isEncode());
 			return ret;
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);

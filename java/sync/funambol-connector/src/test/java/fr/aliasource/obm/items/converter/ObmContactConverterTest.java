@@ -23,8 +23,6 @@ import com.funambol.common.pim.contact.WebPage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-import fr.aliasource.funambol.utils.ContactHelper;
-
 public class ObmContactConverterTest {
 
 	private ObmContactConverter createObmContactConverter() {
@@ -385,7 +383,7 @@ public class ObmContactConverterTest {
 		com.funambol.common.pim.contact.Contact funisContact = new com.funambol.common.pim.contact.Contact();
 		final String comment = "comment";
 		Note note = new Note();
-		note.setPropertyType(ContactHelper.COMMENT);
+		note.setPropertyType(ObmContactConverter.COMMENT);
 		note.setPropertyValue(comment);
 		funisContact.setNotes(ImmutableList.of(note));
 		ObmContactConverter converter = createObmContactConverter();
