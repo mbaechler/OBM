@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,20 +22,29 @@ import org.slf4j.LoggerFactory;
 
 import com.funambol.common.pim.calendar.ExceptionToRecurrenceRule;
 import com.funambol.common.pim.calendar.RecurrencePattern;
+import com.funambol.common.pim.calendar.RecurrencePatternException;
 import com.funambol.common.pim.calendar.Reminder;
 import com.funambol.common.pim.common.Property;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Singleton;
 
 import fr.aliasource.funambol.ConvertionException;
-import fr.aliasource.funambol.utils.CalendarHelper;
 
 @Singleton
-public class ObmEventConverter implements IEventConverter{
+public class ObmEventConverter extends AbstractConverter implements IEventConverter{
 
 	private static final Logger logger = LoggerFactory.getLogger(ObmEventConverter.class);
 	
+	private static final byte[] foundationWeekDays = {
+		RecurrencePattern.DAY_OF_WEEK_SUNDAY,
+		RecurrencePattern.DAY_OF_WEEK_MONDAY,
+		RecurrencePattern.DAY_OF_WEEK_TUESDAY,
+		RecurrencePattern.DAY_OF_WEEK_WEDNESDAY,
+		RecurrencePattern.DAY_OF_WEEK_THURSDAY,
+		RecurrencePattern.DAY_OF_WEEK_FRIDAY,
+		RecurrencePattern.DAY_OF_WEEK_SATURDAY, };
 	
 	@Override
 	public com.funambol.common.pim.calendar.Calendar obmEventToFoundationCalendar(
@@ -98,10 +108,10 @@ public class ObmEventConverter implements IEventConverter{
 	}
 
 	private void appendReccurence(com.funambol.common.pim.calendar.Event event,
-			Event obmEvent) {
+			Event obmEvent) throws ConvertionException {
 		EventRecurrence obmrec = obmEvent.getRecurrence();
 		if (isRecurrentEvent(obmrec)) {
-			RecurrencePattern rp = CalendarHelper.getRecurrence(obmEvent);
+			RecurrencePattern rp = getRecurrence(obmEvent);
 			//FIXME This is probably bad
 			if (rp != null) {
 				Date[] exceptions = obmrec.getExceptions();
@@ -129,7 +139,7 @@ public class ObmEventConverter implements IEventConverter{
 					ExceptionToRecurrenceRule ex;
 					try {
 						ex = new ExceptionToRecurrenceRule(
-								false, CalendarHelper.getUTCFormat(d));
+								false, getUTCFormat(d));
 						exceps.add(ex);
 					} catch (ParseException e) {
 						logger.error(e.getMessage(), e);
@@ -142,6 +152,148 @@ public class ObmEventConverter implements IEventConverter{
 
 			event.setRecurrencePattern(rp);
 		}
+	}
+	
+	/**
+	 * Convert an OBM reccurence in a foundation recurrence
+	 * 
+	 * @param obmrec
+	 * @return
+	 * @throws ConvertionException 
+	 */
+	public RecurrencePattern getRecurrence(Event event) throws ConvertionException {
+
+		EventRecurrence obmrec = event.getRecurrence();
+		
+		RecurrencePattern result = null;
+
+		int interval = obmrec.getFrequence();
+		Date cend = obmrec.getEnd();
+		boolean noEndDate = true;
+
+		if (cend != null) {
+			Calendar cal = Calendar.getInstance();
+			cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+			cal.setTime(cend);
+			if (cal.get(Calendar.YEAR) > 2017) {
+				cal.set(Calendar.YEAR, 2017);
+			}
+			noEndDate = false;
+		}
+
+		String sPatternStart = getUTCFormat(event.getDate());
+		String sPatternEnd = getUTCFormat(event.getDate());
+		short dayOfWeekMask = getDayOfWeekMask(obmrec.getDays());
+
+		try {
+			if (obmrec.getKind() == RecurrenceKind.daily) {
+
+				result = RecurrencePattern.getDailyRecurrencePattern(interval,
+						sPatternStart, sPatternEnd, noEndDate);
+
+			} else if (obmrec.getKind() == RecurrenceKind.weekly) {
+
+				result = RecurrencePattern.getWeeklyRecurrencePattern(interval,
+						dayOfWeekMask, sPatternStart, sPatternEnd, noEndDate);
+
+			} else if (obmrec.getKind() == RecurrenceKind.monthlybydate) {
+
+				result = RecurrencePattern.getMonthlyRecurrencePattern(
+						interval, getDayOfMonth(event.getDate()), sPatternStart,
+						sPatternEnd, noEndDate);
+
+			} else if (obmrec.getKind() == RecurrenceKind.monthlybyday) {
+
+				result = RecurrencePattern.getMonthNthRecurrencePattern(
+						interval, getDayOfWeek(event.getDate()), getNthDay(event.getDate()),
+						sPatternStart, sPatternEnd);
+
+			} else if (obmrec.getKind() == RecurrenceKind.yearly) {
+
+				result = RecurrencePattern.getYearlyRecurrencePattern(interval,
+						getDayOfMonth(event.getDate()), getMonthOfYear(event.getDate()),
+						sPatternStart, sPatternEnd, noEndDate);
+
+			}
+		} catch (RecurrencePatternException e) {
+			throw new ConvertionException(e.getMessage(), e);
+		}
+		return result;
+	}
+	
+	private static short getMonthOfYear(Date date) {
+		java.util.Calendar temp = java.util.Calendar.getInstance();
+		temp.setTime(date);
+
+		return (short) (temp.get(java.util.Calendar.MONTH) + 1);
+	}
+	
+	private static short getNthDay(Date date) {
+		java.util.Calendar temp = java.util.Calendar.getInstance();
+		temp.setTime(date);
+
+		return (short) temp.get(java.util.Calendar.DAY_OF_WEEK_IN_MONTH);
+	}
+	
+	private static short getDayOfWeek(Date date) {
+		java.util.Calendar temp = java.util.Calendar.getInstance();
+		temp.setTime(date);
+
+		short result = 0;
+
+		switch (temp.get(java.util.Calendar.DAY_OF_WEEK)) {
+		case java.util.Calendar.FRIDAY:
+			result += RecurrencePattern.DAY_OF_WEEK_FRIDAY;
+			break;
+		case java.util.Calendar.MONDAY:
+			result += RecurrencePattern.DAY_OF_WEEK_MONDAY;
+			break;
+		case java.util.Calendar.SATURDAY:
+			result += RecurrencePattern.DAY_OF_WEEK_SATURDAY;
+			break;
+		case java.util.Calendar.SUNDAY:
+			result += RecurrencePattern.DAY_OF_WEEK_SUNDAY;
+			break;
+		case java.util.Calendar.THURSDAY:
+			result += RecurrencePattern.DAY_OF_WEEK_THURSDAY;
+			break;
+		case java.util.Calendar.TUESDAY:
+			result += RecurrencePattern.DAY_OF_WEEK_TUESDAY;
+			break;
+		case java.util.Calendar.WEDNESDAY:
+			result += RecurrencePattern.DAY_OF_WEEK_WEDNESDAY;
+			break;
+		default:
+			break;
+		}
+
+		return result;
+	}
+	
+	/**
+	 * Get the day number (1-31) form a date
+	 * 
+	 * @param dstart
+	 * @return
+	 */
+	private static short getDayOfMonth(Date date) {
+		java.util.Calendar temp = java.util.Calendar.getInstance();
+		temp.setTime(date);
+		return (short) temp.get(java.util.Calendar.DAY_OF_MONTH);
+	}
+	
+	private static short getDayOfWeekMask(String days) {
+		short result = 0;
+
+		if (days == null || days.equals("") || days.length() < 7) {
+		} else {
+			for (int i = 0; i < 7; i++) {
+				if (days.charAt(i) == '1') {
+					result += foundationWeekDays[i];
+				}
+			}
+		}
+		return result;
 	}
 
 	private boolean isRecurrentEvent(EventRecurrence obmrec) {
@@ -252,7 +404,7 @@ public class ObmEventConverter implements IEventConverter{
 					.ceil(((float) obmEvent.getDuration()) / 86400)));
 		}
 		funisEvent.getDtEnd()
-				.setPropertyValue(CalendarHelper.getUTCFormat(temp.getTime()));
+				.setPropertyValue(getUTCFormat(temp.getTime()));
 	}
 	
 	private void appendEnd(com.funambol.common.pim.calendar.Event funisEvent, Event obmEvent) throws ConvertionException {
@@ -262,7 +414,7 @@ public class ObmEventConverter implements IEventConverter{
 		java.util.Calendar temp = java.util.Calendar.getInstance();
 		temp.setTime(obmEvent.getDate());
 		funisEvent.getDtStart().setPropertyValue(
-				CalendarHelper.getUTCFormat(temp.getTime()));
+				getUTCFormat(temp.getTime()));
 	}
 
 	private void appendExtId(com.funambol.common.pim.calendar.Event event,
@@ -347,7 +499,7 @@ public class ObmEventConverter implements IEventConverter{
 			com.funambol.common.pim.calendar.Event foundation) {
 		EventRecurrence recurrence = null;
 		if (foundation.isRecurrent()) {
-			recurrence = CalendarHelper.getRecurrenceFromFoundation(foundation
+			recurrence = getRecurrenceFromFoundation(foundation
 					.getRecurrencePattern(), foundation.isAllDay());
 		} else {
 			recurrence = new EventRecurrence();
@@ -356,6 +508,120 @@ public class ObmEventConverter implements IEventConverter{
 			recurrence.setFrequence(1);
 		}
 		event.setRecurrence(recurrence);
+	}
+	
+	// Foundation to obm
+
+	/**
+	 * Construct an OBM event recurrence from a foundation recurrence
+	 * 
+	 * @param rec
+	 * @param dend
+	 * @param allDay
+	 * @return
+	 */
+	public EventRecurrence getRecurrenceFromFoundation(
+			RecurrencePattern rec, boolean allDay) {
+		EventRecurrence recurrence = new EventRecurrence();
+
+		recurrence.setFrequence(rec.getInterval());
+		recurrence.setDays("");
+
+		List<ExceptionToRecurrenceRule> recexs = rec.getExceptions();
+		if (recexs != null) {
+			Set<Date> exs = Sets.newHashSet();
+			for (ExceptionToRecurrenceRule exceptionToRecurrenceRule : recexs) {
+				exs.add(getDateFromUTCString(exceptionToRecurrenceRule
+								.getDate()));
+			}
+			recurrence.setExceptions(exs.toArray(new Date[exs.size()]));
+		} else {
+			recurrence.setExceptions(new Date[0]);
+		}
+
+		java.util.Calendar cEndRec = java.util.Calendar.getInstance();
+		logger.info("recurrence: " + rec);
+		if (rec.getOccurrences() > 0) {
+			Date begin = getDateFromUTCString(rec.getStartDatePattern());
+			short type = rec.getTypeId();
+			Calendar endTime = Calendar
+					.getInstance(TimeZone.getTimeZone("GMT"));
+			endTime.setTime(begin);
+			switch (type) {
+			case RecurrencePattern.TYPE_DAYLY:
+				endTime.add(Calendar.DAY_OF_MONTH, (rec.getOccurrences() - 1)
+						* rec.getInterval());
+				break;
+			case RecurrencePattern.TYPE_MONTHLY:
+			case RecurrencePattern.TYPE_MONTH_NTH:
+				endTime.add(Calendar.MONTH, (rec.getOccurrences() - 1)
+						* rec.getInterval());
+				break;
+			case RecurrencePattern.TYPE_WEEKLY:
+				endTime.add(Calendar.WEEK_OF_YEAR, (rec.getOccurrences() - 1)
+						* rec.getInterval());
+				break;
+			case RecurrencePattern.TYPE_YEARLY:
+			case RecurrencePattern.TYPE_YEAR_NTH:
+				endTime.add(Calendar.YEAR, (rec.getOccurrences() - 1)
+						* rec.getInterval());
+				break;
+			}
+			// funambol perd la tz en calculant la startDatePattern : le 19 à
+			// 23h utc (20 à 0h sur paris), devient le 19
+			if (allDay) {
+				endTime.add(Calendar.DAY_OF_YEAR, 1);
+			}
+			logger.info("Computed end date : " + endTime.getTime());
+			cEndRec.setTime(endTime.getTime());
+		} else if (!rec.isNoEndDate()) {
+			Date dEndRec = getDateFromUTCString(rec.getEndDatePattern());
+			cEndRec.setTime(dEndRec);
+		} else {
+			/* infinite */
+			cEndRec.set(Calendar.YEAR, 2017);
+			// cEndRec = null;
+		}
+		recurrence.setEnd(cEndRec.getTime());
+
+		switch (rec.getTypeId()) {
+		case RecurrencePattern.TYPE_DAYLY:
+			recurrence.setKind(RecurrenceKind.daily);
+			break;
+		case RecurrencePattern.TYPE_WEEKLY:
+			recurrence.setKind(RecurrenceKind.weekly);
+			recurrence.setDays(getOBMDayOfWeekMask(rec.getDayOfWeekMask()));
+			break;
+		case RecurrencePattern.TYPE_MONTHLY:
+			recurrence.setKind(RecurrenceKind.monthlybydate);
+			break;
+		case RecurrencePattern.TYPE_MONTH_NTH:
+			// only one nth day supported by OBM
+			recurrence.setKind(RecurrenceKind.monthlybyday);
+			break;
+		case RecurrencePattern.TYPE_YEARLY:
+			recurrence.setKind(RecurrenceKind.yearly);
+			break;
+		case RecurrencePattern.TYPE_YEAR_NTH:
+			// not supported by OBM
+			recurrence.setKind(RecurrenceKind.yearly);
+			break;
+		}
+
+		return recurrence;
+	}
+	
+	private static String getOBMDayOfWeekMask(short dayOfWeekMask) {
+		String result = "";
+
+		for (int i = 0; i < 7; i++) {
+			if ((dayOfWeekMask & foundationWeekDays[i]) == foundationWeekDays[i]) {
+				result += "1";
+			} else {
+				result += "0";
+			}
+		}
+		return result;
 	}
 
 	private void appendAttendees(Event event,
@@ -416,9 +682,26 @@ public class ObmEventConverter implements IEventConverter{
 	private void appendCategories(Event event,
 			com.funambol.common.pim.calendar.Event foundation) {
 		if (isNotEmptyProperties(foundation.getCategories())) {
-			event.setCategory(CalendarHelper.getOneCategory(foundation
+			event.setCategory(getOneCategory(foundation
 					.getCategories().getPropertyValueAsString()));
 		}
+	}
+	
+	/**
+	 * Return the first category
+	 * 
+	 * @param propertyValueAsString
+	 * @return
+	 */
+	public static String getOneCategory(String categories) {
+		String ret = "";
+		if (categories != null) {
+			String[] result = categories.split(";|,");
+			if (result.length > 0) {
+				ret = result[0];
+			}
+		}
+		return ret;
 	}
 
 	private void appendDescription(Event event,
@@ -580,7 +863,7 @@ public class ObmEventConverter implements IEventConverter{
 	private Date parseStart(com.funambol.common.pim.calendar.Event foundation, Event event) {
 		String dtStart = foundation.getDtStart().getPropertyValueAsString();
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-		Date utcDate = CalendarHelper.getDateFromUTCString(dtStart);
+		Date utcDate = getDateFromUTCString(dtStart);
 		cal.setTime(utcDate);
 		event.setDate(utcDate);
 		return cal.getTime();
@@ -589,7 +872,7 @@ public class ObmEventConverter implements IEventConverter{
 	private Date parseEnd(com.funambol.common.pim.calendar.Event foundation) {
 		String dtEnd = foundation.getDtEnd().getPropertyValueAsString();
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-		Date utcDate = CalendarHelper.getDateFromUTCString(dtEnd);
+		Date utcDate = getDateFromUTCString(dtEnd);
 		cal.setTime(utcDate);
 		return cal.getTime();
 	}

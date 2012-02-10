@@ -14,19 +14,18 @@ import java.util.UUID;
 import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
+import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventObmId;
+import org.obm.sync.calendar.ParticipationState;
 import org.obm.sync.calendar.SyncRange;
 import org.obm.sync.client.calendar.CalendarClient;
 import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.EventChanges;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import fr.aliasource.funambol.ConvertionException;
 import fr.aliasource.funambol.OBMException;
-import fr.aliasource.funambol.utils.CalendarHelper;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
 
 
@@ -41,8 +40,6 @@ public class CalendarManager extends ObmManager {
 	private List<String> deletedRest = null;
 	private String rangeMin;
 	private String rangeMax;
-
-	private static final Logger logger = LoggerFactory.getLogger(CalendarManager.class);
 
 	public CalendarManager(final LoginService loginService, final CalendarClient calendarClient, final ObmEventConverter obmEventConverter) {
 		super(loginService);
@@ -147,11 +144,16 @@ public class CalendarManager extends ObmManager {
 
 	private void refuseEvent(Event event) throws ServerFault {
 		logger.info("meeting removed, refusing for " + userEmail);
-		CalendarHelper.refuseEvent(event, userEmail);
-		// event = binding.refuseEvent(token, calendar, event);
+		for (Attendee at : event.getAttendees()) {
+			if (at.getEmail().equals(userEmail)) {
+				at.setState(ParticipationState.DECLINED);
+				logger.info("DECLINED for email " + userEmail);
+				return;
+			}
+		}
 		calendarClient.modifyEvent(token, calendar, event, true, false);
 	}
-
+	
 	public com.funambol.common.pim.calendar.Calendar updateItem(
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
@@ -236,8 +238,7 @@ public class CalendarManager extends ObmManager {
 				for (Event e : sync.getUpdated()) {
 					logger.info("getSync: " + e.getTitle() + ", d: " + e.getDate());
 					if ((e.getPrivacy() == 1 && !calendar.equals(user))
-							|| CalendarHelper
-									.isUserRefused(userEmail, e.getAttendees())) {
+							|| isUserRefused(userEmail, e.getAttendees())) {
 						if (d != null) {
 							deletedRest.add((e.getExtId().serializeToString()));
 						}
@@ -256,6 +257,16 @@ public class CalendarManager extends ObmManager {
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
+	}
+	
+	public boolean isUserRefused(String userEmail, List<Attendee> list) {
+		for (Attendee at : list) {
+			if (at.getEmail().equals(userEmail)
+					&& at.getState() == ParticipationState.DECLINED) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private SyncRange getSyncRanges(String min, String max) {

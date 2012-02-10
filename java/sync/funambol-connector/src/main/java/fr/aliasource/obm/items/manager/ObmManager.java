@@ -3,17 +3,15 @@ package fr.aliasource.obm.items.manager;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.AuthFault;
 import org.obm.sync.client.login.LoginService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import fr.aliasource.funambol.OBMException;
 
-/**
- * The obm manager
- * 
- * @author tom
- *
- */
 public abstract class ObmManager {
 
+	protected final Logger logger = LoggerFactory.getLogger(CalendarManager.class);
+	
 	protected AccessToken token;
 	protected boolean syncReceived = false;
 	private final LoginService loginService;
