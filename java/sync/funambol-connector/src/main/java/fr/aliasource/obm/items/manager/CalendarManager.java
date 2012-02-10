@@ -123,8 +123,6 @@ public class CalendarManager extends ObmManager {
 		try {
 			EventExtId id = new EventExtId(key);
 			event = calendarClient.getEventFromExtId(token, calendar, id);
-			// log.info(" attendees size : "+event.getAttendees().length );
-			// log.info(" owner : "+event.getOwner()+" calendar : "+calendar);
 			if (event == null) {
 				logger.info("event removed on pda not in db: " + calendar
 						+ " / " + key);
@@ -157,7 +155,6 @@ public class CalendarManager extends ObmManager {
 	public com.funambol.common.pim.calendar.Calendar updateItem(
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
-
 		Event c = null;
 		try {
 			c = calendarClient.modifyEvent(token, calendar,
@@ -179,7 +176,6 @@ public class CalendarManager extends ObmManager {
 	public com.funambol.common.pim.calendar.Calendar addItem(
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
-
 		try {
 			Event forCreate = obmEventConverter.foundationCalendarToObmEvent(event, userEmail);
 			EventExtId ext = new EventExtId(UUID.randomUUID().toString());
@@ -198,7 +194,6 @@ public class CalendarManager extends ObmManager {
 		}
 	}
 
-
 	public List<String> getEventTwinKeys(
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
@@ -216,8 +211,6 @@ public class CalendarManager extends ObmManager {
 			throw new OBMException(e.getMessage());
 		}
 	}
-
-	// ---------------- Private methods ----------------------------------
 
 	private void getSync(Timestamp since) throws OBMException {
 		try {
@@ -246,10 +239,10 @@ public class CalendarManager extends ObmManager {
 							|| CalendarHelper
 									.isUserRefused(userEmail, e.getAttendees())) {
 						if (d != null) {
-							deletedRest.add((e.getObmId().serializeToString()));
+							deletedRest.add((e.getExtId().serializeToString()));
 						}
 					} else {
-						updatedRest.put(e.getObmId().serializeToString(), e);
+						updatedRest.put(e.getExtId().serializeToString(), e);
 					}
 				}
 			}

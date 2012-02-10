@@ -5,10 +5,10 @@ import java.security.Principal;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.obm.sync.client.login.LoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.funambol.framework.engine.SyncItem;
 import com.funambol.framework.engine.SyncItemKey;
 import com.funambol.framework.engine.source.AbstractSyncSource;
 import com.funambol.framework.engine.source.SyncContext;
@@ -21,12 +21,19 @@ import com.funambol.framework.server.store.PersistentStoreException;
 import com.funambol.framework.tools.beans.BeanInitializationException;
 import com.funambol.framework.tools.beans.LazyInitBean;
 import com.funambol.server.config.Configuration;
+import com.google.inject.Injector;
+
+import fr.aliasource.funambol.ObmFunambolGuiceInjector;
+import fr.aliasource.obm.items.converter.ISyncItemConverter;
 
 /**
  */
 public abstract class ObmSyncSource extends AbstractSyncSource implements
 		SyncSource, Serializable, LazyInitBean {
 
+	protected final LoginService loginService;
+	protected final ISyncItemConverter syncItemConverter;
+	
 	protected Principal principal = null;
 
 	protected Sync4jDevice device = null;
@@ -34,18 +41,16 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 	protected TimeZone deviceTimezone = null;
 	protected String deviceCharset = null;
 
-	public static final String MSG_TYPE_VCARD = "text/x-vcard";
-	public static final String MSG_TYPE_ICAL = "text/x-vcalendar";
-
 	private boolean encode = true;
 
 	private int restrictions = 1; // default private
 
 	private static final Logger logger = LoggerFactory.getLogger(ObmSyncSource.class);
 
-	/** Creates a new instance of AbstractSyncSource */
 	public ObmSyncSource() {
-		logger.info("obmSyncSource ctor");
+		Injector injector = ObmFunambolGuiceInjector.getInjector();
+		this.loginService = injector.getProvider(LoginService.class).get();
+		syncItemConverter = injector.getProvider(ISyncItemConverter.class).get();
 	}
 
 	/**
@@ -226,16 +231,4 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 	public void init() throws BeanInitializationException {
 	}
 	
-	public String getContentOfSyncItem(SyncItem item) {
-		
-		String result = null;
-		
-		byte[] itemContent = item.getContent();
-		
-		   // Add content processing here, if needed
-		result = new String(itemContent == null ? new byte[0] : itemContent);
-		
-		return result.trim();
-	}
-
 }
