@@ -1,7 +1,6 @@
 package fr.aliasource.obm.items.converter;
 
 import java.io.ByteArrayInputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
@@ -24,8 +23,6 @@ import com.funambol.framework.engine.InMemorySyncItem;
 import com.funambol.framework.engine.SyncItem;
 import com.funambol.framework.engine.source.SyncSource;
 import com.funambol.framework.tools.Base64;
-import com.funambol.framework.tools.codec.CodecException;
-import com.funambol.framework.tools.codec.QuotedPrintableCodec;
 import com.google.inject.Singleton;
 
 import fr.aliasource.funambol.ConvertionException;
@@ -107,10 +104,6 @@ public class SyncItemConverterImpl implements ISyncItemConverter {
 
 			Calendar ret = vconvert.vcalendar2calendar(vcal);
 			return ret;
-		} catch (UnsupportedEncodingException e) {
-			throw new ConvertionException("Error converting from ical ", e);
-		} catch (CodecException e) {
-			throw new ConvertionException("Error converting from ical ", e);
 		} catch (ParseException e) {
 			throw new ConvertionException("Error converting from ical ", e);
 		} catch (com.funambol.common.pim.icalendar.ParseException e) {
