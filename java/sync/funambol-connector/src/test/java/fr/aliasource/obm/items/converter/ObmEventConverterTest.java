@@ -14,6 +14,7 @@ import org.obm.sync.calendar.ParticipationRole;
 import org.obm.sync.calendar.ParticipationState;
 
 import com.funambol.common.pim.calendar.Calendar;
+import com.funambol.common.pim.common.Property;
 
 import fr.aliasource.funambol.ConvertionException;
 
@@ -376,7 +377,7 @@ public class ObmEventConverterTest {
 	}
 	
 	@Test
-	public void testConvertFunisAttendee() {
+	public void testConvertFunisAttendee() throws ConvertionException {
 		final String name = "Display Name";
 		final String email = "dips@test.tlse";
 		short expected = com.funambol.common.pim.calendar.Attendee.REQUIRED; 
@@ -385,7 +386,7 @@ public class ObmEventConverterTest {
 		
 		com.funambol.common.pim.calendar.Attendee att = createFunisAttende(name, email, expected, role, status);
 		
-		com.funambol.common.pim.calendar.Event event = new com.funambol.common.pim.calendar.Event();
+		com.funambol.common.pim.calendar.Event event = getMinimalFunisEvent();
 		event.addAttendee(att);
 		Calendar calendar = new Calendar();
 		calendar.setEvent(event);
@@ -399,7 +400,7 @@ public class ObmEventConverterTest {
 	}
 	
 	@Test
-	public void testConvertFunisAttendeeWithoutOwnerAsAttendee() {
+	public void testConvertFunisAttendeeWithoutOwnerAsAttendee() throws ConvertionException {
 		final String userEmail = "adrien@test.tlse.lng";
 		
 		final String name = "Display Name";
@@ -410,8 +411,22 @@ public class ObmEventConverterTest {
 		
 		com.funambol.common.pim.calendar.Attendee att = createFunisAttende(name, email, expected, role, status);
 		
-		com.funambol.common.pim.calendar.Event event = new com.funambol.common.pim.calendar.Event();
+		com.funambol.common.pim.calendar.Event event = getMinimalFunisEvent();
 		event.addAttendee(att);
+		Calendar calendar = new Calendar();
+		calendar.setEvent(event);
+		
+		ObmEventConverter converter = new ObmEventConverter();
+		Event obmEvent = converter.foundationCalendarToObmEvent(calendar, userEmail);
+		
+		Assert.assertEquals(2, obmEvent.getAttendees().size());
+	}
+	
+	@Test(expected=ConvertionException.class)
+	public void testConvertFunisAttendeeWithoutDtStart() throws ConvertionException {
+		final String userEmail = "adrien@test.tlse.lng";
+		com.funambol.common.pim.calendar.Event event = getMinimalFunisEvent();
+		event.setDtStart(null);
 		Calendar calendar = new Calendar();
 		calendar.setEvent(event);
 		
@@ -457,6 +472,15 @@ public class ObmEventConverterTest {
 		event.setExtId(new EventExtId(UUID.randomUUID()));
 		event.setDate(new Date());
 		event.setDuration(3600);
+		return event;
+		
+	}
+	
+	private com.funambol.common.pim.calendar.Event getMinimalFunisEvent() {
+		com.funambol.common.pim.calendar.Event event = new com.funambol.common.pim.calendar.Event();
+		Property start = new Property();
+		start.setPropertyValue("19700329T020000");
+		event.setDtStart(start);
 		return event;
 		
 	}

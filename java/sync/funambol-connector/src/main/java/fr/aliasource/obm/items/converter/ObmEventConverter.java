@@ -17,8 +17,6 @@ import org.obm.sync.calendar.EventRecurrence;
 import org.obm.sync.calendar.ParticipationRole;
 import org.obm.sync.calendar.ParticipationState;
 import org.obm.sync.calendar.RecurrenceKind;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.funambol.common.pim.calendar.ExceptionToRecurrenceRule;
 import com.funambol.common.pim.calendar.RecurrencePattern;
@@ -35,8 +33,6 @@ import fr.aliasource.funambol.ConvertionException;
 @Singleton
 public class ObmEventConverter extends AbstractConverter implements IEventConverter{
 
-	private static final Logger logger = LoggerFactory.getLogger(ObmEventConverter.class);
-	
 	private static final byte[] foundationWeekDays = {
 		RecurrencePattern.DAY_OF_WEEK_SUNDAY,
 		RecurrencePattern.DAY_OF_WEEK_MONDAY,
@@ -73,7 +69,7 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 	
 	@Override
 	public Event foundationCalendarToObmEvent(
-			com.funambol.common.pim.calendar.Calendar calendar, String userEmail) {
+			com.funambol.common.pim.calendar.Calendar calendar, String userEmail) throws ConvertionException {
 
 		com.funambol.common.pim.calendar.Event foundation = calendar.getEvent();
 		if (foundation != null) {
@@ -496,7 +492,7 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 	}
 
 	private void appendRecurence(Event event,
-			com.funambol.common.pim.calendar.Event foundation) {
+			com.funambol.common.pim.calendar.Event foundation) throws ConvertionException {
 		EventRecurrence recurrence = null;
 		if (foundation.isRecurrent()) {
 			recurrence = getRecurrenceFromFoundation(foundation
@@ -519,9 +515,10 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 	 * @param dend
 	 * @param allDay
 	 * @return
+	 * @throws ConvertionException 
 	 */
 	public EventRecurrence getRecurrenceFromFoundation(
-			RecurrencePattern rec, boolean allDay) {
+			RecurrencePattern rec, boolean allDay) throws ConvertionException {
 		EventRecurrence recurrence = new EventRecurrence();
 
 		recurrence.setFrequence(rec.getInterval());
@@ -531,8 +528,9 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 		if (recexs != null) {
 			Set<Date> exs = Sets.newHashSet();
 			for (ExceptionToRecurrenceRule exceptionToRecurrenceRule : recexs) {
-				exs.add(getDateFromUTCString(exceptionToRecurrenceRule
-								.getDate()));
+				Date date = getDateFromUTCString(exceptionToRecurrenceRule
+						.getDate());
+				exs.add(date);
 			}
 			recurrence.setExceptions(exs.toArray(new Date[exs.size()]));
 		} else {
@@ -734,14 +732,13 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 	}
 
 	private void appendDuration(Event event,
-			com.funambol.common.pim.calendar.Event foundation) {
-		if (foundation.getDuration() != null) {
-			logger.info("duration: "
-					+ foundation.getDuration().getPropertyValue());
+			com.funambol.common.pim.calendar.Event foundation) throws ConvertionException {
+		Date dstart = getDateFromProperty(foundation.getDtStart());
+		Date dend = null;
+		if(!Property.isEmptyProperty(foundation.getDtEnd())){
+			dend = getDateFromProperty(foundation.getDtEnd());
 		}
-		Date dstart = parseStart(foundation, event);
-		Date dend = parseEnd(foundation);
-		if (dstart.getTime() != dend.getTime()) {
+		if (dend != null && dstart.getTime() != dend.getTime()) {
 			event.setDuration((int) ((dend.getTime() - dstart.getTime()) / 1000));
 		} else {
 			event.setDuration(3600);
@@ -749,10 +746,12 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 	}
 
 	private void appendDtStart(Event event,
-			com.funambol.common.pim.calendar.Event foundation) {
-		Date dstart = parseStart(foundation, event);
+			com.funambol.common.pim.calendar.Event foundation) throws ConvertionException {
+		if(Property.isEmptyProperty(foundation.getDtStart())){
+			throw new ConvertionException("DtStart in a funis event cannot be null");
+		}
+		Date dstart = getDateFromProperty(foundation.getDtStart());
 		event.setDate(dstart);
-		
 	}
 
 	private void appendAllday(Event event,
@@ -849,32 +848,6 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 		}
 		
 		return obmAttendee;
-	}
-
-	/**
-	 * bb hack : on ajoute 1j pour les blackberry. "le 19 à minuit GMT" est
-	 * converti en "le 18" par les classes funambol.
-	 * 
-	 * @param prodId
-	 * @param foundation
-	 * @param event
-	 * @return
-	 */
-	private Date parseStart(com.funambol.common.pim.calendar.Event foundation, Event event) {
-		String dtStart = foundation.getDtStart().getPropertyValueAsString();
-		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-		Date utcDate = getDateFromUTCString(dtStart);
-		cal.setTime(utcDate);
-		event.setDate(utcDate);
-		return cal.getTime();
-	}
-
-	private Date parseEnd(com.funambol.common.pim.calendar.Event foundation) {
-		String dtEnd = foundation.getDtEnd().getPropertyValueAsString();
-		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-		Date utcDate = getDateFromUTCString(dtEnd);
-		cal.setTime(utcDate);
-		return cal.getTime();
 	}
 
 }

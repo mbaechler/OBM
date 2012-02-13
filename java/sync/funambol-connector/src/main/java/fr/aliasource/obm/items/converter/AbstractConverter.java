@@ -3,15 +3,21 @@ package fr.aliasource.obm.items.converter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.funambol.common.pim.common.PropertyWithTimeZone;
+
+import fr.aliasource.funambol.ConvertionException;
+
 public abstract class AbstractConverter {
 	
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private static final String DATE_UTC_PATTERN = "yyyyMMdd'T'HHmmss'Z'";
 	private static final String DATE_FORMAT = "yyyyMMdd";
@@ -39,42 +45,45 @@ public abstract class AbstractConverter {
 		if (date != null) {
 			utc = dateFormatUTC.format(date);
 		}
-		logger.info("date: " + date + " converted to " + utc);
 		return utc;
 	}
 	
 	/**
 	 * Returns a java.util.Date from the given sDate in utc format.
-	 * 
-	 * @param sDate
-	 *            String
-	 * @return Date
-	 * @throws Exception
 	 */
-	protected Date getDateFromUTCString(String sDate) {
-		Date date = new Date();
-
-		if (sDate != null) {
-			try {
-				if (sDate.contains("T")) {
-					if (!sDate.endsWith("Z")) {
-						date = dateFormatEurope.parse(sDate);
-					} else {
-						date = dateFormatUTC.parse(sDate);
-					}
+	protected Date getDateFromUTCString(String sDate) throws ConvertionException {
+		try {
+			if (sDate.contains("T")) {
+				if (!sDate.endsWith("Z")) {
+					return dateFormatEurope.parse(sDate);
 				} else {
-					if (sDate.contains("-")) {
-						date = dateFormatTiret.parse(sDate);
-					} else {
-						date = dateFormat.parse(sDate);
-					}
+					return dateFormatUTC.parse(sDate);
 				}
-				logger.info("parsed '" + sDate + "' as '" + date + "'");
-			} catch (ParseException e) {
-				logger.error("cannot parse crappy date: " + sDate);
+			} else {
+				if (sDate.contains("-")) {
+					return dateFormatTiret.parse(sDate);
+				} else {
+					return dateFormat.parse(sDate);
+				}
 			}
+		} catch (ParseException e) {
+			throw new ConvertionException("The date["+sDate+"] cannot be parsed", e);
 		}
+	}
+	
+	protected Date getDateFromProperty(PropertyWithTimeZone date) throws ConvertionException{
+		TimeZone tz = getTimeZone(date);
+		Calendar cal = Calendar.getInstance(tz);
+		Date utcDate = getDateFromUTCString(date.getPropertyValueAsString());
+		cal.setTime(utcDate);
+		return cal.getTime();
+	}
 
-		return date;
+	private TimeZone getTimeZone(PropertyWithTimeZone date) {
+		String tzName = "GMT";
+		if(StringUtils.trimToNull(date.getTimeZone()) != null){
+			tzName = date.getTimeZone();
+		}
+		return TimeZone.getTimeZone(tzName);
 	}
 }

@@ -200,16 +200,16 @@ public class CalendarManager extends ObmManager {
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
 
-		Event evt = obmEventConverter.foundationCalendarToObmEvent(event, userEmail);
-
-		if (evt == null) {
-			return new LinkedList<String>();
-		}
-
 		try {
+			Event evt = obmEventConverter.foundationCalendarToObmEvent(event, userEmail);
+			if (evt == null) {
+				return new LinkedList<String>();
+			}
 			evt.setUid(null);
 			return calendarClient.getEventTwinKeys(token, calendar, evt).getKeys();
 		} catch (ServerFault e) {
+			throw new OBMException(e.getMessage(), e);
+		} catch (ConvertionException e) {
 			throw new OBMException(e.getMessage());
 		}
 	}

@@ -10,5 +10,5 @@ public interface IEventConverter {
 			Event obmEvent) throws ConvertionException;
 	
 	Event foundationCalendarToObmEvent(
-			com.funambol.common.pim.calendar.Calendar calendar, String userEmail);
+			com.funambol.common.pim.calendar.Calendar calendar, String userEmail) throws ConvertionException;
 }
