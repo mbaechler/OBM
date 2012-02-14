@@ -160,8 +160,6 @@ public class ContactSyncBean extends ObmManager {
 		} catch (ContactAlreadyExistException e) {
 			throw new OBMException(e.getMessage(),e);
 		}
-
-		
 	}
 
 	public List<String> getContactTwinKeys(
@@ -201,7 +199,7 @@ public class ContactSyncBean extends ObmManager {
 			Date lastSync = getLastSync(since);
 			AddressBookChangesResponse sync = bookClient.getAddressBookSync(token, lastSync);
 	
-			List<Contact> updated = getListUpdateContact(sync);
+			List<Contact> updated = getListUpdatedContact(sync);
 			Set<RemovedContact> deleted = getRemovedContacts(sync);
 			
 			updatedRest = transformAsFunambolUpdated(updated);
@@ -213,7 +211,7 @@ public class ContactSyncBean extends ObmManager {
 	}
 	
 	private List<String> transformAsFunambolRemoved(Set<RemovedContact> deleteds) {
-		com.google.common.collect.ImmutableList.Builder<String> mapBuilder = ImmutableList.builder();
+		ImmutableList.Builder<String> mapBuilder = ImmutableList.builder();
 		for (RemovedContact removedContact : deleteds) {
 			ContactKey key = new ContactKey(removedContact.getAddressBookId(), removedContact.getContactId()); 
 			mapBuilder.add(key.serialiseAsFunambolKey());
@@ -234,7 +232,7 @@ public class ContactSyncBean extends ObmManager {
 		return sync.getRemovedContacts() != null ? sync.getRemovedContacts() : ImmutableSet.<RemovedContact>of();
 	}
 
-	private List<Contact> getListUpdateContact(AddressBookChangesResponse sync) {
+	private List<Contact> getListUpdatedContact(AddressBookChangesResponse sync) {
 		return sync.getUpdatedContacts() != null ? sync.getUpdatedContacts() : ImmutableList.<Contact>of();
 	}
 
