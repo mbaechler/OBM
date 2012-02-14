@@ -437,7 +437,7 @@ public class ContactDao {
 	}
 
 	private EventExtId getNewExtId() {
-		return new EventExtId(UUID.randomUUID().toString());
+		return new EventExtId(UUID.randomUUID());
 	}
 
 
