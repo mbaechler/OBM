@@ -1,13 +1,12 @@
 package fr.aliasource.obm.items.manager;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -24,6 +23,12 @@ import org.obm.sync.client.calendar.CalendarClient;
 import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.EventChanges;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+
 import fr.aliasource.funambol.ConvertionException;
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
@@ -36,8 +41,8 @@ public class CalendarManager extends ObmManager {
 	
 	private String calendar;
 	private String userEmail;
-	private Map<String, Event> updatedRest = null;
-	private List<String> deletedRest = null;
+	private Map<EventExtId, Event> updatedRest = null;
+	private List<EventExtId> deletedRest = null;
 	private String rangeMin;
 	private String rangeMax;
 
@@ -45,10 +50,6 @@ public class CalendarManager extends ObmManager {
 		super(loginService);
 		this.calendarClient = calendarClient;
 		this.obmEventConverter = obmEventConverter;
-	}
-
-	public String getCalendar() {
-		return calendar;
 	}
 
 	public void setCalendar(String calendar) {
@@ -62,48 +63,53 @@ public class CalendarManager extends ObmManager {
 			throw new OBMException(e.getMessage());
 		}
 	}
+	
+	public void initSyncRange(String sourceQuery) {
+		//format:   /dr(-30,90)
+		try {
+			if (sourceQuery != null && !sourceQuery.equals("") && sourceQuery.contains("dr(")) {
+				String min = sourceQuery.split(",")[0];
+				String max = sourceQuery.split(",")[1];
+				rangeMin = min.replace("/dr(-", "");
+				rangeMax = max.replace(")", "");
+				logger.info("Sync initialized with range : " + rangeMin + " <> " + rangeMax);
+			}
+		} catch (Exception e) {
+			logger.error("error initializing sync range");
+		}
+	}
 
 	public List<String> getAllItemKeys() throws OBMException {
-
 		if (!syncReceived) {
 			getSync(null);
 		}
-
-		List<String> keys = new LinkedList<String>();
-		keys.addAll(updatedRest.keySet());
-		return keys;
+		return transformSetEventExtIdToListString(updatedRest.keySet());
 	}
 
 	public List<String> getDeletedItemKeys(Timestamp since) throws OBMException {
-
 		if (!syncReceived) {
 			getSync(since);
 		}
-
-		ArrayList<String> ret = new ArrayList<String>(deletedRest.size());
-		ret.addAll(deletedRest);
-		return ret;
+		return transformListEventExtIdToListString(deletedRest);
 	}
 
 	public List<String> getUpdatedItemKeys(Timestamp since) throws OBMException {
 		if (!syncReceived) {
 			getSync(since);
 		}
-		List<String> keys = new LinkedList<String>();
-		keys.addAll(updatedRest.keySet());
-		return keys;
+		return transformSetEventExtIdToListString(updatedRest.keySet());
 	}
 
 	public com.funambol.common.pim.calendar.Calendar getItemFromId(String key) throws OBMException {
 		try {
-			Event event = updatedRest.get(key);
+			EventExtId eventExtId = new EventExtId(key); 
+			Event event = updatedRest.get(eventExtId);
 			if (event == null) {
 				logger.info(" item " + key + " not found in updated -> get from sever");
 				EventExtId id = new EventExtId(key);
 				event = calendarClient.getEventFromExtId(token, calendar, id);
 			}
-			com.funambol.common.pim.calendar.Calendar ret = obmEventConverter.obmEventToFoundationCalendar(event);
-			return ret;
+			return obmEventConverter.obmEventToFoundationCalendar(event);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage(),e);
 		} catch (EventNotFoundException e) {
@@ -115,11 +121,9 @@ public class CalendarManager extends ObmManager {
 	}
 
 	public void removeItem(String key) throws OBMException {
-
-		Event event = null;
 		try {
-			EventExtId id = new EventExtId(key);
-			event = calendarClient.getEventFromExtId(token, calendar, id);
+			EventExtId eventExtId = new EventExtId(key);
+			Event event = calendarClient.getEventFromExtId(token, calendar, eventExtId);
 			if (event == null) {
 				logger.info("event removed on pda not in db: " + calendar
 						+ " / " + key);
@@ -130,7 +134,7 @@ public class CalendarManager extends ObmManager {
 					|| event.getAttendees().size() == 1) {
 				// no attendee (only the owner)
 				logger.info("not a meeting, removing event");
-				calendarClient.removeEventByExtId(token, calendar, id, event.getSequence(), false);
+				calendarClient.removeEventByExtId(token, calendar, eventExtId, event.getSequence(), false);
 			} else {
 				refuseEvent(event);
 			}
@@ -157,9 +161,8 @@ public class CalendarManager extends ObmManager {
 	public com.funambol.common.pim.calendar.Calendar updateItem(
 			com.funambol.common.pim.calendar.Calendar event)
 			throws OBMException {
-		Event c = null;
 		try {
-			c = calendarClient.modifyEvent(token, calendar,
+			Event c = calendarClient.modifyEvent(token, calendar,
 					obmEventConverter.foundationCalendarToObmEvent(event, userEmail), false, false);
 			if (c == null) {
 				return null;
@@ -180,7 +183,7 @@ public class CalendarManager extends ObmManager {
 			throws OBMException {
 		try {
 			Event forCreate = obmEventConverter.foundationCalendarToObmEvent(event, userEmail);
-			EventExtId ext = new EventExtId(UUID.randomUUID().toString());
+			EventExtId ext = new EventExtId(UUID.randomUUID());
 			forCreate.setExtId(ext);
 			EventObmId uid = calendarClient.createEvent(token, calendar, forCreate, false);
 			Event evt = calendarClient.getEventFromId(token, calendar, uid);
@@ -216,59 +219,56 @@ public class CalendarManager extends ObmManager {
 
 	private void getSync(Timestamp since) throws OBMException {
 		try {
-			Date d = null;
+			Date lastSync = null;
 			if (since != null) {
-				d = new Date(since.getTime());
+//				Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+//				cal.setTime(since);
+				lastSync = since;
 			}
-	
-			// get modified items
-			
+
 			SyncRange syncRange = getSyncRanges(rangeMin, rangeMax);
-			EventChanges sync = calendarClient.getSyncInRange(token, calendar, d, syncRange);
+			EventChanges sync = calendarClient.getSyncInRange(token, calendar, lastSync, syncRange);
 			
-			logger.info("getSync(" + calendar + ", " + d + " (since == " + since
+			logger.info("getSync(" + calendar + ", " + lastSync + " (since == " + since
 					+ ")) => upd: " + sync.getUpdated().length + " del: "
 					+ sync.getRemoved().length);
 			
-			// remove refused events and private events
-			updatedRest = new HashMap<String, Event>();
-			deletedRest = new ArrayList<String>();
-			String user = token.getUserWithDomain();
-			if (sync.getUpdated() != null) {
-				for (Event e : sync.getUpdated()) {
-					logger.info("getSync: " + e.getTitle() + ", d: " + e.getDate());
-					if ((e.getPrivacy() == 1 && !calendar.equals(user))
-							|| isUserRefused(userEmail, e.getAttendees())) {
-						if (d != null) {
-							deletedRest.add((e.getExtId().serializeToString()));
-						}
-					} else {
-						updatedRest.put(e.getExtId().serializeToString(), e);
-					}
-				}
-			}
-			if(sync.getRemovedExtIds() != null){
-				for (EventExtId del : sync.getRemovedExtIds()) {
-					deletedRest.add(del.getExtId());
-				}
-			}
-	
+			List<Event> updated = getUpdatedEvent(sync);
+			Set<EventExtId> deleted = getRemovedEvent(sync);
+			
+			updatedRest = transformAsFunambolUpdated(updated);
+			deletedRest = transformAsFunambolRemoved(deleted);
+
 			syncReceived = true;
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		}
 	}
-	
-	public boolean isUserRefused(String userEmail, List<Attendee> list) {
-		for (Attendee at : list) {
-			if (at.getEmail().equals(userEmail)
-					&& at.getState() == ParticipationState.DECLINED) {
-				return true;
-			}
+
+	private List<EventExtId> transformAsFunambolRemoved(Set<EventExtId> deleted) {
+		ImmutableList.Builder<EventExtId> mapBuilder = ImmutableList.builder();
+		for (EventExtId e : deleted) {
+			mapBuilder.add(e);
 		}
-		return false;
+		return mapBuilder.build();
 	}
-	
+
+	private Map<EventExtId, Event> transformAsFunambolUpdated(List<Event> updated) {
+		ImmutableMap.Builder<EventExtId, Event> mapBuilder = ImmutableMap.builder();
+		for (Event e : updated) {
+			mapBuilder.put(e.getExtId(), e);
+		}
+		return mapBuilder.build();
+	}
+
+	private Set<EventExtId> getRemovedEvent(EventChanges sync) {
+		return sync.getRemovedExtIds() != null ? ImmutableSet.<EventExtId>copyOf(sync.getRemovedExtIds()) : ImmutableSet.<EventExtId>of();
+	}
+
+	private List<Event> getUpdatedEvent(EventChanges sync) {
+		return sync.getUpdated() != null ? ImmutableList.<Event>copyOf(sync.getUpdated()) : ImmutableList.<Event>of();
+	}
+
 	private SyncRange getSyncRanges(String min, String max) {
 		if(min == null || "".equals(min) || max == null || "".equals(max)){
 			return null;
@@ -283,19 +283,19 @@ public class CalendarManager extends ObmManager {
 		return new SyncRange(before, after);
 	}
 	
-	public void initSyncRange(String sourceQuery) {
-		//format:   /dr(-30,90)
-		try {
-			if (sourceQuery != null && !sourceQuery.equals("") && sourceQuery.contains("dr(")) {
-				String min = sourceQuery.split(",")[0];
-				String max = sourceQuery.split(",")[1];
-				rangeMin = min.replace("/dr(-", "");
-				rangeMax = max.replace(")", "");
-				logger.info("Sync initialized with range : " + rangeMin + " <> " + rangeMax);
+	private List<String> transformSetEventExtIdToListString(Set<EventExtId> keySet) {
+		List<EventExtId> listKey = ImmutableList.<EventExtId>copyOf(keySet);
+		return transformListEventExtIdToListString(listKey);
+	}
+	
+	private List<String> transformListEventExtIdToListString(
+			List<EventExtId> deleted) {
+		return Lists.transform(deleted, new Function<EventExtId, String>() {
+			@Override
+			public String apply(EventExtId input) {
+				return input.serializeToString();
 			}
-		} catch (Exception e) {
-			logger.error("error initializing sync range");
-		}
+		});
 	}
 
 }
