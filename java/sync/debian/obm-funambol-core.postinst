@@ -11,6 +11,7 @@ test -d /usr/lib/jvm/java-openjdk && {
 }
 
 FNBL_HOME=/usr/share/funambol-10.0.3
+FNBL_CONF="${FNBL_HOME}/ds-server/config"
 
 #
 # Apply correct funambol server uri
@@ -32,9 +33,9 @@ else
   funambol_uri="${OBM_EXTERNALPROTOCOL}://${OBM_EXTERNALURL}/funambol/ds:${OBM_EXTERNALPORT}"
 fi
 
-cat ${FNBL_HOME}/Funambol.xml.template | \
+cat ${FNBL_CONF}/Funambol.xml.template | \
 sed -e "s%#funambol_uri#%${funambol_uri}%"\
-> ${FNBL_HOME}/ds-server/config/Funambol.xml
+> ${FNBL_CONF}/Funambol.xml
 
 
 funambol_conf="/etc/obm/funambol_conf.ini"
@@ -45,12 +46,12 @@ db=`cat ${funambol_conf} | grep "^db *=" | cut -d"=" -f2| sed -e 's/ //g'`
 host=`cat ${funambol_conf} | grep "^host *=" | cut -d"=" -f2| sed -e 's/ //g'`
 
 if [ ${dbtype} = 'mysql' ]; then
-cat ${FNBL_HOME}/db.xml.template | \
+cat ${FNBL_CONF}/db.xml.template | \
 sed -e "s%#db_funambol_uri#%jdbc:mysql://${host:-localhost}/${db}?relaxAutocommit=true\\&amp;zeroDateTimeBehavior=convertToNull\\&amp;jdbcCompliantTruncation=false\\&amp;interactiveClient=true%" | \
 sed -e "s%#db_funambol_driver_class#%com.mysql.jdbc.Driver%" | \
 sed -e "s%#funambol_username#%${user}%" | \
 sed -e "s%#funambol_password#%${password}%" \
-> ${FNBL_HOME}/ds-server/config/com/funambol/server/db/db.xml
+> ${FNBL_CONF}/com/funambol/server/db/db.xml
 
 cat > /usr/share/obm-tomcat/applis/funambol.xml<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -75,12 +76,12 @@ cat > /usr/share/obm-tomcat/applis/funambol.xml<<EOF
 </Context>
 EOF
 else
-cat ${FNBL_HOME}/db.xml.template | \
+cat ${FNBL_CONF}/db.xml.template | \
 sed -e "s%#db_funambol_uri#%jdbc:postgresql://${host:-localhost}/${db}%" | \
 sed -e "s%#db_funambol_driver_class#%org.postgresql.Driver%"| \
 sed -e "s%#funambol_username#%${user}%"| \
 sed -e "s%#funambol_password#%${password}%"\
-> ${FNBL_HOME}/ds-server/config/com/funambol/server/db/db.xml
+> ${FNBL_CONF}/com/funambol/server/db/db.xml
 
 cat > /usr/share/obm-tomcat/applis/funambol.xml<<EOF
 <?xml version="1.0" encoding="UTF-8"?>

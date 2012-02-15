@@ -14,6 +14,8 @@ PROJECT_NAME="funambol-connector"
 FUNAMBOL_VERSION="10.0.3"
 SHARE_INSTALL_DIR="${FUNAMBOL_BUILD_DEB_DIR}/usr/share"
 FUNAMBOL_INSTALL_DIR="${SHARE_INSTALL_DIR}/funambol-${FUNAMBOL_VERSION}"
+FUNAMBOL_LIB_DIR="${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib"
+FUNAMBOL_CONF_DIR="${FUNAMBOL_INSTALL_DIR}/ds-server/config"
 
 #funambol
 echo "Funambol preparing distribution..."
@@ -39,18 +41,10 @@ if [ $? -ne 0 ]; then
 fi
 
 JAR_OBM_FUNAMBOL=`find ${MVN_PROJECT_NAME}/target -name ${MVN_PROJECT_NAME}*.jar`
-cp ${JAR_OBM_FUNAMBOL} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
+cp ${JAR_OBM_FUNAMBOL} ${FUNAMBOL_LIB_DIR}
 
 JAR_DEPENDENCIES=`find ${MVN_PROJECT_NAME}/target/dependencies -name *.jar`
-cp ${JAR_DEPENDENCIES} ${FUNAMBOL_INSTALL_DIR}/funambol/WEB-INF/lib
+cp ${JAR_DEPENDENCIES} ${FUNAMBOL_LIB_DIR}
 
-# build s4j
-${MVN_BIN} -f ${MVN_PROJECT_NAME}/pom.xml funambol:s4j
-if [ $? -ne 0 ]; then
-  echo "FATAL: mvn funambol:s4j"
-  exit 1
-fi
 
-S4J=`find ${MVN_PROJECT_NAME}/target -name *.s4j`
-cp ${S4J} ${FUNAMBOL_INSTALL_DIR}/ds-server/modules
-
+cp -r ${MVN_PROJECT_NAME}/target/funambol-configuration/* ${FUNAMBOL_CONF_DIR}
