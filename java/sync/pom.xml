@@ -58,6 +58,15 @@
 			</releases>
 		</repository>
 	</repositories>
+	<pluginRepositories>
+               <pluginRepository>
+                       <id>central</id>
+                       <url>http://ci-obm.linagora.com/artifactory/repo</url>
+			<snapshots>
+                                <enabled>false</enabled>
+                        </snapshots>
+               </pluginRepository>
+        </pluginRepositories>
 
 	<modules>
 		<module>common</module>
