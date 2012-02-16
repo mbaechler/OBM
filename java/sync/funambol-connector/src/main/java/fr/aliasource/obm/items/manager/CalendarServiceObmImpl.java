@@ -18,12 +18,10 @@ import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.ParticipationState;
 import org.obm.sync.calendar.SyncRange;
 import org.obm.sync.client.calendar.CalendarClient;
-import org.obm.sync.client.login.LoginService;
 import org.obm.sync.items.EventChanges;
 
 import com.funambol.framework.engine.SyncItemKey;
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -36,15 +34,13 @@ import fr.aliasource.funambol.OBMException;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
 
 @Singleton
-public class CalendarServiceObmImpl extends ObmManager implements ICalendarService{
+public class CalendarServiceObmImpl extends ObmManager implements ICalendarService {
 
 	private final CalendarClient calendarClient;
 	private final ObmEventConverter obmEventConverter;
 
 	@Inject
-	private CalendarServiceObmImpl(final LoginService loginService, final CalendarClient calendarClient, 
-			final ObmEventConverter obmEventConverter) {
-		super(loginService);
+	private CalendarServiceObmImpl(final CalendarClient calendarClient,	final ObmEventConverter obmEventConverter) {
 		this.calendarClient = calendarClient;
 		this.obmEventConverter = obmEventConverter;
 	}
@@ -84,10 +80,7 @@ public class CalendarServiceObmImpl extends ObmManager implements ICalendarServi
 	}
 
 	private EventExtId getEventExtIdFromSyncItemKey(SyncItemKey syncItemKey) {
-		Preconditions.checkNotNull(syncItemKey);
-		Preconditions.checkNotNull(syncItemKey.getKeyValue());
-		
-		final String itemKey = syncItemKey.getKeyAsString();
+		final String itemKey = getCheckedSyncItemKeyAsString(syncItemKey);
 		return new EventExtId(itemKey);
 	}
 

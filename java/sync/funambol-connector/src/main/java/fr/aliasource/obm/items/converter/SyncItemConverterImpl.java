@@ -1,7 +1,6 @@
 package fr.aliasource.obm.items.converter;
 
 import java.io.ByteArrayInputStream;
-import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -26,6 +25,7 @@ import com.funambol.framework.tools.Base64;
 import com.google.inject.Singleton;
 
 import fr.aliasource.funambol.ConvertionException;
+import fr.aliasource.obm.items.manager.SyncSession;
 
 @Singleton
 public class SyncItemConverterImpl implements ISyncItemConverter {
@@ -36,21 +36,19 @@ public class SyncItemConverterImpl implements ISyncItemConverter {
 	private static final Logger logger = LoggerFactory.getLogger(SyncItemConverterImpl.class);
 	
 	@Override
-	public Calendar getFunambolCalendarFromSyncItem(SyncItem item, String sourceType, TimeZone deviceTimezone, String deviceCharset)
+	public Calendar getFunambolCalendarFromSyncItem(SyncSession syncSession, SyncItem item, String sourceType)
 			throws ConvertionException {
-		
 		String content = getCheckContentFromSyncItem(item, MSG_TYPE_ICAL, sourceType);
-		Calendar foundationCalendar = getFoundationCalendarFromICal(content, deviceTimezone, deviceCharset);
+		Calendar foundationCalendar = getFoundationCalendarFromICal(content, syncSession);
 		foundationCalendar.getCalendarContent().setUid(new Property(item.getKey().getKeyAsString()));
 		return foundationCalendar;
 	}
 	
 	@Override
-	public Contact getFunambolContactFromSyncItem(SyncItem item, String sourceType, TimeZone deviceTimezone, String deviceCharset, boolean isEncoded)
+	public Contact getFunambolContactFromSyncItem(SyncSession syncSession, SyncItem item, String sourceType)
 			throws ConvertionException {
 		String content = getCheckContentFromSyncItem(item, MSG_TYPE_VCARD, sourceType);
-		
-		Contact	contact = getContactFromVCard(content, deviceTimezone, deviceCharset);
+		Contact	contact = getContactFromVCard(content, syncSession);
 		if(StringUtils.trimToNull(contact.getUid()) == null){
 			contact.setUid(item.getKey().getKeyAsString());
 		}
@@ -58,30 +56,30 @@ public class SyncItemConverterImpl implements ISyncItemConverter {
 	}
 	
 	@Override
-	public SyncItem getSyncItemFromFunambolCalendar(SyncSource syncSource, Calendar calendar, char status,  String sourceType, TimeZone deviceTimezone, String deviceCharset, boolean isEncoded)
+	public SyncItem getSyncItemFromFunambolCalendar(SyncSession syncSession, SyncSource syncSource, Calendar calendar, char status,  String sourceType)
 			throws ConvertionException {
 		
 		checkSourceType(MSG_TYPE_ICAL, sourceType);
 
-		String	content = getICalFromFoundationCalendar(calendar, deviceTimezone, deviceCharset);
+		String	content = getICalFromFoundationCalendar(calendar, syncSession);
 		logger.info("sending syncitem to pda:\n" + content);
 		
 		return createSyncItem(syncSource, calendar.getCalendarContent()
-				.getUid().getPropertyValueAsString(), status, content, sourceType, isEncoded);
+				.getUid().getPropertyValueAsString(), status, content, sourceType, syncSession.isEncode());
 	}
 
 	@Override
-	public SyncItem getSyncItemFromFunambolContact(SyncSource syncSource, Contact contact, char status, String sourceType, TimeZone deviceTimezone, String deviceCharset, boolean isEncoded)
+	public SyncItem getSyncItemFromFunambolContact(SyncSession syncSession, SyncSource syncSource, Contact contact, char status, String sourceType)
 			throws ConvertionException {
 		checkSourceType(MSG_TYPE_VCARD, sourceType);
 		
-		String content = getVCardFromContact(contact, deviceTimezone, deviceCharset);
+		String content = getVCardFromContact(contact, syncSession);
 		logger.info("vcardFromFoundation:\n"+content);
 		
-		return createSyncItem(syncSource, contact.getUid(), status, content, sourceType, isEncoded);
+		return createSyncItem(syncSource, contact.getUid(), status, content, sourceType, syncSession.isEncode());
 	}
 	
-	private Calendar getFoundationCalendarFromICal(String content, TimeZone deviceTimezone, String deviceCharset) throws ConvertionException {
+	private Calendar getFoundationCalendarFromICal(String content, SyncSession session) throws ConvertionException {
 		logger.info("pda sent:\n" + content);
 
 		String toParse = content;
@@ -99,8 +97,8 @@ public class SyncItemConverterImpl implements ISyncItemConverter {
 				ICalendarParser parser = new ICalendarParser(buffer);
 				vcal = parser.ICalendar();
 			}
-			VCalendarConverter vconvert = new VCalendarConverter(deviceTimezone,
-					deviceCharset, false);
+			VCalendarConverter vconvert = new VCalendarConverter(session.getDeviceTimeZone(),
+					session.getDeviceCharset(), false);
 
 			Calendar ret = vconvert.vcalendar2calendar(vcal);
 			return ret;
@@ -113,12 +111,12 @@ public class SyncItemConverterImpl implements ISyncItemConverter {
 		}
 	}
 	
-	private String getICalFromFoundationCalendar(Calendar calendar, TimeZone deviceTimezone, String deviceCharset)
+	private String getICalFromFoundationCalendar(Calendar calendar, SyncSession syncSession)
 			throws ConvertionException {
 
 		try {
-			VCalendarConverter c2vcal = new VCalendarConverter(deviceTimezone,
-					deviceCharset, false);
+			VCalendarConverter c2vcal = new VCalendarConverter(syncSession.getDeviceTimeZone(),
+					syncSession.getDeviceCharset(), false);
 			VCalendar cal = c2vcal.calendar2vcalendar(calendar, true);
 			VComponentWriter writer = new VComponentWriter(
 					VComponentWriter.NO_FOLDING);
@@ -131,10 +129,10 @@ public class SyncItemConverterImpl implements ISyncItemConverter {
 	
 	}
 
-	private String getVCardFromContact(Contact contact, TimeZone deviceTimezone, String deviceCharset) throws ConvertionException {
+	private String getVCardFromContact(Contact contact, SyncSession syncSession) throws ConvertionException {
 		try {
-			ContactToVcard c2vcard = new ContactToVcard(deviceTimezone,
-					deviceCharset);
+			ContactToVcard c2vcard = new ContactToVcard(syncSession.getDeviceTimeZone(),
+					syncSession.getDeviceCharset());
 			String vcard = c2vcard.convert(contact);
 			return vcard;
 		} catch (ConverterException ex) {
@@ -143,13 +141,13 @@ public class SyncItemConverterImpl implements ISyncItemConverter {
 
 	}
 
-	private Contact getContactFromVCard(String content, TimeZone deviceTimezone, String deviceCharset) throws ConvertionException {
+	private Contact getContactFromVCard(String content, SyncSession syncSession) throws ConvertionException {
 
 		try {
 			Contact contact = new Contact();
 			ByteArrayInputStream buffer = new ByteArrayInputStream(content.getBytes());
 			if ((content.getBytes()).length > 0) {
-				VcardParser parser = new VcardParser(buffer, deviceTimezone.getDisplayName(), deviceCharset);
+				VcardParser parser = new VcardParser(buffer, syncSession.getDeviceTimeZone().getDisplayName(), syncSession.getDeviceCharset());
 				contact = parser.vCard();
 			}
 			return contact;

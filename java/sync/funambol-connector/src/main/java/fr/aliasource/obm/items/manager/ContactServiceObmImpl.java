@@ -1,120 +1,91 @@
 package fr.aliasource.obm.items.manager;
 
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
 import javax.naming.NoPermissionException;
 
 import org.obm.configuration.ContactConfiguration;
+import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.RemovedContact;
 import org.obm.sync.client.book.BookClient;
-import org.obm.sync.client.login.LoginService;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.AddressBookChangesResponse;
 
+import com.funambol.framework.engine.SyncItemKey;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import fr.aliasource.funambol.InvalidFunambolKeyException;
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.obm.items.converter.ObmContactConverter;
 
-public class ContactSyncBean extends ObmManager {
-
-	protected Map<String, Contact> updatedRest = null;
-	protected List<String> deletedRest = null;
+@Singleton
+public class ContactServiceObmImpl extends ObmManager implements IContactService{
 
 	private final BookClient bookClient;
 	private final ContactConfiguration contactConfiguration;
 	private final ObmContactConverter contactConverter;
 
-	private TimeZone deviceTimeZone;
-	
-	public ContactSyncBean(final LoginService loginService, final BookClient bookClient, 
+	@Inject
+	private ContactServiceObmImpl(final BookClient bookClient, 
 			final ContactConfiguration contactConfiguration, final ObmContactConverter contactConverter) {
-		super(loginService);
 		this.bookClient = bookClient;
 		this.contactConfiguration = contactConfiguration;
 		this.contactConverter = contactConverter;
 	}
 
-	public List<String> getAllItemKeys() throws OBMException {
-
-		if (!syncReceived) {
-			getSync(null);
-		}
-
-		List<String> keys = new LinkedList<String>();
-		keys.addAll(updatedRest.keySet());
-
-		return keys;
+	@Override
+	public List<String> getAllItemKeys(SyncSession syncSession) throws OBMException {
+		final ContactChanges changes = getSync(syncSession, null);
+		final Set<String> updatedSet = changes.getUpdated().keySet();
+		return ImmutableList.<String>copyOf(updatedSet);
 	}
 
-	public List<String> getDeletedItemKeys(Timestamp since) throws OBMException {
-		Calendar d = Calendar.getInstance();
-		d.setTime(since);
-		if (!syncReceived) {
-			getSync(since);
-		}
-		return deletedRest;
+	@Override
+	public List<String> getDeletedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException {
+		final ContactChanges changes = getSync(syncSession, since);
+		return changes.getDeleted();
 	}
 
-	public List<String> getUpdatedItemKeys(Timestamp since) throws OBMException {
-
-		Calendar d = Calendar.getInstance();
-		d.setTime(since);
-
-		if (!syncReceived) {
-			getSync(since);
-		}
-
-		List<String> keys = new LinkedList<String>();
-		keys.addAll(updatedRest.keySet());
-
-		return keys;
+	@Override
+	public List<String> getUpdatedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException {
+		final ContactChanges changes = getSync(syncSession, since);
+		final Set<String> uids = changes.getUpdated().keySet();
+		return ImmutableList.<String>copyOf(uids);
 	}
 
-	public com.funambol.common.pim.contact.Contact getItemFromId(String key) throws OBMException {
-
-		Contact contact = updatedRest.get(key);
-
-		if (contact == null) {
-			logger.info(" item " + key
-					+ " not found in updated -> get from sever");
-			try {
-				ContactKey contactKey = new ContactKey(key);
-				contact = bookClient.getContactFromId(token, contactKey.getAddressBookId(), contactKey.getContactId());
-			} catch (ServerFault e) {
-				throw new OBMException(e.getMessage(),e);
-			} catch (InvalidFunambolKeyException e) {
-				throw new OBMException(e.getMessage(),e);
-			} catch (ContactNotFoundException e) {
-				throw new OBMException(e.getMessage(),e);
-			}
-		}
-
-		com.funambol.common.pim.contact.Contact ret = contactConverter.obmContactTofoundation(contact);
-
-		return ret;
-	}
-
-	public void removeItem(String key) throws OBMException {
-
+	@Override
+	public com.funambol.common.pim.contact.Contact getItemFromId(SyncSession syncSession, SyncItemKey syncItemKey) throws OBMException {
 		try {
-			ContactKey contactKey = new ContactKey(key);
-			bookClient.removeContact(token, contactKey.getAddressBookId(), contactKey.getContactId());
+			final ContactKey key = getContactKeyFromSyncItemKey(syncItemKey);
+			 final Contact obmContact = bookClient.getContactFromId(syncSession.getObmAccessToken(), key.getAddressBookId(), key.getContactId());
+			 return contactConverter.obmContactTofoundation(obmContact);
+		} catch (ServerFault e) {
+			throw new OBMException(e.getMessage(),e);
+		} catch (InvalidFunambolKeyException e) {
+			throw new OBMException(e.getMessage(),e);
+		} catch (ContactNotFoundException e) {
+			throw new OBMException(e.getMessage(),e);
+		}
+	}
+
+	@Override
+	public void removeItem(SyncSession syncSession, SyncItemKey syncItemKey) throws OBMException {
+		try {
+			ContactKey contactKey = getContactKeyFromSyncItemKey(syncItemKey);
+			bookClient.removeContact(syncSession.getObmAccessToken(), contactKey.getAddressBookId(), contactKey.getContactId());
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage(),e);
 		} catch (ContactNotFoundException e) {
@@ -126,14 +97,13 @@ public class ContactSyncBean extends ObmManager {
 		}
 	}
 
-	public com.funambol.common.pim.contact.Contact updateItem(
-			com.funambol.common.pim.contact.Contact contact)
+	@Override
+	public com.funambol.common.pim.contact.Contact updateItem(SyncSession syncSession, com.funambol.common.pim.contact.Contact contact)
 			throws OBMException {
-
-		Contact c = null;
 		try {
-			Contact obmContact = contactConverter.foundationContactToObm(contact);
-			c = bookClient.modifyContact(token, obmContact.getFolderId(), obmContact);
+			Contact convertedContact = contactConverter.foundationContactToObm(contact);
+			Contact updatedContact = bookClient.modifyContact(syncSession.getObmAccessToken(), convertedContact.getFolderId(), convertedContact);
+			return contactConverter.obmContactTofoundation(updatedContact);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage(),e);
 		} catch (NoPermissionException e) {
@@ -142,16 +112,17 @@ public class ContactSyncBean extends ObmManager {
 			throw new OBMException(e.getMessage(),e);
 		}
 
-		return contactConverter.obmContactTofoundation(c);
+		
 	}
 
-	public com.funambol.common.pim.contact.Contact addItem(
+	@Override
+	public com.funambol.common.pim.contact.Contact addItem(SyncSession syncSession,
 			com.funambol.common.pim.contact.Contact contact)
 			throws OBMException {
-
 		try {
-			AddressBook defaultAddressBook = getDefaultAddressBook();
-			Contact c = bookClient.createContact(token, defaultAddressBook.getUid(), contactConverter.foundationContactToObm(contact));
+			final Contact funisContact = contactConverter.foundationContactToObm(contact);
+			AddressBook defaultAddressBook = getDefaultAddressBook(syncSession.getObmAccessToken());
+			Contact c = bookClient.createContact(syncSession.getObmAccessToken(), defaultAddressBook.getUid(), funisContact);
 			return contactConverter.obmContactTofoundation(c);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
@@ -162,7 +133,8 @@ public class ContactSyncBean extends ObmManager {
 		}
 	}
 
-	public List<String> getContactTwinKeys(
+	@Override
+	public List<String> getContactTwinKeys(SyncSession syncSession,
 			com.funambol.common.pim.contact.Contact contact) {
 
 		Contact c = contactConverter.foundationContactToObm(contact);
@@ -172,10 +144,10 @@ public class ContactSyncBean extends ObmManager {
 					+ c.getLastname() + "," + c.getCompany());
 		}
 		c.setUid(null);
-		return bookClient.getContactTwinKeys(token, c).getKeys();
+		return bookClient.getContactTwinKeys(syncSession.getObmAccessToken(), c).getKeys();
 	}
 
-	private AddressBook getDefaultAddressBook() throws OBMException {
+	private AddressBook getDefaultAddressBook(AccessToken token) throws OBMException {
 		try {
 			List<AddressBook> addrs = bookClient.listAllBooks(token);
 			AddressBook defaultAddressBook = null;
@@ -194,20 +166,21 @@ public class ContactSyncBean extends ObmManager {
 		
 	}
 
-	private void getSync(Timestamp since) throws OBMException {
+	private ContactChanges getSync(SyncSession session, Timestamp since) throws OBMException {
 		try{
 			Date lastSync = getLastSync(since);
-			AddressBookChangesResponse sync = bookClient.getAddressBookSync(token, lastSync);
+			AddressBookChangesResponse sync = bookClient.getAddressBookSync(session.getObmAccessToken(), lastSync);
 	
 			List<Contact> updated = getListUpdatedContact(sync);
 			Set<RemovedContact> deleted = getRemovedContacts(sync);
 			
-			updatedRest = transformAsFunambolUpdated(updated);
-			deletedRest = transformAsFunambolRemoved(deleted);
+			Map<String, Contact> updatedRest = transformAsFunambolUpdated(updated);
+			List<String> deletedRest = transformAsFunambolRemoved(deleted);
+			
+			return new ContactChanges(updatedRest, deletedRest);
 		}catch (ServerFault e) {
 			throw new OBMException("The default address book is unobtainable");
 		}
-		syncReceived = true;
 	}
 	
 	private List<String> transformAsFunambolRemoved(Set<RemovedContact> deleteds) {
@@ -240,12 +213,9 @@ public class ContactSyncBean extends ObmManager {
 		return since != null ? new Date(since.getTime()) : null;
 	}
 
-	public void setDeviceTimeZone(TimeZone deviceTimeZone) {
-		this.deviceTimeZone = deviceTimeZone;
-		if (deviceTimeZone == null) {
-			this.deviceTimeZone = TimeZone.getTimeZone("Europe/Paris");
-		}
-		logger.info("device timezone set to: "+this.deviceTimeZone);
+	private ContactKey getContactKeyFromSyncItemKey(SyncItemKey syncItemKey) throws InvalidFunambolKeyException {
+		final String itemKey = getCheckedSyncItemKeyAsString(syncItemKey);
+		return new ContactKey(itemKey);
 	}
 
 }

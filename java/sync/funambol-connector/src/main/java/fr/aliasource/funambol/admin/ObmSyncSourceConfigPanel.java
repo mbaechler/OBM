@@ -43,7 +43,6 @@ public class ObmSyncSourceConfigPanel
 	
 	public static final int RESTRICTS_DEFAULT = 1;
 	
-	
 	// --------------------------------------------------------------- Constants
 
 	/**
@@ -274,7 +273,7 @@ public class ObmSyncSourceConfigPanel
         
         //restrictions
         if (this.syncSource instanceof ContactSyncSource) {
-        	int rs = syncSource.getRestrictions();
+        	int rs = syncSource.getSyncSession().getRestrictions();
 	   
 	        restrictPrivateValue.setSelected(
 	        		(rs & RESTRICT_PRIVATE) == RESTRICT_PRIVATE );
@@ -336,7 +335,7 @@ public class ObmSyncSourceConfigPanel
 
         if (typeValue.getSelectedIndex() == 0) {
 
-        	syncSource.setEncode (true) ;
+        	syncSource.getSyncSession().setEncode(true) ;
             if (syncSource instanceof CalendarSyncSource)        {
                 //syncSource.setSourceType(SIFE_TYPE,SIFE_VERSION);
                 types = new StringTokenizer(SIFE_TYPES       , "," ) ;
@@ -348,12 +347,12 @@ public class ObmSyncSourceConfigPanel
             }
 
         } else if (syncSource instanceof CalendarSyncSource)     {
-            syncSource.setEncode (false) ;
+            syncSource.getSyncSession().setEncode(false) ;
             //syncSource.setSourceType(ICAL_TYPE,ICAL_VERSION);
             types = new StringTokenizer(ICAL_TYPES       , "," ) ;
             versions = new StringTokenizer(ICAL_VERSIONS , "," ) ;
         } else if (syncSource instanceof ContactSyncSource )     {
-            syncSource.setEncode (false ) ;
+            syncSource.getSyncSession().setEncode(false ) ;
            // syncSource.setSourceType(VCARD_TYPE,VCARD_VERSION);
             types = new StringTokenizer(VCARD_TYPES       , "," ) ;
             versions = new StringTokenizer(VCARD_VERSIONS , "," ) ;
@@ -380,7 +379,7 @@ public class ObmSyncSourceConfigPanel
 				if (restrictPublicWValue.isSelected()) {
 					rs += RESTRICT_PUBLIC_W;
 				}
-				syncSource.setRestrictions(rs);
+				syncSource.getSyncSession().setRestrictions(rs);
 			}
 		}
     }

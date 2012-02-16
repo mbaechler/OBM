@@ -3,8 +3,6 @@ package fr.aliasource.obm.items.manager;
 import java.sql.Timestamp;
 import java.util.List;
 
-import org.obm.sync.auth.AccessToken;
-
 import com.funambol.common.pim.calendar.Calendar;
 import com.funambol.framework.engine.SyncItemKey;
 
@@ -29,7 +27,5 @@ public interface ICalendarService {
 	Calendar updateItem(SyncSession syncBean, Calendar calendar) throws OBMException;
 
 	Calendar getItemFromId(SyncSession syncBean, SyncItemKey syncItemKey) throws OBMException;
-
-	void logout(AccessToken obmAccessToken);
 
 }

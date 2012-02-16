@@ -9,19 +9,44 @@ import org.obm.sync.auth.AccessToken;
 import org.obm.sync.calendar.SyncRange;
 
 import com.funambol.framework.engine.source.SyncContext;
+import com.funambol.framework.server.Sync4jDevice;
 
 public class SyncSession {
 
 	private final String userLogin;
 	private final String userPassword;
+	private final Sync4jDevice device;
+	private final TimeZone deviceTimeZone;
 	private final SyncRange syncRange;
+	private boolean encode;
+	private int restrictions;
+	
 	
 	private AccessToken obmAccessToken;
 	
-	public SyncSession(SyncContext context) {
+	public SyncSession(SyncContext context, Sync4jDevice device) {
 		this.userLogin = context.getPrincipal().getUser().getUsername();
 		this.userPassword = context.getPrincipal().getUser().getPassword();
+		this.device = device;
+		this.deviceTimeZone = initDeviceTimeZone(device);
 		this.syncRange = initSyncRange(context.getSourceQuery());
+		this.encode = true;
+		this.restrictions = 1;
+	}
+
+//	public void setDeviceTimeZone(TimeZone deviceTimeZone) {
+//		this.deviceTimeZone = deviceTimeZone;
+//		if (deviceTimeZone == null) {
+//			this.deviceTimeZone = TimeZone.getTimeZone("Europe/Paris");
+//		}
+//		logger.info("device timezone set to: "+this.deviceTimeZone);
+//	}
+	private TimeZone initDeviceTimeZone(Sync4jDevice device) {
+		String timezone = device.getTimeZone();
+		if(StringUtils.isBlank(timezone)) {
+			return TimeZone.getTimeZone("GMT");
+		}
+		return TimeZone.getTimeZone(timezone);
 	}
 
 	private SyncRange initSyncRange(String sourceQuery) {
@@ -64,8 +89,33 @@ public class SyncSession {
 	public void setObmAccessToken(AccessToken obmAccessToken) {
 		this.obmAccessToken = obmAccessToken;
 	}
-	
-	
 
+	public Sync4jDevice getDevice() {
+		return device;
+	}
+	
+	public String getDeviceCharset(){
+		return device.getCharset();
+	}
+
+	public TimeZone getDeviceTimeZone() {
+		return deviceTimeZone;
+	}
+	
+	public boolean isEncode() {
+		return encode;
+	}
+
+	public void setEncode(boolean encode) {
+		this.encode = encode;
+	}
+	
+	public int getRestrictions() {
+		return restrictions;
+	}
+
+	public void setRestrictions(int restrictions) {
+		this.restrictions = restrictions;
+	}
 	
 }

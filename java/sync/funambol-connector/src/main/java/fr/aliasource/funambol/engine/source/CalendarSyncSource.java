@@ -3,8 +3,6 @@ package fr.aliasource.funambol.engine.source;
 import java.sql.Timestamp;
 import java.util.List;
 
-import org.obm.sync.auth.AccessToken;
-import org.obm.sync.auth.AuthFault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,14 +17,12 @@ import com.google.inject.Injector;
 import fr.aliasource.funambol.ConvertionException;
 import fr.aliasource.funambol.OBMException;
 import fr.aliasource.funambol.ObmFunambolGuiceInjector;
-import fr.aliasource.obm.items.manager.SyncSession;
 import fr.aliasource.obm.items.manager.ICalendarService;
 
 public class CalendarSyncSource extends ObmSyncSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(CalendarSyncSource.class);
 	
-	private SyncSession syncBean;
 	private ICalendarService calendarService;
 	
 	public CalendarSyncSource(){
@@ -38,31 +34,21 @@ public class CalendarSyncSource extends ObmSyncSource {
 	@Override
 	public void beginSync(SyncContext context) throws SyncSourceException {
 		logger.info("Begin an OBM-Funambol Calendar sync");
-		logger.info("context.getSourceQuery():" + context);
-		
-		try {
-			this.syncBean = new SyncSession(context);
-			AccessToken token = loginService.login(this.syncBean.getUserLogin(), this.syncBean.getUserPassword());
-			this.syncBean.setObmAccessToken(token);
-			super.beginSync(context);
-		} catch (AuthFault e) {
-			logger.error("pb in begin sync", e);
-			throw new SyncSourceException(e);
-		}
+		super.beginSync(context);
 		logger.info("beginSync end.");
 	}
 
 	@Override
 	public SyncItem addSyncItem(SyncItem syncItem) throws SyncSourceException {
 
-		logger.info("addSyncItem(" + syncBean.getUserLogin() + " , "
+		logger.info("addSyncItem(" + syncSession.getUserLogin() + " , "
 				+ syncItem.getKey().getKeyAsString() + ")");
 		com.funambol.common.pim.calendar.Calendar created = null;
 		try {
-			com.funambol.common.pim.calendar.Calendar calendar = syncItemConverter.getFunambolCalendarFromSyncItem(syncItem, getSourceType(), deviceTimezone, deviceCharset);
+			com.funambol.common.pim.calendar.Calendar calendar = syncItemConverter.getFunambolCalendarFromSyncItem(this.syncSession, syncItem, getSourceType());
 
 			if (calendar != null) {
-				created = calendarService.addItem(syncBean, calendar);
+				created = calendarService.addItem(syncSession, calendar);
 			}
 			
 			if (created == null) {
@@ -73,7 +59,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 				logger.info(" created with id : "
 						+ created.getCalendarContent().getUid()
 								.getPropertyValueAsString());
-				return syncItemConverter.getSyncItemFromFunambolCalendar(this, created, SyncItemState.SYNCHRONIZED, getSourceType(), deviceTimezone, deviceCharset, isEncode());
+				return syncItemConverter.getSyncItemFromFunambolCalendar(this.syncSession, this, created, SyncItemState.SYNCHRONIZED, getSourceType());
 			}
 			
 		} catch (OBMException e) {
@@ -88,8 +74,8 @@ public class CalendarSyncSource extends ObmSyncSource {
 	@Override
 	public SyncItemKey[] getAllSyncItemKeys() throws SyncSourceException {
 		try {
-			logger.info("getAllSyncItemKeys(" + syncBean.getUserLogin() + ")");
-			List<String> keys = calendarService.getAllItemKeys(syncBean);
+			logger.info("getAllSyncItemKeys(" + syncSession.getUserLogin() + ")");
+			List<String> keys = calendarService.getAllItemKeys(syncSession);
 			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
 
 			logger.info(" returning " + ret.length + " key(s)");
@@ -102,10 +88,10 @@ public class CalendarSyncSource extends ObmSyncSource {
 	@Override
 	public SyncItemKey[] getDeletedSyncItemKeys(Timestamp since, Timestamp until)
 			throws SyncSourceException {
-		logger.info("getDeletedSyncItemKeys(" + syncBean.getUserLogin() + " , " + since
+		logger.info("getDeletedSyncItemKeys(" + syncSession.getUserLogin() + " , " + since
 				+ " , " + until + ")");
 		try {
-			List<String> keys = calendarService.getDeletedItemKeys(syncBean, since);
+			List<String> keys = calendarService.getDeletedItemKeys(syncSession, since);
 			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
 
 			logger.info(" returning " + ret.length + " key(s)");
@@ -120,7 +106,7 @@ public class CalendarSyncSource extends ObmSyncSource {
 	public SyncItemKey[] getNewSyncItemKeys(Timestamp since, Timestamp until)
 			throws SyncSourceException {
 
-		logger.info("getNewSyncItemKeys(" + syncBean.getUserLogin() + " , " + since + " , "
+		logger.info("getNewSyncItemKeys(" + syncSession.getUserLogin() + " , " + since + " , "
 				+ until + ") => null");
 
 		return new SyncItemKey[0];
@@ -130,14 +116,14 @@ public class CalendarSyncSource extends ObmSyncSource {
 	public SyncItemKey[] getSyncItemKeysFromTwin(SyncItem syncItem)
 			throws SyncSourceException {
 
-		logger.info("getSyncItemKeysFromTwin(" + syncBean.getUserLogin() + ")");
+		logger.info("getSyncItemKeysFromTwin(" + syncSession.getUserLogin() + ")");
 		try {
 			syncItem.getKey().setKeyValue("");
-			Calendar event = syncItemConverter.getFunambolCalendarFromSyncItem(syncItem, getSourceType(), deviceTimezone, deviceCharset);
+			Calendar event = syncItemConverter.getFunambolCalendarFromSyncItem(this.syncSession, syncItem, getSourceType());
 			if (event == null) {
 				return new SyncItemKey[0];
 			}
-			List<String> keys = calendarService.getEventTwinKeys(syncBean, event);
+			List<String> keys = calendarService.getEventTwinKeys(syncSession, event);
 			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
 			logger.info(" returning " + ret.length + " key(s)");
 			return ret;
@@ -155,10 +141,10 @@ public class CalendarSyncSource extends ObmSyncSource {
 			throws SyncSourceException {
 
 		try {
-			logger.info("getUpdatedSyncItemKeys(" + syncBean.getUserLogin() + " , " + since
+			logger.info("getUpdatedSyncItemKeys(" + syncSession.getUserLogin() + " , " + since
 					+ " , " + until + ")");
 			
-			List<String> keys = calendarService.getUpdatedItemKeys(syncBean, since);
+			List<String> keys = calendarService.getUpdatedItemKeys(syncSession, since);
 			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
 
 			logger.info(" returning " + ret.length + " key(s)");
@@ -173,10 +159,10 @@ public class CalendarSyncSource extends ObmSyncSource {
 	public void removeSyncItem(SyncItemKey syncItemKey, Timestamp time,
 			boolean softDelete) throws SyncSourceException {
 		try {
-			logger.info("removeSyncItem(" + syncBean.getUserLogin() + " , " + syncItemKey + " , "
+			logger.info("removeSyncItem(" + syncSession.getUserLogin() + " , " + syncItemKey + " , "
 					+ time + ")");
 			
-			calendarService.removeItem(syncBean, syncItemKey);
+			calendarService.removeItem(syncSession, syncItemKey);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -186,19 +172,19 @@ public class CalendarSyncSource extends ObmSyncSource {
 	public SyncItem updateSyncItem(SyncItem syncItem)
 			throws SyncSourceException {
 
-		logger.info("updateSyncItem(" + syncBean.getUserLogin() + " , "
+		logger.info("updateSyncItem(" + syncSession.getUserLogin() + " , "
 				+ syncItem.getKey().getKeyAsString() + ")");
 		Calendar event = null;
 		try {
-			Calendar calendar = syncItemConverter.getFunambolCalendarFromSyncItem(syncItem, getSourceType(), deviceTimezone, deviceCharset);
+			Calendar calendar = syncItemConverter.getFunambolCalendarFromSyncItem(this.syncSession, syncItem, getSourceType());
 
-			event = calendarService.updateItem(syncBean, calendar);
+			event = calendarService.updateItem(syncSession, calendar);
 			if (event == null) {
 				logger.warn("Sending faked syncitem to PDA, we skipped this event");
 				syncItem.setState(SyncItemState.SYNCHRONIZED);
 				return syncItem;
 			}
-			return syncItemConverter.getSyncItemFromFunambolCalendar(this, event, SyncItemState.SYNCHRONIZED, getSourceType(), deviceTimezone, deviceCharset, isEncode());
+			return syncItemConverter.getSyncItemFromFunambolCalendar(this.syncSession, this, event, SyncItemState.SYNCHRONIZED, getSourceType());
 		} catch (OBMException e) {
 			logger.error(e.getMessage(), e);
 			throw new SyncSourceException(e);
@@ -213,11 +199,11 @@ public class CalendarSyncSource extends ObmSyncSource {
 			throws SyncSourceException {
 		try {
 			logger
-			.info("getSyncItemFromId(" + syncBean.getUserLogin() + ", " + syncItemKey
+			.info("getSyncItemFromId(" + syncSession.getUserLogin() + ", " + syncItemKey
 					+ ")");
 			
-			Calendar calendar = calendarService.getItemFromId(syncBean, syncItemKey);
-			SyncItem ret = syncItemConverter.getSyncItemFromFunambolCalendar(this, calendar, SyncItemState.UNKNOWN, getSourceType(), deviceTimezone, deviceCharset, isEncode());
+			Calendar calendar = calendarService.getItemFromId(syncSession, syncItemKey);
+			SyncItem ret = syncItemConverter.getSyncItemFromFunambolCalendar(this.syncSession, this, calendar, SyncItemState.UNKNOWN, getSourceType());
 			return ret;
 		} catch (OBMException e) {
 			logger.error(e.getMessage(), e);
@@ -230,8 +216,6 @@ public class CalendarSyncSource extends ObmSyncSource {
 
 	@Override
 	public void endSync() throws SyncSourceException {
-		calendarService.logout(syncBean.getObmAccessToken());
-		this.syncBean = null;
 		super.endSync();
 	}
 }
