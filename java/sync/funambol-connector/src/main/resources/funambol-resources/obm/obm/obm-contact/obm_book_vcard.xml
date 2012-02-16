@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?> 
 <java version="1.6.0_01" class="java.beans.XMLDecoder"> 
- <object class="fr.aliasource.funambol.engine.source.ContactSyncSource"> 
+ <object class="org.obm.funambol.engine.source.ContactSyncSource"> 
   <void property="encode"> 
    <boolean>false</boolean> 
   </void> 

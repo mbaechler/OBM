@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <java version="1.5.0" class="java.beans.XMLDecoder">
-    <object class="fr.aliasource.funambol.security.ObmOfficer">
+    <object class="org.obm.funambol.security.ObmOfficer">
     </object>
 </java>
