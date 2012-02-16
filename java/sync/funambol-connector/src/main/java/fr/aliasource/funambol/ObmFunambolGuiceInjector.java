@@ -17,6 +17,8 @@ import fr.aliasource.obm.items.converter.ISyncItemConverter;
 import fr.aliasource.obm.items.converter.ObmContactConverter;
 import fr.aliasource.obm.items.converter.ObmEventConverter;
 import fr.aliasource.obm.items.converter.SyncItemConverterImpl;
+import fr.aliasource.obm.items.manager.CalendarServiceObmImpl;
+import fr.aliasource.obm.items.manager.ICalendarService;
 
 public class ObmFunambolGuiceInjector { 
 
@@ -45,6 +47,7 @@ public class ObmFunambolGuiceInjector {
 			bind(IEventConverter.class).to(ObmEventConverter.class);
 			bind(IContactConverter.class).to(ObmContactConverter.class);
 			bind(ISyncItemConverter.class).to(SyncItemConverterImpl.class);
+			bind(ICalendarService.class).to(CalendarServiceObmImpl.class);
 		}
 		
 	}
