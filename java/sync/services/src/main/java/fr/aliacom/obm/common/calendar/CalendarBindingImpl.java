@@ -55,11 +55,11 @@ import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.base.Category;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventKey;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventParticipationState;
 import org.obm.sync.calendar.EventRecurrence;
@@ -754,7 +754,7 @@ public class CalendarBindingImpl implements ICalendar {
 
 	@Override
 	@Transactional
-	public KeyList getEventTwinKeys(AccessToken token, String calendar,
+	public List<EventKey> getEventTwinKeys(AccessToken token, String calendar,
 			Event event) throws ServerFault {
 		if (!helperService.canReadCalendar(token, calendar)) {
 			throw new ServerFault("user has no read rights on calendar "
@@ -763,11 +763,11 @@ public class CalendarBindingImpl implements ICalendar {
 		try {
 			ObmDomain domain = domainService
 					.findDomainByName(token.getDomain().getName());
-			List<String> keys = calendarDao.findEventTwinKeys(calendar,
+			List<EventKey> keys = calendarDao.findEventTwinKeys(calendar,
 					event, domain);
 			logger.info(LogUtils.prefix(token) + "found " + keys.size()
 					+ " twinkeys ");
-			return new KeyList(keys);
+			return keys;
 		} catch (Throwable e) {
 			logger.error(LogUtils.prefix(token) + e.getMessage(), e);
 			throw new ServerFault(e.getMessage());
@@ -776,7 +776,7 @@ public class CalendarBindingImpl implements ICalendar {
 
 	@Override
 	@Transactional
-	public KeyList getRefusedKeys(AccessToken token, String calendar, Date since)
+	public List<EventKey> getRefusedKeys(AccessToken token, String calendar, Date since)
 			throws ServerFault {
 		if (!helperService.canReadCalendar(token, calendar)) {
 			throw new ServerFault("user has no read rights on calendar "
@@ -784,8 +784,8 @@ public class CalendarBindingImpl implements ICalendar {
 		}
 		try {
 			ObmUser user = userService.getUserFromCalendar(calendar, token.getDomain().getName());
-			List<String> keys = calendarDao.findRefusedEventsKeys(user, since);
-			return new KeyList(keys);
+			List<EventKey> keys = calendarDao.findRefusedEventsKeys(user, since);
+			return keys;
 		} catch (Throwable e) {
 			logger.error(LogUtils.prefix(token) + e.getMessage(), e);
 			throw new ServerFault(e.getMessage());

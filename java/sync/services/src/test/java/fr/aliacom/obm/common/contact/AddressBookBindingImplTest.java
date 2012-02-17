@@ -48,7 +48,7 @@ import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
-import org.obm.sync.book.RemovedContact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.items.AddressBookChangesResponse;
 
 import com.google.common.collect.ImmutableList;
@@ -82,26 +82,26 @@ public class AddressBookBindingImplTest {
 		newContact.setLastname("newContact");
 
 		List<Contact> updatedContacts = ImmutableList.of(newContact);
-		RemovedContact rc1 = new RemovedContact(1, 1);
-		RemovedContact rc2 = new RemovedContact(1, 1);
-		Set<RemovedContact> archivedContactIds = ImmutableSet.of(rc1, rc2);
+		ContactKey rc1 = new ContactKey(1, 1);
+		ContactKey rc2 = new ContactKey(1, 1);
+		Set<ContactKey> archivedContactIds = ImmutableSet.of(rc1, rc2);
 
 		ContactUpdates contactUpdates = new ContactUpdates();
 		contactUpdates.setContacts(updatedContacts);
 		contactUpdates.setArchived(archivedContactIds);
 
-		RemovedContact rc3 = new RemovedContact(3, 2);
-		Set<RemovedContact> removalCandidates = ImmutableSet.of(rc3);
+		ContactKey rc3 = new ContactKey(3, 2);
+		Set<ContactKey> removalCandidates = ImmutableSet.of(rc3);
 
 		Contact newUser = new Contact();
 		newUser.setLastname("obmuser");
 
 		List<Contact> updatedUsers = ImmutableList.of(newUser);
 
-		RemovedContact rc5 = new RemovedContact(1, -1);
-		RemovedContact rc7 = new RemovedContact(1, -1);
-		RemovedContact rc8 = new RemovedContact(1, -1);
-		Set<RemovedContact> archivedUserIds = ImmutableSet.of(rc5, rc7, rc8);
+		ContactKey rc5 = new ContactKey(1, -1);
+		ContactKey rc7 = new ContactKey(1, -1);
+		ContactKey rc8 = new ContactKey(1, -1);
+		Set<ContactKey> archivedUserIds = ImmutableSet.of(rc5, rc7, rc8);
 
 		ContactUpdates userUpdates = new ContactUpdates();
 		userUpdates.setContacts(updatedUsers);
@@ -111,7 +111,7 @@ public class AddressBookBindingImplTest {
 		allUpdatedContacts.addAll(updatedContacts);
 		allUpdatedContacts.addAll(updatedUsers);
 
-		Set<RemovedContact> allRemovedContacts = new HashSet<RemovedContact>();
+		Set<ContactKey> allRemovedContacts = new HashSet<ContactKey>();
 		allRemovedContacts.addAll(archivedContactIds);
 		allRemovedContacts.addAll(removalCandidates);
 		allRemovedContacts.addAll(archivedUserIds);
@@ -209,21 +209,21 @@ public class AddressBookBindingImplTest {
 
 		List<Contact> updatedContacts = ImmutableList.of(newContact);
 
-		RemovedContact rc1 = new RemovedContact(1, 1);
-		RemovedContact rc2 = new RemovedContact(1, 1);
-		Set<RemovedContact> archivedContactIds = ImmutableSet.of(rc1, rc2);
+		ContactKey rc1 = new ContactKey(1, 1);
+		ContactKey rc2 = new ContactKey(1, 1);
+		Set<ContactKey> archivedContactIds = ImmutableSet.of(rc1, rc2);
 
 		ContactUpdates contactUpdates = new ContactUpdates();
 		contactUpdates.setContacts(updatedContacts);
 		contactUpdates.setArchived(archivedContactIds);
 
-		RemovedContact rc3 = new RemovedContact(3, 2);
-		Set<RemovedContact> removalCandidates = ImmutableSet.of(rc3);
+		ContactKey rc3 = new ContactKey(3, 2);
+		Set<ContactKey> removalCandidates = ImmutableSet.of(rc3);
 
 		Set<Contact> allUpdatedContacts = new HashSet<Contact>();
 		allUpdatedContacts.addAll(updatedContacts);
 
-		Set<RemovedContact> allRemovedContacts = new HashSet<RemovedContact>();
+		Set<ContactKey> allRemovedContacts = new HashSet<ContactKey>();
 		allRemovedContacts.addAll(archivedContactIds);
 		allRemovedContacts.addAll(removalCandidates);
 

@@ -35,14 +35,14 @@ import java.util.List;
 import java.util.Set;
 
 import org.obm.sync.book.Contact;
-import org.obm.sync.book.RemovedContact;
+import org.obm.sync.book.ContactKey;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 public class ContactUpdates {
 
-	private Set<RemovedContact> archived;
+	private Set<ContactKey> archived;
 	private List<Contact> contacts;
 	
 	public ContactUpdates() {
@@ -50,11 +50,11 @@ public class ContactUpdates {
 		contacts = ImmutableList.of();
 	}
 	
-	public Set<RemovedContact> getArchived() {
+	public Set<ContactKey> getArchived() {
 		return archived;
 	}
 
-	public void setArchived(Set<RemovedContact> archivedContactIds) {
+	public void setArchived(Set<ContactKey> archivedContactIds) {
 		this.archived = archivedContactIds;
 	}
 	

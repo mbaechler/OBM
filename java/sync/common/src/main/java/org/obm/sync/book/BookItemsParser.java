@@ -52,6 +52,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+
 public class BookItemsParser extends AbstractItemsParser {
 
 	public AddressBook parseAddressBook(Element root) {
@@ -200,12 +203,12 @@ public class BookItemsParser extends AbstractItemsParser {
 		Element updated = DOMUtils.getUniqueElement(root, "updated");
 
 		NodeList rmed = removed.getElementsByTagName("contact");
-		Set<RemovedContact> removedIds = new HashSet<RemovedContact>();
+		Set<ContactKey> removedIds = new HashSet<ContactKey>();
 		for (int i = 0; i < rmed.getLength(); i++) {
 			Element e = (Element) rmed.item(i);
 			Integer contactId = Integer.parseInt(e.getAttribute("uid"));
 			Integer addressBookId = Integer.parseInt(e.getAttribute("addressBookUid"));
-			removedIds.add(new RemovedContact(contactId, addressBookId));
+			removedIds.add(new ContactKey(contactId, addressBookId));
 		}
 
 		NodeList upd = updated.getElementsByTagName("contact");
@@ -296,6 +299,24 @@ public class BookItemsParser extends AbstractItemsParser {
 		response.setBooksChanges(parseFolderChanges(DOMUtils.getUniqueElement(root, "addressbooks")));
 		response.setContactChanges(parseContactChanges(DOMUtils.getUniqueElement(root, "contacts")));
 		return response;
+	}
+	
+	public List<ContactKey> parseContactKeyList(Document doc) {
+		Builder<ContactKey> contactKeys = ImmutableList.builder();
+		NodeList nodeList = doc.getDocumentElement().getElementsByTagName("key");
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			Element e = (Element) nodeList.item(i);
+			ContactKey key = parseKey(e);
+			contactKeys.add(key);
+		}
+		return contactKeys.build();
+	}
+
+
+	private ContactKey parseKey(Element e) {
+		Integer contactUid = Integer.parseInt(e.getAttribute("uid"));
+		Integer addressBookUid = Integer.parseInt(e.getAttribute("addressBookUid"));
+		return new ContactKey(contactUid, addressBookUid);
 	}
 	
 }

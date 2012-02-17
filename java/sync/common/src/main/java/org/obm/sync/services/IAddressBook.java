@@ -38,10 +38,10 @@ import javax.naming.NoPermissionException;
 
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.AddressBookChangesResponse;
@@ -114,7 +114,7 @@ public interface IAddressBook {
 	/**
 	 * Search contact similar to the given one.
 	 */
-	KeyList getContactTwinKeys(AccessToken token, Contact contact);
+	List<ContactKey> getContactTwinKeys(AccessToken token, Contact contact);
 
 	/**
 	 * Search contacts in a group, based on a solr query

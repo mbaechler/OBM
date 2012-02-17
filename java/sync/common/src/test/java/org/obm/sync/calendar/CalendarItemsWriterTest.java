@@ -48,6 +48,9 @@ import org.obm.sync.utils.DOMUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
+
 /**
  * Serializes calendar related items to XML
  * 
@@ -208,6 +211,32 @@ private CalendarItemsWriter writer;
 		
 		Assert.assertEquals(xmlExpected, out.toString());
 		
+	}
+	
+	@Test
+	public void testGetEventKeyListAxXml() throws TransformerException {
+		Builder<EventKey> keys = ImmutableList.builder();
+		
+		EventObmId obmId1 = new EventObmId(1);
+		EventExtId extId1 = new EventExtId("8f18291d-fd7e-4d09-a1fc-ab42f455221a");
+		keys.add(new EventKey(obmId1, extId1));
+		
+		EventObmId obmId2 = new EventObmId(2);
+		EventExtId extId2 = new EventExtId("01058d81-11ee-465f-9543-52d96cdee8a0");
+		keys.add(new EventKey(obmId2, extId2));
+ 		
+		List<EventKey> keyList = keys.build();
+		Document doc = writer.getEventKeyListAxXml(keyList);
+		ByteArrayOutputStream docString = new ByteArrayOutputStream();
+		DOMUtils.serialize(doc, docString);
+		
+		String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<eventkeylist xmlns=\"http://www.obm.org/xsd/sync/eventkeylist.xsd\">" +
+				"<key extId=\"8f18291d-fd7e-4d09-a1fc-ab42f455221a\" id=\"1\"/>" +
+				"<key extId=\"01058d81-11ee-465f-9543-52d96cdee8a0\" id=\"2\"/>" +
+				"</eventkeylist>";
+		
+		Assert.assertEquals(xmlExpected, docString.toString());
 	}
 
 }

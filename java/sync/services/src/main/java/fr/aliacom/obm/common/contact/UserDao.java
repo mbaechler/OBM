@@ -45,7 +45,7 @@ import org.obm.configuration.ContactConfiguration;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Email;
-import org.obm.sync.book.RemovedContact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,8 +140,8 @@ public class UserDao {
 		return m;
 	}
 
-	public Set<RemovedContact> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
-		Builder<RemovedContact> builder = ImmutableSet.builder();
+	public Set<ContactKey> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
+		Builder<ContactKey> builder = ImmutableSet.builder();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		Connection con = null;
@@ -166,7 +166,7 @@ public class UserDao {
 			}
 			rs = ps.executeQuery();
 			while (rs.next()) {
-				RemovedContact contact = new RemovedContact(rs.getInt(1), contactConfiguration.getAddressBookUserId()); 
+				ContactKey contact = new ContactKey(rs.getInt(1), contactConfiguration.getAddressBookUserId()); 
 				builder.add(contact);
 			}
 

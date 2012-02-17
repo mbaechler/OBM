@@ -41,14 +41,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.MavenVersion;
 import org.obm.sync.base.Category;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.BookItemsWriter;
 import org.obm.sync.book.Contact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.book.Folder;
 import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.CalendarItemsWriter;
 import org.obm.sync.calendar.Event;
+import org.obm.sync.calendar.EventKey;
 import org.obm.sync.calendar.EventParticipationState;
 import org.obm.sync.calendar.EventTimeUpdate;
 import org.obm.sync.calendar.FreeBusy;
@@ -184,15 +185,13 @@ public class XmlResponder {
 		return res;
 	}
 
-	public String sendKeyList(KeyList ret) {
+	public String sendContactKeyList(List<ContactKey> keys) {
 		String res = "";
 		try {
 			Document doc = DOMUtils.createDoc(
-					"http://www.obm.org/xsd/sync/keylist.xsd", "keylist");
+					"http://www.obm.org/xsd/sync/contactKeylist.xsd", "contactkeylist");
 			Element root = doc.getDocumentElement();
-			for (String key : ret.getKeys()) {
-				DOMUtils.createElementAndText(root, "key", key);
-			}
+			biw.appendContactKeyList(root, keys);
 			res = sendDom(doc);
 		} catch (Exception ex) {
 			logger.error(ex.getMessage(), ex);
@@ -461,6 +460,17 @@ public class XmlResponder {
 
 	public void sendlistAddressBooksChanged(FolderChanges folderChanges) {
 		sendDom(biw.writeListAddressBooksChanged(folderChanges));
+	}
+	
+	public String sendEventKeyList(List<EventKey> keys) {
+		String res = "";
+		try {
+			Document doc = ciw.getEventKeyListAxXml(keys);
+			res = sendDom(doc);
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+		return res;
 	}
 
 }

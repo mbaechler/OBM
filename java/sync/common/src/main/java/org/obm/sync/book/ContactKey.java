@@ -2,12 +2,12 @@ package org.obm.sync.book;
 
 import com.google.common.base.Objects;
 
-public class RemovedContact {
+public class ContactKey {
 	
 	private Integer contactId;
 	private Integer addressBookId;
 
-	public RemovedContact(Integer contactId, Integer addressBookId) {
+	public ContactKey(Integer contactId, Integer addressBookId) {
 		super();
 		this.contactId = contactId;
 		this.addressBookId = addressBookId;
@@ -28,8 +28,8 @@ public class RemovedContact {
 
 	@Override
 	public boolean equals(Object object) {
-		if (object instanceof RemovedContact) {
-			RemovedContact that = (RemovedContact) object;
+		if (object instanceof ContactKey) {
+			ContactKey that = (ContactKey) object;
 			
 			return Objects.equal(this.contactId, that.contactId) && 
 					Objects.equal(this.addressBookId, that.addressBookId) ;

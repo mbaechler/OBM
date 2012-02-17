@@ -35,6 +35,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import javax.xml.parsers.FactoryConfigurationError;
 
@@ -403,5 +404,27 @@ public class CalendarItemsParserTest {
 		Assert.assertEquals(1, evEx.getSequence());
 		Assert.assertEquals(2, evEx.getAttendees().size());
 		Assert.assertEquals("0000000", ev.getRecurrence().getDays());
+	}
+	
+	@Test
+	public void testGetEventKeyListAxXml() throws SAXException, IOException, FactoryConfigurationError {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<eventkeylist xmlns=\"http://www.obm.org/xsd/sync/eventkeylist.xsd\">" +
+				"<key extId=\"8f18291d-fd7e-4d09-a1fc-ab42f455221a\" id=\"1\"/>" +
+				"<key extId=\"01058d81-11ee-465f-9543-52d96cdee8a0\" id=\"2\"/>$" +
+				"</eventkeylist>";
+		
+		
+		Document doc = DOMUtils.parse(new ByteArrayInputStream(xml.getBytes()));
+		List<EventKey> keyList = parser.parseEventKeyList(doc);
+		
+		
+		EventKey eventKey1 = new EventKey(new EventObmId(1),  new EventExtId("8f18291d-fd7e-4d09-a1fc-ab42f455221a"));
+		EventKey eventKey2 = new EventKey(new EventObmId(2),  new EventExtId("01058d81-11ee-465f-9543-52d96cdee8a0"));
+		
+		Assert.assertEquals(2, keyList.size());
+		Assert.assertTrue(keyList.contains(eventKey1));
+		Assert.assertTrue(keyList.contains(eventKey2));
+		
 	}
 }

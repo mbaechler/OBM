@@ -43,12 +43,12 @@ import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.base.Category;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.CalendarItemsParser;
 import org.obm.sync.calendar.CalendarItemsWriter;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventKey;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventParticipationState;
 import org.obm.sync.calendar.EventTimeUpdate;
@@ -111,7 +111,7 @@ public abstract class AbstractEventSyncClient extends AbstractClientImpl impleme
 	}
 
 	@Override
-	public KeyList getEventTwinKeys(AccessToken token, String calendar, Event event) throws ServerFault {
+	public List<EventKey> getEventTwinKeys(AccessToken token, String calendar, Event event) throws ServerFault {
 		Multimap<String, String> params = initParams(token);
 		params.put("calendar", calendar);
 		try {
@@ -122,7 +122,7 @@ public abstract class AbstractEventSyncClient extends AbstractClientImpl impleme
 
 		Document doc = execute(token, type + "/getEventTwinKeys", params);
 		exceptionFactory.checkServerFaultException(doc);
-		return respParser.parseKeyList(doc);
+		return respParser.parseEventKeyList(doc);
 	}
 
 	@Override
@@ -249,7 +249,7 @@ public abstract class AbstractEventSyncClient extends AbstractClientImpl impleme
 	}
 
 	@Override
-	public KeyList getRefusedKeys(AccessToken token, String calendar, Date since) throws ServerFault {
+	public List<EventKey> getRefusedKeys(AccessToken token, String calendar, Date since) throws ServerFault {
 		Multimap<String, String> params = initParams(token);
 		params.put("calendar", calendar);
 		if (since != null) {
@@ -260,7 +260,7 @@ public abstract class AbstractEventSyncClient extends AbstractClientImpl impleme
 
 		Document doc = execute(token, type + "/getRefusedKeys", params);
 		exceptionFactory.checkServerFaultException(doc);
-		return respParser.parseKeyList(doc);
+		return respParser.parseEventKeyList(doc);
 	}
 
 	@Override

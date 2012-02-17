@@ -29,24 +29,56 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.sync.base;
+package org.obm.sync.book;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
-public class KeyList {
+import javax.xml.transform.TransformerException;
 
-	private List<String> keys;
+import junit.framework.Assert;
 
-	public KeyList(List<String> keys) {
-		this.keys = keys;
+import org.junit.Before;
+import org.junit.Test;
+import org.obm.sync.items.AbstractItemsWriter;
+import org.obm.sync.utils.DOMUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.google.common.collect.ImmutableList;
+
+public class BookItemsWriterTest extends AbstractItemsWriter {
+
+	private BookItemsWriter writer;
+	
+	@Before
+	public void initCalendarWriter(){
+		writer = new BookItemsWriter();
 	}
+	
+	@Test
+	public void testAppendContactKeyList() throws TransformerException {
+		
+		ContactKey contactKey1 = new ContactKey(1,  3);
+		ContactKey contactKey2 = new ContactKey(2,  4);
 
-	public List<String> getKeys() {
-		return keys;
-	}
+		List<ContactKey> keyList = ImmutableList.of(contactKey1, contactKey2);
+		
+		Document doc = DOMUtils.createDoc(
+				"http://www.obm.org/xsd/sync/contactkeylist.xsd", "contactkeylist");
+		Element root = doc.getDocumentElement();
+		writer.appendContactKeyList(root, keyList);
 
-	public void setKeys(List<String> keys) {
-		this.keys = keys;
+		ByteArrayOutputStream docString = new ByteArrayOutputStream();
+		DOMUtils.serialize(doc, docString);
+		
+		String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<contactkeylist xmlns=\"http://www.obm.org/xsd/sync/contactkeylist.xsd\">" +
+				"<key addressBookUid=\"3\" uid=\"1\"/>" +
+				"<key addressBookUid=\"4\" uid=\"2\"/>" +
+				"</contactkeylist>";
+	
+		Assert.assertEquals(xmlExpected, docString.toString());
 	}
 
 }

@@ -78,7 +78,7 @@ import org.obm.sync.book.Email;
 import org.obm.sync.book.Folder;
 import org.obm.sync.book.InstantMessagingId;
 import org.obm.sync.book.Phone;
-import org.obm.sync.book.RemovedContact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.book.Website;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
@@ -95,6 +95,7 @@ import org.obm.sync.solr.SolrHelper.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.inject.Inject;
@@ -198,7 +199,7 @@ public class ContactDao {
 		try {
 
 			List<Contact> contacts = new ArrayList<Contact>();
-			Builder<RemovedContact> archivedContactIds = ImmutableSet.builder();
+			Builder<ContactKey> archivedContactIds = ImmutableSet.builder();
 
 			con = obmHelper.getConnection();
 			ps = con.prepareStatement(sql);
@@ -220,7 +221,7 @@ public class ContactDao {
 					entityContact.put(c.getEntityId(), c);
 					contacts.add(c);
 				} else {
-					RemovedContact contact = new RemovedContact(rs.getInt(1), rs.getInt("contact_addressbook_id")); 
+					ContactKey contact = new ContactKey(rs.getInt(1), rs.getInt("contact_addressbook_id")); 
 					archivedContactIds.add(contact);
 				}
 			}
@@ -1092,17 +1093,17 @@ public class ContactDao {
 		return removeContact(at, c);
 	}
 
-	public Set<RemovedContact> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
+	public Set<ContactKey> findRemovalCandidates(Date d, AccessToken at) throws SQLException {
 		String sql = getSelectForFindRemovalCandidates(at);
 		return findRemovalCandidates(sql, d);
 	}
 	
-	private Set<RemovedContact> findRemovalCandidates(String sql, Date d) throws SQLException {
+	private Set<ContactKey> findRemovalCandidates(String sql, Date d) throws SQLException {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		Connection con = null;
 
-		Builder<RemovedContact> builder = ImmutableSet.builder();
+		Builder<ContactKey> builder = ImmutableSet.builder();
 		try {
 			con = obmHelper.getConnection();
 			ps = con.prepareStatement(sql);
@@ -1114,7 +1115,7 @@ public class ContactDao {
 			while (rs.next()) {
 				Integer contactId = rs.getInt(1);
 				Integer addressBookId = rs.getInt(2);
-				builder.add(new RemovedContact(contactId, addressBookId));
+				builder.add(new ContactKey(contactId, addressBookId));
 			}
 		} finally {
 			obmHelper.cleanup(con, ps, rs);
@@ -1125,14 +1126,16 @@ public class ContactDao {
 	/**
 	 * Return id of contacts that look similar (used by funambol)
 	 */
-	public List<String> findContactTwinKeys(AccessToken at, Contact contact) {
-		List<String> ret = new LinkedList<String>();
-
+	public List<ContactKey> findContactTwinKeys(AccessToken at, Contact contact) {
+		com.google.common.collect.ImmutableList.Builder<ContactKey> keys = ImmutableList.builder();
 		List<Contact> contacts = searchSimilar(at, contact);
 		for (Contact c : contacts) {
-			ret.add(c.getUid().toString());
+			Integer contactId = c.getUid();
+			Integer addressBookId = c.getFolderId();
+			ContactKey key = new ContactKey(contactId, addressBookId);
+			keys.add(key);
 		}
-		return ret;
+		return keys.build();
 	}
 
 	/**
@@ -1690,7 +1693,7 @@ public class ContactDao {
 		return findUpdatedContacts(sql, lastSync, token);
 	}
 
-	public Set<RemovedContact> findRemovalCandidates(Date lastSync, Integer addressBookId, AccessToken token) throws SQLException {
+	public Set<ContactKey> findRemovalCandidates(Date lastSync, Integer addressBookId, AccessToken token) throws SQLException {
 		String sql = getSelectForFindRemovalCandidates(addressBookId, token);
 		return findRemovalCandidates(sql, lastSync);
 	}

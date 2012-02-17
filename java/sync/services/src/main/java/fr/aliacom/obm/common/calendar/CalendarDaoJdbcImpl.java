@@ -39,7 +39,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -69,6 +68,7 @@ import org.obm.sync.calendar.AttendeeAlert;
 import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventKey;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventOpacity;
 import org.obm.sync.calendar.EventParticipationState;
@@ -93,6 +93,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -612,10 +613,10 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
 	}
 
 	@Override
-	public List<String> findEventTwinKeys(String calendar, Event event,
-			ObmDomain domain) {
+	public List<EventKey> findEventTwinKeys(String calendar, Event event,
+			ObmDomain domain) throws ServerFault {
 
-		String squery = "SELECT DISTINCT event_id from Event "
+		String squery = "SELECT DISTINCT event_id, event_ext_id from Event "
 				+ "INNER JOIN EventLink ON eventlink_event_id=event_id "
 				+ "INNER JOIN UserEntity ON userentity_entity_id=eventlink_entity_id "
 				+ "INNER JOIN UserObm ON userobm_id=userentity_user_id "
@@ -630,8 +631,7 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
 		PreparedStatement query = null;
 		Connection con = null;
 		ResultSet rs = null;
-		List<String> ret = new LinkedList<String>();
-
+		
 		try {
 			con = obmHelper.getConnection();
 			query = con.prepareStatement(squery);
@@ -665,30 +665,25 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
 				query.setInt(index++, domain.getId());
 			}
 			rs = query.executeQuery();
-			while (rs.next()) {
-				ret.add(rs.getString(1));
-			}
-			logger.info("Found " + ret.size() + " results with title "
-					+ event.getTitle() + " date: " + event.getDate()
-					+ " duration: " + event.getDuration() + " domain_id: "
-					+ (domain != null ? domain.getId() : "null"));
+			
+			return getEventKeyListFromResultSet(rs);
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			throw new ServerFault(e.getMessage(), e);
 		} finally {
 			obmHelper.cleanup(con, query, rs);
 		}
-		return ret;
 	}
 
 	@Override
-	public List<String> findRefusedEventsKeys(ObmUser calendarUser, Date d) {
-		List<Integer> result = new LinkedList<Integer>();
+	public List<EventKey> findRefusedEventsKeys(ObmUser calendarUser, Date d) throws ServerFault {
 		Connection con = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-
-		String q = "SELECT eventlink_event_id FROM EventLink, UserEntity WHERE "
-				+ "eventlink_state='DECLINED' AND eventlink_entity_id=userentity_entity_id AND userentity_user_id=? ";
+		
+		String q = "SELECT event_id, event_ext_id FROM Event "
+				+ "INNER JOIN EventLink att ON att.eventlink_event_id=event_id "
+				+ "INNER JOIN UserEntity ue ON att.eventlink_entity_id=ue.userentity_entity_id "
+				+ "WHERE att.eventlink_state='DECLINED' AND ue.userentity_user_id=? ";
 		if (d != null) {
 			q += "AND eventlink_timeupdate >= ?";
 		}
@@ -701,20 +696,26 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
 			}
 
 			rs = ps.executeQuery();
-			while (rs.next()) {
-				result.add(rs.getInt(1));
-			}
-		} catch (SQLException se) {
-			logger.error(se.getMessage(), se);
+			return getEventKeyListFromResultSet(rs);
+			
+		} catch (SQLException e) {
+			throw new ServerFault(e.getMessage(), e);
 		} finally {
 			obmHelper.cleanup(con, ps, rs);
 		}
 
-		List<String> ret = new ArrayList<String>(result.size());
-		for (Integer eid : result) {
-			ret.add(eid.toString());
+	}
+
+	private List<EventKey> getEventKeyListFromResultSet(ResultSet rs) throws SQLException {
+		Builder<EventKey> eventKeys = ImmutableList.builder();
+		
+		while (rs.next()) {
+			EventObmId obmId = new EventObmId( rs.getString("event_id"));
+			EventExtId extId = new EventExtId( rs.getString("event_ext_id"));
+			EventKey key = new EventKey(obmId, extId);
+			eventKeys.add(key);
 		}
-		return ret;
+		return eventKeys.build();
 	}
 
 	private String getAttendeeDisplayName(ResultSet rs) throws SQLException {

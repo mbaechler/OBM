@@ -65,7 +65,7 @@ import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
-import org.obm.sync.book.RemovedContact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.client.login.LoginService;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
@@ -229,7 +229,7 @@ public class ContactsBackend extends ObmSyncBackend implements PIMBackend {
 		}
 
 		List<ItemChange> deletions = new LinkedList<ItemChange>();
-		for (RemovedContact removedContact : contactChanges.getRemoved()) {
+		for (ContactKey removedContact : contactChanges.getRemoved()) {
 			ItemChange change = mappingService.getItemChange(collectionId, String.valueOf(removedContact.getContactId()));
 			deletions.add(change);
 		}

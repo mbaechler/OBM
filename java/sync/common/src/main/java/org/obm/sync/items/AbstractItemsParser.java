@@ -31,10 +31,8 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.items;
 
-import java.util.Arrays;
 import java.util.Date;
 
-import org.obm.sync.base.KeyList;
 import org.obm.sync.utils.DOMUtils;
 import org.obm.sync.utils.DateHelper;
 import org.w3c.dom.Document;
@@ -78,8 +76,4 @@ public abstract class AbstractItemsParser {
 		return DOMUtils.getTexts(doc.getDocumentElement(), "value");
 	}
 
-	public KeyList parseKeyList(Document doc) {
-		String[] keys = DOMUtils.getTexts(doc.getDocumentElement(), "key");
-		return new KeyList(Arrays.asList(keys));
-	}
 }

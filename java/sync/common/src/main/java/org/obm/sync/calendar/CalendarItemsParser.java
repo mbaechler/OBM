@@ -48,6 +48,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 
 public class CalendarItemsParser extends AbstractItemsParser {
 
@@ -346,4 +348,31 @@ public class CalendarItemsParser extends AbstractItemsParser {
 		}
 		return ret;
 	}
+	
+	public List<EventKey> parseEventKeyList(Document doc) {
+		Builder<EventKey> eventKeys = ImmutableList.builder();
+		
+		NodeList nodeList = doc.getDocumentElement().getElementsByTagName("key");
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			Element e = (Element) nodeList.item(i);
+			
+			EventObmId obmId = getEventObmIdFromKey(e);
+			EventExtId extId = getEventExtIdFromKey(e);
+			EventKey key = new EventKey(obmId, extId);
+			eventKeys.add(key);
+		}
+		return eventKeys.build();
+	}
+
+
+	private EventExtId getEventExtIdFromKey(Element e) {
+		String extId = e.getAttribute("extId");
+		return new EventExtId(extId);
+	}
+
+	private EventObmId getEventObmIdFromKey(Element e) {
+		Integer obmId = Integer.parseInt(e.getAttribute("id"));
+		return new EventObmId(obmId);
+	}
+
 }

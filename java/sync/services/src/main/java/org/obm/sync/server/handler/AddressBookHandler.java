@@ -41,11 +41,11 @@ import javax.xml.parsers.FactoryConfigurationError;
 import org.obm.configuration.ContactConfiguration;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.BookItemsParser;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.AddressBookChangesResponse;
@@ -130,8 +130,8 @@ public class AddressBookHandler extends SecureSyncHandler {
 
 	private void getContactTwinKeys(AccessToken at, ParametersSource params, XmlResponder responder) throws SAXException, IOException, FactoryConfigurationError {
 		Contact contact = getContactFromParams(params);
-		KeyList ret = binding.getContactTwinKeys(at, contact);
-		responder.sendKeyList(ret);
+		List<ContactKey> ret = binding.getContactTwinKeys(at, contact);
+		responder.sendContactKeyList(ret);
 	}
 
 	private BookType type(ParametersSource params) {

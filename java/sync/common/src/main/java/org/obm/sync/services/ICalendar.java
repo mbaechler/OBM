@@ -41,10 +41,10 @@ import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.base.Category;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventKey;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventParticipationState;
 import org.obm.sync.calendar.EventTimeUpdate;
@@ -159,7 +159,7 @@ public interface ICalendar {
 	 * equals to the given event User needs read access on selected calendar to
 	 * execute this service.
 	 */
-	KeyList getEventTwinKeys(AccessToken token, String calendar, Event event)
+	List<EventKey> getEventTwinKeys(AccessToken token, String calendar, Event event)
 			throws ServerFault;
 
 	/**
@@ -171,7 +171,7 @@ public interface ICalendar {
 	 * list all eventId of event refused on calendar. User needs read access on
 	 * selected calendar to execute this service.
 	 */
-	KeyList getRefusedKeys(AccessToken token, String calendar, Date since)
+	List<EventKey> getRefusedKeys(AccessToken token, String calendar, Date since)
 			throws ServerFault;
 
 	/**

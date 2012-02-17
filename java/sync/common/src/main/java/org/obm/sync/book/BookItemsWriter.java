@@ -33,6 +33,7 @@ package org.obm.sync.book;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -189,7 +190,7 @@ public class BookItemsWriter extends AbstractItemsWriter {
 	private void createContactChanges(ContactChanges cc, Element root) {
 		
 		Element removed = DOMUtils.createElement(root, "removed");
-		for (RemovedContact eid : cc.getRemoved()) {
+		for (ContactKey eid : cc.getRemoved()) {
 			Element e = DOMUtils.createElement(removed, "contact");
 			e.setAttribute("uid", "" + eid.getContactId());
 			e.setAttribute("addressBookUid", "" + eid.getAddressBookId());
@@ -269,6 +270,14 @@ public class BookItemsWriter extends AbstractItemsWriter {
 		root.setAttribute("lastSync", DateHelper.asString(folderChanges.getLastSync()));
 		createFolderChanges(folderChanges, root);
 		return doc;
+	}
+
+	public void appendContactKeyList(Element root, List<ContactKey> contactKeyList) {
+		for (ContactKey key : contactKeyList) {
+			Element element = DOMUtils.createElement(root, "key");
+			element.setAttribute("uid", key.getContactId().toString());
+			element.setAttribute("addressBookUid", key.getAddressBookId().toString());
+		}
 	}
 
 }

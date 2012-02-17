@@ -45,11 +45,11 @@ import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.base.Category;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.CalendarItemsParser;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventKey;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventParticipationState;
 import org.obm.sync.calendar.EventTimeUpdate;
@@ -353,16 +353,16 @@ public class EventHandler extends SecureSyncHandler {
 
 	private String getRefusedKeys(AccessToken at, ParametersSource params, XmlResponder responder) 
 		throws ServerFault {
-		KeyList ret = binding.getRefusedKeys(at, 
+		List<EventKey> ret = binding.getRefusedKeys(at, 
 				getCalendar(at, params), 
 				DateHelper.asDate(params.getParameter("since")));
-		return responder.sendKeyList(ret);
+		return responder.sendEventKeyList(ret);
 	}
 
 	private String getEventTwinKeys(AccessToken at, ParametersSource params, XmlResponder responder) 
 		throws ServerFault, SAXException, IOException, FactoryConfigurationError {
-		KeyList kl = binding.getEventTwinKeys(at, getCalendar(at, params), getEvent(params));
-		return responder.sendKeyList(kl);
+		List<EventKey> kl = binding.getEventTwinKeys(at, getCalendar(at, params), getEvent(params));
+		return responder.sendEventKeyList(kl);
 	}
 
 	private String listCalendars(AccessToken at, XmlResponder responder) throws ServerFault {

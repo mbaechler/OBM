@@ -365,4 +365,25 @@ public class CalendarItemsWriter extends AbstractItemsWriter {
 		}
 		return out.toString();
 	}
+
+	public Document getEventKeyListAxXml(List<EventKey> ret) {
+		Document doc = null;
+		try {
+			doc = DOMUtils.createDoc(
+					"http://www.obm.org/xsd/sync/eventkeylist.xsd", "eventkeylist");
+			Element root = doc.getDocumentElement();
+			appendEventKey(root, ret);
+		} catch (Exception ex) {
+			logger.error(ex.getMessage(), ex);
+		}
+		return doc;
+	}
+
+	private void appendEventKey(Element root, List<EventKey> keys) {
+		for (EventKey key : keys) {
+			Element element = DOMUtils.createElement(root, "key");
+			element.setAttribute("id", key.getEventObmId().serializeToString());
+			element.setAttribute("extId", key.getEventExtId().serializeToString());
+		}
+	}
 }

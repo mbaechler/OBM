@@ -29,44 +29,49 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.sync.items;
+package org.obm.sync.book;
 
-import java.util.Date;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
-import org.obm.sync.book.Contact;
-import org.obm.sync.book.ContactKey;
+import javax.xml.parsers.FactoryConfigurationError;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import junit.framework.Assert;
 
-public class ContactChanges {
+import org.junit.Before;
+import org.junit.Test;
+import org.obm.sync.utils.DOMUtils;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+public class BookItemsParserTest {
 	
-	private final List<Contact> updated;
-	private final Set<ContactKey> removed;
-	private final Date lastSync;
+	private BookItemsParser parser;
 	
-	public ContactChanges() {
-		this(Lists.<Contact>newArrayList(), Sets.<ContactKey>newHashSet(), null);
+	@Before
+	public void initCalendarParser(){
+		parser = new BookItemsParser();
 	}
 	
-	public ContactChanges(List<Contact> updated, Set<ContactKey> removed, Date lastSync) {
-		this.updated = updated;
-		this.removed = removed;
-		this.lastSync = lastSync;
+	@Test
+	public void testGetEventKeyListAxXml() throws SAXException, IOException, FactoryConfigurationError {
+		String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<contactkeylist xmlns=\"http://www.obm.org/xsd/sync/contactkeylist.xsd\">" +
+				"<key uid=\"1\" addressBookUid=\"3\"/>" +
+				"<key uid=\"2\" addressBookUid=\"4\"/>$" +
+				"</contactkeylist>";
+		
+		
+		Document doc = DOMUtils.parse(new ByteArrayInputStream(xml.getBytes()));
+		List<ContactKey> keyList = parser.parseContactKeyList(doc);
+		
+		ContactKey contactKey1 = new ContactKey(1,  3);
+		ContactKey contactKey2 = new ContactKey(2,  4);
+		
+		Assert.assertEquals(2, keyList.size());
+		Assert.assertTrue(keyList.contains(contactKey1));
+		Assert.assertTrue(keyList.contains(contactKey2));
+		
 	}
-
-	public List<Contact> getUpdated() {
-		return updated;
-	}
-	
-	public Set<ContactKey> getRemoved() {
-		return removed;
-	}
-
-	public Date getLastSync() {
-		return lastSync;
-	}
-	
 }

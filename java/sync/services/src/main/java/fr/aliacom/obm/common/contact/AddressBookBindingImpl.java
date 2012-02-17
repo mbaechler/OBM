@@ -49,12 +49,11 @@ import org.obm.push.utils.DateUtils;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
-import org.obm.sync.base.KeyList;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.BookType;
 import org.obm.sync.book.Contact;
 import org.obm.sync.book.Folder;
-import org.obm.sync.book.RemovedContact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
 import org.obm.sync.items.AddressBookChangesResponse;
@@ -183,15 +182,15 @@ public class AddressBookBindingImpl implements IAddressBook {
 		} else {
 			userUpdates = new ContactUpdates();
 		}
-		Set<RemovedContact> removalCandidates = contactDao.findRemovalCandidates(timestamp, token);
+		Set<ContactKey> removalCandidates = contactDao.findRemovalCandidates(timestamp, token);
 		
 		return new ContactChanges(getUpdatedContacts(contactUpdates, userUpdates),
 				getRemovedContacts(contactUpdates, userUpdates, removalCandidates), getLastSync());
 	}
 	
-	private Set<RemovedContact> getRemovedContacts(ContactUpdates contactUpdates,
-			ContactUpdates userUpdates, Set<RemovedContact> removalCandidates) {
-		SetView<RemovedContact> archived = Sets.union( contactUpdates.getArchived(), userUpdates.getArchived());
+	private Set<ContactKey> getRemovedContacts(ContactUpdates contactUpdates,
+			ContactUpdates userUpdates, Set<ContactKey> removalCandidates) {
+		SetView<ContactKey> archived = Sets.union( contactUpdates.getArchived(), userUpdates.getArchived());
 		return Sets.union(archived, removalCandidates);
 	}
 
@@ -221,10 +220,9 @@ public class AddressBookBindingImpl implements IAddressBook {
 		}
 	}
 
-	
 	private boolean contactAlreadyExist(AccessToken token, Contact contact) {
-		KeyList duplicates = getContactTwinKeys(token, contact);
-		if (duplicates.getKeys() != null && !duplicates.getKeys().isEmpty()) {
+		List<ContactKey> duplicates = getContactTwinKeys(token, contact);
+		if ( !duplicates.isEmpty()) {
 			return true;
 		}
 		return false;
@@ -289,9 +287,8 @@ public class AddressBookBindingImpl implements IAddressBook {
 
 	@Override
 	@Transactional
-	public KeyList getContactTwinKeys(AccessToken token, Contact contact) {
-		List<String> keys = contactDao.findContactTwinKeys(token, contact);
-		return new KeyList(keys);
+	public List<ContactKey> getContactTwinKeys(AccessToken token, Contact contact) {
+		return contactDao.findContactTwinKeys(token, contact);
 	}
 
 	@Override
@@ -373,7 +370,7 @@ public class AddressBookBindingImpl implements IAddressBook {
 	@Transactional
 	public ContactChanges listContactsChanged(AccessToken token, Date lastSync, Integer addressBookId) throws ServerFault {
 		try {
-			Set<RemovedContact> removal = null;
+			Set<ContactKey> removal = null;
 			ContactUpdates contactUpdates = null;
 			
 			if (addressBookId == contactConfiguration.getAddressBookUserId()) {

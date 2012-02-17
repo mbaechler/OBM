@@ -44,6 +44,7 @@ import org.obm.sync.auth.ServerFault;
 import org.obm.sync.calendar.CalendarInfo;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventKey;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventParticipationState;
 import org.obm.sync.calendar.EventTimeUpdate;
@@ -71,13 +72,13 @@ public interface CalendarDao {
 	
 	Event findEventByExtIdAndRecurrenceId(AccessToken token, ObmUser calendarUser, EventExtId eventExtId, RecurrenceId recurrenceId) throws ParseException;
 
-	List<String> findEventTwinKeys(String calendar, Event event, ObmDomain domain);
+	List<EventKey> findEventTwinKeys(String calendar, Event event, ObmDomain domain) throws ServerFault;
 
 	Date findLastUpdate(AccessToken token, String calendar);
 
 	List<Event> listEventsByIntervalDate(AccessToken token, ObmUser obmUser, Date start, Date end, EventType typeFilter);
 
-	List<String> findRefusedEventsKeys(ObmUser calendarUser, Date date);
+	List<EventKey> findRefusedEventsKeys(ObmUser calendarUser, Date date) throws ServerFault;
 
 	List<EventParticipationState> getEventParticipationStateWithAlertFromIntervalDate(
 			AccessToken token, ObmUser calendarUser, Date start, Date end,
