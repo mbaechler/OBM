@@ -15,13 +15,13 @@ public interface ICalendarService {
 	Calendar addItem(SyncSession syncBean, Calendar event)
 			throws OBMException;
 
-	List<String> getAllItemKeys(SyncSession syncBean) throws OBMException;
+	List<SyncItemKey> getAllItemKeys(SyncSession syncBean) throws OBMException;
 
-	List<String> getDeletedItemKeys(SyncSession syncBean, Timestamp since) throws OBMException;
+	List<SyncItemKey> getDeletedItemKeys(SyncSession syncBean, Timestamp since) throws OBMException;
 
-	List<String> getEventTwinKeys(SyncSession syncBean, Calendar event) throws OBMException;
+	List<SyncItemKey> getEventTwinKeys(SyncSession syncBean, Calendar event) throws OBMException;
 
-	List<String> getUpdatedItemKeys(SyncSession syncBean, Timestamp since)
+	List<SyncItemKey> getUpdatedItemKeys(SyncSession syncBean, Timestamp since)
 			throws OBMException;
 
 	void removeItem(SyncSession syncBean, SyncItemKey syncItemKey) throws OBMException;

@@ -1,16 +1,38 @@
 package org.obm.sync.book;
 
+import java.util.regex.PatternSyntaxException;
+
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 public class ContactKey {
 	
-	private Integer contactId;
-	private Integer addressBookId;
+	protected Integer contactId;
+	protected Integer addressBookId;
 
 	public ContactKey(Integer contactId, Integer addressBookId) {
 		super();
 		this.contactId = contactId;
 		this.addressBookId = addressBookId;
+	}
+	
+	public ContactKey(String funambolKey) throws IllegalArgumentException {
+		Preconditions.checkNotNull(funambolKey);
+		try{
+			String[] ids = funambolKey.split(":");
+			if(ids == null || ids.length != 2){
+				throw new IllegalArgumentException("Invalid funambol key:"+funambolKey);
+			}
+			addressBookId = Integer.valueOf(ids[0]);
+			contactId = Integer.valueOf(ids[1]);
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Invalid funambol key:"+funambolKey);
+		} catch (PatternSyntaxException e) {
+			throw new IllegalArgumentException("Invalid funambol key:"+funambolKey);
+		}
+	}
+
+	protected ContactKey() {
 	}
 
 	public Integer getContactId() {
@@ -42,7 +64,10 @@ public class ContactKey {
 		return "RemovedContact [contactId=" + contactId + ", addressBookId="
 				+ addressBookId + "]";
 	}
-	
+
+	public String serialiseAsFunambolKey(){
+		return this.addressBookId+":"+this.contactId;
+	}
 	
 	
 }

@@ -9,17 +9,16 @@ import java.util.Set;
 import javax.naming.NoPermissionException;
 
 import org.obm.configuration.ContactConfiguration;
+import org.obm.funambol.converter.ISyncItemKeyConverter;
 import org.obm.funambol.converter.ObmContactConverter;
-import org.obm.funambol.exception.InvalidFunambolKeyException;
 import org.obm.funambol.exception.OBMException;
 import org.obm.funambol.model.ContactChanges;
-import org.obm.funambol.model.ContactKey;
 import org.obm.funambol.model.SyncSession;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.auth.ServerFault;
 import org.obm.sync.book.AddressBook;
 import org.obm.sync.book.Contact;
-import org.obm.sync.book.RemovedContact;
+import org.obm.sync.book.ContactKey;
 import org.obm.sync.client.book.BookClient;
 import org.obm.sync.exception.ContactAlreadyExistException;
 import org.obm.sync.exception.ContactNotFoundException;
@@ -40,44 +39,48 @@ public class ContactServiceObmImpl extends ObmService implements IContactService
 	private final BookClient bookClient;
 	private final ContactConfiguration contactConfiguration;
 	private final ObmContactConverter contactConverter;
-
+	private final ISyncItemKeyConverter syncItemKeyConverter;
+	
 	@Inject
 	private ContactServiceObmImpl(final BookClient bookClient, 
-			final ContactConfiguration contactConfiguration, final ObmContactConverter contactConverter) {
+			final ContactConfiguration contactConfiguration, final ObmContactConverter contactConverter, 
+			final ISyncItemKeyConverter syncItemKeyConverter) {
 		this.bookClient = bookClient;
 		this.contactConfiguration = contactConfiguration;
 		this.contactConverter = contactConverter;
+		this.syncItemKeyConverter = syncItemKeyConverter;
 	}
 
 	@Override
-	public List<String> getAllItemKeys(SyncSession syncSession) throws OBMException {
+	public List<SyncItemKey> getAllItemKeys(SyncSession syncSession) throws OBMException {
 		final ContactChanges changes = getSync(syncSession, null);
-		final Set<String> updatedSet = changes.getUpdated().keySet();
-		return ImmutableList.<String>copyOf(updatedSet);
+		final Set<ContactKey> updatedSet = changes.getUpdated().keySet();
+		return syncItemKeyConverter.getSyncItemKeysFromContactKeys(updatedSet);
 	}
 
 	@Override
-	public List<String> getDeletedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException {
+	public List<SyncItemKey> getDeletedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException {
 		final ContactChanges changes = getSync(syncSession, since);
-		return changes.getDeleted();
+		final Set<ContactKey> updatedSet = changes.getDeleted();
+		return syncItemKeyConverter.getSyncItemKeysFromContactKeys(updatedSet);
 	}
 
 	@Override
-	public List<String> getUpdatedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException {
+	public List<SyncItemKey> getUpdatedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException {
 		final ContactChanges changes = getSync(syncSession, since);
-		final Set<String> uids = changes.getUpdated().keySet();
-		return ImmutableList.<String>copyOf(uids);
+		final Set<ContactKey> updatedSet = changes.getUpdated().keySet();
+		return syncItemKeyConverter.getSyncItemKeysFromContactKeys(updatedSet);
 	}
 
 	@Override
 	public com.funambol.common.pim.contact.Contact getItemFromId(SyncSession syncSession, SyncItemKey syncItemKey) throws OBMException {
 		try {
-			final ContactKey key = getContactKeyFromSyncItemKey(syncItemKey);
+			final ContactKey key = syncItemKeyConverter.getContactKeyFromSyncItemKey(syncItemKey);
 			 final Contact obmContact = bookClient.getContactFromId(syncSession.getObmAccessToken(), key.getAddressBookId(), key.getContactId());
 			 return contactConverter.obmContactTofoundation(obmContact);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage(),e);
-		} catch (InvalidFunambolKeyException e) {
+		} catch (IllegalArgumentException e) {
 			throw new OBMException(e.getMessage(),e);
 		} catch (ContactNotFoundException e) {
 			throw new OBMException(e.getMessage(),e);
@@ -87,13 +90,13 @@ public class ContactServiceObmImpl extends ObmService implements IContactService
 	@Override
 	public void removeItem(SyncSession syncSession, SyncItemKey syncItemKey) throws OBMException {
 		try {
-			ContactKey contactKey = getContactKeyFromSyncItemKey(syncItemKey);
+			ContactKey contactKey = syncItemKeyConverter.getContactKeyFromSyncItemKey(syncItemKey);
 			bookClient.removeContact(syncSession.getObmAccessToken(), contactKey.getAddressBookId(), contactKey.getContactId());
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage(),e);
 		} catch (ContactNotFoundException e) {
 			throw new OBMException(e.getMessage(),e);
-		} catch (InvalidFunambolKeyException e) {
+		} catch (IllegalArgumentException e) {
 			throw new OBMException(e.getMessage(),e);
 		} catch (NoPermissionException e) {
 			throw new OBMException(e.getMessage(),e);
@@ -137,17 +140,17 @@ public class ContactServiceObmImpl extends ObmService implements IContactService
 	}
 
 	@Override
-	public List<String> getContactTwinKeys(SyncSession syncSession,
+	public List<SyncItemKey> getContactTwinKeys(SyncSession syncSession,
 			com.funambol.common.pim.contact.Contact contact) {
 
 		Contact c = contactConverter.foundationContactToObm(contact);
-
 		if (logger.isDebugEnabled()) {
 			logger.debug(" look twin of : " + c.getFirstname() + ","
 					+ c.getLastname() + "," + c.getCompany());
 		}
 		c.setUid(null);
-		return bookClient.getContactTwinKeys(syncSession.getObmAccessToken(), c).getKeys();
+		List<ContactKey> contactKeys = bookClient.getContactTwinKeys(syncSession.getObmAccessToken(), c);
+		return syncItemKeyConverter.getSyncItemKeysFromContactKeys(contactKeys);
 	}
 
 	private AddressBook getDefaultAddressBook(AccessToken token) throws OBMException {
@@ -175,10 +178,10 @@ public class ContactServiceObmImpl extends ObmService implements IContactService
 			AddressBookChangesResponse sync = bookClient.getAddressBookSync(session.getObmAccessToken(), lastSync);
 	
 			List<Contact> updated = getListUpdatedContact(sync);
-			Set<RemovedContact> deleted = getRemovedContacts(sync);
+			Set<ContactKey> deleted = getRemovedContacts(sync);
 			
-			Map<String, Contact> updatedRest = transformAsFunambolUpdated(updated);
-			List<String> deletedRest = transformAsFunambolRemoved(deleted);
+			Map<ContactKey, Contact> updatedRest = transformAsFunambolUpdated(updated);
+			Set<ContactKey> deletedRest = transformAsFunambolRemoved(deleted);
 			
 			return new ContactChanges(updatedRest, deletedRest);
 		}catch (ServerFault e) {
@@ -186,26 +189,27 @@ public class ContactServiceObmImpl extends ObmService implements IContactService
 		}
 	}
 	
-	private List<String> transformAsFunambolRemoved(Set<RemovedContact> deleteds) {
-		ImmutableList.Builder<String> mapBuilder = ImmutableList.builder();
-		for (RemovedContact removedContact : deleteds) {
+	private Set<ContactKey> transformAsFunambolRemoved(Set<ContactKey> deleteds) {
+		ImmutableSet.Builder<ContactKey> mapBuilder = ImmutableSet.builder();
+		for (ContactKey removedContact : deleteds) {
 			ContactKey key = new ContactKey(removedContact.getAddressBookId(), removedContact.getContactId()); 
-			mapBuilder.add(key.serialiseAsFunambolKey());
+			mapBuilder.add(key);
 		}
 		return mapBuilder.build();
 	}
-
-	private Map<String, Contact> transformAsFunambolUpdated(List<Contact> updated) {
-		Builder<String, Contact> mapBuilder = ImmutableMap.builder();
+	
+	private Map<ContactKey, Contact> transformAsFunambolUpdated(List<Contact> updated) {
+		Builder<ContactKey, Contact> mapBuilder = ImmutableMap.builder();
 		for (Contact c : updated) {
 			ContactKey key = new ContactKey(c.getFolderId(), c.getUid()); 
-			mapBuilder.put(key.serialiseAsFunambolKey(), c);
+			mapBuilder.put(key, c);
 		}
 		return mapBuilder.build();
 	}
 
-	private Set<RemovedContact> getRemovedContacts(AddressBookChangesResponse sync) {
-		return sync.getRemovedContacts() != null ? sync.getRemovedContacts() : ImmutableSet.<RemovedContact>of();
+
+	private Set<ContactKey> getRemovedContacts(AddressBookChangesResponse sync) {
+		return sync.getRemovedContacts() != null ? sync.getRemovedContacts() : ImmutableSet.<ContactKey>of();
 	}
 
 	private List<Contact> getListUpdatedContact(AddressBookChangesResponse sync) {
@@ -214,11 +218,6 @@ public class ContactServiceObmImpl extends ObmService implements IContactService
 
 	private Date getLastSync(Timestamp since) {
 		return since != null ? new Date(since.getTime()) : null;
-	}
-
-	private ContactKey getContactKeyFromSyncItemKey(SyncItemKey syncItemKey) throws InvalidFunambolKeyException {
-		final String itemKey = getCheckedSyncItemKeyAsString(syncItemKey);
-		return new ContactKey(itemKey);
 	}
 
 }

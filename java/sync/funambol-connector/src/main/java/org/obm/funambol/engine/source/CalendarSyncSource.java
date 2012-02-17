@@ -75,11 +75,9 @@ public class CalendarSyncSource extends ObmSyncSource {
 	public SyncItemKey[] getAllSyncItemKeys() throws SyncSourceException {
 		try {
 			logger.info("getAllSyncItemKeys(" + syncSession.getUserLogin() + ")");
-			List<String> keys = calendarService.getAllItemKeys(syncSession);
-			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-
-			logger.info(" returning " + ret.length + " key(s)");
-			return ret;
+			List<SyncItemKey> keys = calendarService.getAllItemKeys(syncSession);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -91,12 +89,9 @@ public class CalendarSyncSource extends ObmSyncSource {
 		logger.info("getDeletedSyncItemKeys(" + syncSession.getUserLogin() + " , " + since
 				+ " , " + until + ")");
 		try {
-			List<String> keys = calendarService.getDeletedItemKeys(syncSession, since);
-			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-
-			logger.info(" returning " + ret.length + " key(s)");
-
-			return ret;
+			List<SyncItemKey> keys = calendarService.getDeletedItemKeys(syncSession, since);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -123,10 +118,9 @@ public class CalendarSyncSource extends ObmSyncSource {
 			if (event == null) {
 				return new SyncItemKey[0];
 			}
-			List<String> keys = calendarService.getEventTwinKeys(syncSession, event);
-			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-			logger.info(" returning " + ret.length + " key(s)");
-			return ret;
+			List<SyncItemKey> keys = calendarService.getEventTwinKeys(syncSession, event);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (OBMException e) {
 			logger.error(e.getMessage(), e);
 			throw new SyncSourceException(e);
@@ -143,13 +137,9 @@ public class CalendarSyncSource extends ObmSyncSource {
 		try {
 			logger.info("getUpdatedSyncItemKeys(" + syncSession.getUserLogin() + " , " + since
 					+ " , " + until + ")");
-			
-			List<String> keys = calendarService.getUpdatedItemKeys(syncSession, since);
-			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-
-			logger.info(" returning " + ret.length + " key(s)");
-
-			return ret;
+			List<SyncItemKey> keys = calendarService.getUpdatedItemKeys(syncSession, since);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}

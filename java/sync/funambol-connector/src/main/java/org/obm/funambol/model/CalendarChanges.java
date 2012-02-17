@@ -1,7 +1,7 @@
 package org.obm.funambol.model;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
@@ -9,10 +9,10 @@ import org.obm.sync.calendar.EventExtId;
 public class CalendarChanges {
 	
 	private Map<EventExtId, Event> updated;
-	private List<EventExtId> deleted;
+	private Set<EventExtId> deleted;
 	
 	public CalendarChanges(Map<EventExtId, Event> updated,
-			List<EventExtId> deleted) {
+			Set<EventExtId> deleted) {
 		this.updated = updated;
 		this.deleted = deleted;
 	}
@@ -21,7 +21,7 @@ public class CalendarChanges {
 		return updated;
 	}
 
-	public List<EventExtId> getDeleted() {
+	public Set<EventExtId> getDeleted() {
 		return deleted;
 	}
 	

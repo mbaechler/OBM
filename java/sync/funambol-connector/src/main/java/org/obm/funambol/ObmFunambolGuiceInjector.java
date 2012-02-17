@@ -5,9 +5,11 @@ import org.obm.configuration.ConfigurationServiceImpl;
 import org.obm.funambol.converter.IContactConverter;
 import org.obm.funambol.converter.IEventConverter;
 import org.obm.funambol.converter.ISyncItemConverter;
+import org.obm.funambol.converter.ISyncItemKeyConverter;
 import org.obm.funambol.converter.ObmContactConverter;
 import org.obm.funambol.converter.ObmEventConverter;
 import org.obm.funambol.converter.SyncItemConverterImpl;
+import org.obm.funambol.converter.SyncItemKeyConverter;
 import org.obm.funambol.service.CalendarServiceObmImpl;
 import org.obm.funambol.service.ContactServiceObmImpl;
 import org.obm.funambol.service.ICalendarService;
@@ -51,6 +53,7 @@ public class ObmFunambolGuiceInjector {
 			bind(ISyncItemConverter.class).to(SyncItemConverterImpl.class);
 			bind(ICalendarService.class).to(CalendarServiceObmImpl.class);
 			bind(IContactService.class).to(ContactServiceObmImpl.class);
+			bind(ISyncItemKeyConverter.class).to(SyncItemKeyConverter.class);
 		}
 		
 	}

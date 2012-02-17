@@ -70,16 +70,14 @@ public final class ContactSyncSource extends ObmSyncSource implements
 	@Override
 	public SyncItemKey[] getAllSyncItemKeys() throws SyncSourceException {
 		logger.info("getAllSyncItemKeys(" + syncSession.getUserLogin() + ")");
-		List<String> keys = null;
 		try {
-			keys = contactService.getAllItemKeys(syncSession);
+			List<SyncItemKey> keys = contactService.getAllItemKeys(syncSession);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
-		SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-		logger.info(" returning " + ret.length + " key(s)");
-
-		return ret;
+		
 	}
 
 	@Override
@@ -88,10 +86,9 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		logger.info("getDeletedSyncItemKeys(" + syncSession.getUserLogin() + " , " + since
 				+ " , " + until + ")");
 		try {
-			List<String> keys = contactService.getDeletedItemKeys(syncSession, since);
-			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-			logger.info(" returning " + ret.length + " key(s)");
-			return ret;
+			List<SyncItemKey> keys = contactService.getDeletedItemKeys(syncSession, since);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}
@@ -112,13 +109,9 @@ public final class ContactSyncSource extends ObmSyncSource implements
 			syncItem.getKey().setKeyValue("");
 			
 			Contact contact = syncItemConverter.getFunambolContactFromSyncItem(syncSession, syncItem, getSourceType());
-			List<String> keys = contactService.getContactTwinKeys(syncSession, contact);
-			
-			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-
-			logger.info(" returning " + ret.length + " key(s)");
-
-			return ret;
+			List<SyncItemKey> keys = contactService.getContactTwinKeys(syncSession, contact);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (ConvertionException e) {
 			throw new SyncSourceException(e.getMessage(), e);
 		} catch (OBMException e) {
@@ -133,11 +126,9 @@ public final class ContactSyncSource extends ObmSyncSource implements
 		logger.info("getUpdatedSyncItemKeys(" + syncSession.getUserLogin() + " , " + since
 				+ " , " + until + ")");
 		try {
-			List<String> keys = contactService.getUpdatedItemKeys(syncSession, since);
-			SyncItemKey[] ret = getSyncItemKeysFromKeys(keys);
-			logger.info(" returning " + ret.length + " key(s)");
-
-			return ret;
+			List<SyncItemKey> keys = contactService.getUpdatedItemKeys(syncSession, since);
+			logger.info(" returning " + keys.size() + " key(s)");
+			return tranformAsSyncItemKeyArray(keys);
 		} catch (OBMException e) {
 			throw new SyncSourceException(e);
 		}

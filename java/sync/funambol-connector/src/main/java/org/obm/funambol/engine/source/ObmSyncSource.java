@@ -128,21 +128,6 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 	public void init() throws BeanInitializationException {
 	}
 	
-	
-	public SyncItemKey[] getSyncItemKeysFromKeys(List<String> keys) {
-		int nb = 0;
-		SyncItemKey[] syncKeys = null;
-		if (keys != null) {
-			nb = keys.size();
-			syncKeys = new SyncItemKey[nb];
-			for (int i = 0; i < nb; i++) {
-				syncKeys[i] = new SyncItemKey(keys.get(i));
-			}
-		}
-
-		return syncKeys;
-	}
-	
 	public String getSourceType() {
 		if (getInfo() != null && getInfo().getPreferredType() != null) {
 			return getInfo().getSupportedTypes()[0].getType();
@@ -164,4 +149,7 @@ public abstract class ObmSyncSource extends AbstractSyncSource implements
 		return syncSession;
 	}
 	
+	protected SyncItemKey[] tranformAsSyncItemKeyArray(List<SyncItemKey> keys) {
+		return keys.toArray(new SyncItemKey[keys.size()]);
+	}
 }

@@ -14,13 +14,13 @@ public interface IContactService {
 
 	Contact addItem(SyncSession syncSession, Contact contact) throws OBMException;
 
-	List<String> getAllItemKeys(SyncSession syncSession) throws OBMException;
+	List<SyncItemKey> getAllItemKeys(SyncSession syncSession) throws OBMException;
 
-	List<String> getDeletedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException;
+	List<SyncItemKey> getDeletedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException;
 
-	List<String> getContactTwinKeys(SyncSession syncSession, Contact contact) throws OBMException;
+	List<SyncItemKey> getContactTwinKeys(SyncSession syncSession, Contact contact) throws OBMException;
 
-	List<String> getUpdatedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException;
+	List<SyncItemKey> getUpdatedItemKeys(SyncSession syncSession, Timestamp since) throws OBMException;
 
 	void removeItem(SyncSession syncSession, SyncItemKey syncItemKey) throws OBMException;
 
