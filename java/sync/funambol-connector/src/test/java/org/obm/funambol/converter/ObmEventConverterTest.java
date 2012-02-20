@@ -122,7 +122,27 @@ public class ObmEventConverterTest {
 		Calendar funisEvent = converter.obmEventToFoundationCalendar(event);
 		
 		Assert.assertTrue(funisEvent.getEvent().isAllDay());
+		Assert.assertEquals("20120207", funisEvent.getEvent().getDtStart().getPropertyValueAsString());
+		Assert.assertEquals("20120207", funisEvent.getEvent().getDtEnd().getPropertyValueAsString());
 	}
+	
+	@Test
+	public void testConvertObmAllTwoDay() throws ConvertionException{
+		Event event = getMinimalEvent();
+		java.util.Calendar start = java.util.Calendar.getInstance();
+		start.set(2012, java.util.Calendar.FEBRUARY, 7, 16, 30, 0);
+		event.setDate(start.getTime());
+		event.setDuration(172800);
+		event.setAllday(true);
+		
+		ObmEventConverter converter = new ObmEventConverter();
+		Calendar funisEvent = converter.obmEventToFoundationCalendar(event);
+		
+		Assert.assertTrue(funisEvent.getEvent().isAllDay());
+		Assert.assertEquals("20120207", funisEvent.getEvent().getDtStart().getPropertyValueAsString());
+		Assert.assertEquals("20120209", funisEvent.getEvent().getDtEnd().getPropertyValueAsString());
+	}
+	
 	
 	
 	@Test

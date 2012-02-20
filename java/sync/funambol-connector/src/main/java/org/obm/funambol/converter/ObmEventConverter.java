@@ -135,7 +135,7 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 					ExceptionToRecurrenceRule ex;
 					try {
 						ex = new ExceptionToRecurrenceRule(
-								false, getUTCFormat(d));
+								false, getUTCDateTimeFormat(d));
 						exceps.add(ex);
 					} catch (ParseException e) {
 						logger.error(e.getMessage(), e);
@@ -177,8 +177,8 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 			noEndDate = false;
 		}
 
-		String sPatternStart = getUTCFormat(event.getDate());
-		String sPatternEnd = getUTCFormat(event.getDate());
+		String sPatternStart = getUTCDateTimeFormat(event.getDate());
+		String sPatternEnd = getUTCDateTimeFormat(event.getDate());
 		short dayOfWeekMask = getDayOfWeekMask(obmrec.getDays());
 
 		try {
@@ -384,33 +384,34 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 	}
 
 
-	private void appendStart(com.funambol.common.pim.calendar.Event funisEvent,
+	private void appendEnd(com.funambol.common.pim.calendar.Event funisEvent,
 			Event obmEvent) throws ConvertionException {
-		if(obmEvent.getDate() == null){
-			throw new ConvertionException("The start day cannot be null");
-		}
-
-		java.util.Calendar temp = java.util.Calendar.getInstance();
-		temp.setTime(obmEvent.getDate());
-		if (!obmEvent.isAllday()) {
-			temp.add(java.util.Calendar.SECOND, obmEvent.getDuration());
-		} else {
-
-			temp.add(java.util.Calendar.SECOND, (int) (86400 * Math
-					.ceil(((float) obmEvent.getDuration()) / 86400)));
-		}
-		funisEvent.getDtEnd()
-				.setPropertyValue(getUTCFormat(temp.getTime()));
-	}
-	
-	private void appendEnd(com.funambol.common.pim.calendar.Event funisEvent, Event obmEvent) throws ConvertionException {
 		if(!obmEvent.isAllday() && obmEvent.getDuration() <=0){
 			throw new ConvertionException("The duration cannot be null for no all days events");
 		}
 		java.util.Calendar temp = java.util.Calendar.getInstance();
 		temp.setTime(obmEvent.getDate());
-		funisEvent.getDtStart().setPropertyValue(
-				getUTCFormat(temp.getTime()));
+		temp.add(java.util.Calendar.SECOND, obmEvent.getDuration());
+		if (!obmEvent.isAllday()) {
+			funisEvent.getDtEnd()
+			.setPropertyValue(getUTCDateTimeFormat(temp.getTime()));
+		} else {
+			funisEvent.getDtEnd().setPropertyValue(getUTCDateFormat(temp.getTime()));
+		}
+		
+	}
+	
+	private void appendStart(com.funambol.common.pim.calendar.Event funisEvent, Event obmEvent) throws ConvertionException {
+		if(obmEvent.getDate() == null){
+			throw new ConvertionException("The start day cannot be null");
+		}
+		if (!obmEvent.isAllday()) {
+			funisEvent.getDtStart().setPropertyValue(
+					getUTCDateTimeFormat(obmEvent.getDate()));
+		} else {
+			funisEvent.getDtStart().setPropertyValue(
+					getUTCDateFormat(obmEvent.getDate()));
+		}
 	}
 
 	private void appendObmUid(com.funambol.common.pim.calendar.Event event,

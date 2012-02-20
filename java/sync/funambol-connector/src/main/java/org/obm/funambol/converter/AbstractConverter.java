@@ -40,10 +40,18 @@ public abstract class AbstractConverter {
 		dateFormatEurope.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
 	}
 
-	protected String getUTCFormat(Date date) {
+	protected String getUTCDateTimeFormat(Date date) {
 		String utc = null;
 		if (date != null) {
 			utc = dateFormatUTC.format(date);
+		}
+		return utc;
+	}
+	
+	protected String getUTCDateFormat(Date date) {
+		String utc = null;
+		if (date != null) {
+			utc = dateFormat.format(date);
 		}
 		return utc;
 	}
