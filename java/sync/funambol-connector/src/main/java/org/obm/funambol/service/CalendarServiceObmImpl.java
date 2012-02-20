@@ -13,6 +13,7 @@ import org.obm.funambol.exception.ConvertionException;
 import org.obm.funambol.exception.OBMException;
 import org.obm.funambol.model.CalendarChanges;
 import org.obm.funambol.model.SyncSession;
+import org.obm.sync.NotAllowedException;
 import org.obm.sync.auth.EventAlreadyExistException;
 import org.obm.sync.auth.EventNotFoundException;
 import org.obm.sync.auth.ServerFault;
@@ -54,26 +55,26 @@ public class CalendarServiceObmImpl extends ObmService implements ICalendarServi
 	@Override
 	public List<SyncItemKey> getAllItemKeys(SyncSession syncBean) throws OBMException {
 		CalendarChanges changes = getSync(syncBean, null);
-		return syncItemKeyConverter.getSyncItemKeysFromEventExtIds(changes.getUpdated().keySet());
+		return syncItemKeyConverter.getSyncItemKeysFromEventObmIds(changes.getUpdated().keySet());
 	}
 
 	@Override
 	public List<SyncItemKey> getDeletedItemKeys(SyncSession syncBean, Timestamp since) throws OBMException {
 		CalendarChanges changes = getSync(syncBean, since);
-		return syncItemKeyConverter.getSyncItemKeysFromEventExtIds(changes.getDeleted());
+		return syncItemKeyConverter.getSyncItemKeysFromEventObmIds(changes.getDeleted());
 	}
 
 	@Override
 	public List<SyncItemKey> getUpdatedItemKeys(SyncSession syncBean, Timestamp since) throws OBMException {
 		CalendarChanges changes = getSync(syncBean, since);
-		return syncItemKeyConverter.getSyncItemKeysFromEventExtIds(changes.getUpdated().keySet());
+		return syncItemKeyConverter.getSyncItemKeysFromEventObmIds(changes.getUpdated().keySet());
 	}
 
 	@Override
 	public com.funambol.common.pim.calendar.Calendar getItemFromId(SyncSession syncBean, SyncItemKey syncItemKey) throws OBMException {
 		try {
-			final EventExtId eventExtId = syncItemKeyConverter.getEventExtIdFromSyncItemKey(syncItemKey);
-			final Event event = calendarClient.getEventFromExtId(syncBean.getObmAccessToken(), syncBean.getUserLogin(), eventExtId);
+			final EventObmId eventObmId = syncItemKeyConverter.getEventObmIdFromSyncItemKey(syncItemKey);
+			final Event event = calendarClient.getEventFromId(syncBean.getObmAccessToken(), syncBean.getUserLogin(), eventObmId);
 			return obmEventConverter.obmEventToFoundationCalendar(event);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage(),e);
@@ -88,11 +89,11 @@ public class CalendarServiceObmImpl extends ObmService implements ICalendarServi
 	@Override
 	public void removeItem(SyncSession syncBean, SyncItemKey syncItemKey) throws OBMException {
 		try {
-			final EventExtId eventExtId = syncItemKeyConverter.getEventExtIdFromSyncItemKey(syncItemKey);
-			Event event = calendarClient.getEventFromExtId(syncBean.getObmAccessToken(), syncBean.getUserLogin(), eventExtId);
+			final EventObmId eventObmId = syncItemKeyConverter.getEventObmIdFromSyncItemKey(syncItemKey);
+			Event event = calendarClient.getEventFromId(syncBean.getObmAccessToken(), syncBean.getUserLogin(), eventObmId);
 			if (event == null) {
 				logger.info("event removed on pda not in db: " + syncBean.getUserLogin()
-						+ " / " + eventExtId.serializeToString());
+						+ " / " + eventObmId.serializeToString());
 				return;
 			}
 
@@ -100,13 +101,15 @@ public class CalendarServiceObmImpl extends ObmService implements ICalendarServi
 					|| event.getAttendees().size() == 1) {
 				// no attendee (only the owner)
 				logger.info("not a meeting, removing event");
-				calendarClient.removeEventByExtId(syncBean.getObmAccessToken(), syncBean.getUserLogin(), eventExtId, event.getSequence(), false);
+				calendarClient.removeEventById(syncBean.getObmAccessToken(), syncBean.getUserLogin(), eventObmId, event.getSequence(), false);
 			} else {
 				refuseEvent(syncBean, event, syncBean.getUserLogin());
 			}
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage());
 		} catch (EventNotFoundException e) {
+			throw new OBMException(e.getMessage());
+		} catch (NotAllowedException e) {
 			throw new OBMException(e.getMessage());
 		}
 	}
@@ -177,8 +180,8 @@ public class CalendarServiceObmImpl extends ObmService implements ICalendarServi
 			}
 			evt.setUid(null);
 			List<EventKey> keyList = calendarClient.getEventTwinKeys(syncBean.getObmAccessToken(), syncBean.getUserLogin(), evt);
-			List<EventExtId> extIds = transformAsEventExtIdSet(keyList);
-			return syncItemKeyConverter.getSyncItemKeysFromEventExtIds(extIds);
+			List<EventObmId> obmIds = transformAsEventObmIdSet(keyList);
+			return syncItemKeyConverter.getSyncItemKeysFromEventObmIds(obmIds);
 		} catch (ServerFault e) {
 			throw new OBMException(e.getMessage(), e);
 		} catch (ConvertionException e) {
@@ -204,9 +207,9 @@ public class CalendarServiceObmImpl extends ObmService implements ICalendarServi
 					+ sync.getRemoved().length);
 			
 			final List<Event> updated = getUpdatedEvent(sync);
-			final Map<EventExtId, Event> updatedRest = transformAsFunambolUpdated(updated);
+			final Map<EventObmId, Event> updatedRest = transformAsFunambolUpdated(updated);
 			
-			final Set<EventExtId> deleted = getRemovedEvent(sync);
+			final Set<EventObmId> deleted = getRemovedEvent(sync);
 			
 			return new CalendarChanges(updatedRest, deleted);
 		} catch (ServerFault e) {
@@ -215,25 +218,25 @@ public class CalendarServiceObmImpl extends ObmService implements ICalendarServi
 	}
 	
 
-	private List<EventExtId> transformAsEventExtIdSet(List<EventKey> keyList) {
-		return Lists.transform(keyList, new Function<EventKey, EventExtId>() {
+	private List<EventObmId> transformAsEventObmIdSet(List<EventKey> keyList) {
+		return Lists.transform(keyList, new Function<EventKey, EventObmId>() {
 			@Override
-			public EventExtId apply(EventKey input) {
-				return input.getEventExtId();
+			public EventObmId apply(EventKey input) {
+				return input.getEventObmId();
 			}
 		});
 	}
 
-	private Map<EventExtId, Event> transformAsFunambolUpdated(List<Event> updated) {
-		ImmutableMap.Builder<EventExtId, Event> mapBuilder = ImmutableMap.builder();
+	private Map<EventObmId, Event> transformAsFunambolUpdated(List<Event> updated) {
+		ImmutableMap.Builder<EventObmId, Event> mapBuilder = ImmutableMap.builder();
 		for (Event e : updated) {
-			mapBuilder.put(e.getExtId(), e);
+			mapBuilder.put(e.getObmId(), e);
 		}
 		return mapBuilder.build();
 	}
 
-	private Set<EventExtId> getRemovedEvent(EventChanges sync) {
-		return sync.getRemovedExtIds() != null ? ImmutableSet.<EventExtId>copyOf(sync.getRemovedExtIds()) : ImmutableSet.<EventExtId>of();
+	private Set<EventObmId> getRemovedEvent(EventChanges sync) {
+		return sync.getRemovedExtIds() != null ? ImmutableSet.<EventObmId>copyOf(sync.getRemoved()) : ImmutableSet.<EventObmId>of();
 	}
 
 	private List<Event> getUpdatedEvent(EventChanges sync) {

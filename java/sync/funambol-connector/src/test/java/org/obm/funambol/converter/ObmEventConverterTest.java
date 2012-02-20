@@ -9,7 +9,6 @@ import org.obm.funambol.converter.ObmEventConverter;
 import org.obm.funambol.exception.ConvertionException;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
-import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventOpacity;
 import org.obm.sync.calendar.ParticipationRole;
@@ -22,23 +21,23 @@ import com.funambol.common.pim.common.Property;
 public class ObmEventConverterTest {
 	
 	@Test
-	public void testConvertObmExtId() throws ConvertionException{
-		UUID uuid = UUID.randomUUID();
+	public void testConvertObmId() throws ConvertionException{
+		Integer obmId = 10;
 		Event event = getMinimalEvent();
-		EventExtId id = new EventExtId(uuid);
-		event.setExtId(id);
+		EventObmId id = new EventObmId(obmId);
+		event.setUid(id);
 		
 		ObmEventConverter converter = new ObmEventConverter();
 		Calendar funisEvent = converter.obmEventToFoundationCalendar(event);
 		
 		Assert.assertNotNull(funisEvent.getEvent().getUid());
-		Assert.assertEquals(uuid.toString(), funisEvent.getEvent().getUid().getPropertyValueAsString());
+		Assert.assertEquals(obmId.toString(), funisEvent.getEvent().getUid().getPropertyValueAsString());
 	}
 	
 	@Test(expected=ConvertionException.class)
-	public void testConvertNullObmExtId() throws ConvertionException{
+	public void testConvertNullObmId() throws ConvertionException{
 		Event event = getMinimalEvent();
-		event.setExtId(null);
+		event.setUid(null);
 		
 		ObmEventConverter converter = new ObmEventConverter();
 		converter.obmEventToFoundationCalendar(event);
@@ -378,6 +377,36 @@ public class ObmEventConverterTest {
 	}
 	
 	@Test
+	public void testConvertUid() throws ConvertionException {
+		final String email = "dips@test.tlse";
+		String uid = "10";
+		com.funambol.common.pim.calendar.Event event = getMinimalFunisEvent();
+		event.setUid(new Property(uid.toString()));
+		Calendar calendar = new Calendar();
+		calendar.setEvent(event);
+		
+		ObmEventConverter converter = new ObmEventConverter();
+		Event obmEvent = converter.foundationCalendarToObmEvent(calendar, email);
+		
+		Assert.assertEquals(uid, obmEvent.getObmId().serializeToString());
+	}
+	
+	@Test
+	public void testConvertStringUid() throws ConvertionException {
+		final String email = "dips@test.tlse";
+		String uid = UUID.randomUUID().toString();
+		com.funambol.common.pim.calendar.Event event = getMinimalFunisEvent();
+		event.setUid(new Property(uid));
+		Calendar calendar = new Calendar();
+		calendar.setEvent(event);
+		
+		ObmEventConverter converter = new ObmEventConverter();
+		Event obmEvent = converter.foundationCalendarToObmEvent(calendar, email);
+		
+		Assert.assertNull(obmEvent.getObmId());
+	}
+	
+	@Test
 	public void testConvertFunisAttendee() throws ConvertionException {
 		final String name = "Display Name";
 		final String email = "dips@test.tlse";
@@ -470,7 +499,6 @@ public class ObmEventConverterTest {
 	private Event getMinimalEvent() {
 		Event event = new Event();
 		event.setUid(new EventObmId(10));
-		event.setExtId(new EventExtId(UUID.randomUUID()));
 		event.setDate(new Date());
 		event.setDuration(3600);
 		return event;

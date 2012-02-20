@@ -4,24 +4,24 @@ import java.util.Map;
 import java.util.Set;
 
 import org.obm.sync.calendar.Event;
-import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventObmId;
 
 public class CalendarChanges {
 	
-	private Map<EventExtId, Event> updated;
-	private Set<EventExtId> deleted;
+	private Map<EventObmId, Event> updated;
+	private Set<EventObmId> deleted;
 	
-	public CalendarChanges(Map<EventExtId, Event> updated,
-			Set<EventExtId> deleted) {
+	public CalendarChanges(Map<EventObmId, Event> updated,
+			Set<EventObmId> deleted) {
 		this.updated = updated;
 		this.deleted = deleted;
 	}
 
-	public Map<EventExtId, Event> getUpdated() {
+	public Map<EventObmId, Event> getUpdated() {
 		return updated;
 	}
 
-	public Set<EventExtId> getDeleted() {
+	public Set<EventObmId> getDeleted() {
 		return deleted;
 	}
 	

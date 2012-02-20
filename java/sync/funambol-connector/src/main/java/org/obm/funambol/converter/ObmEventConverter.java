@@ -12,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.obm.funambol.exception.ConvertionException;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;
-import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventOpacity;
 import org.obm.sync.calendar.EventRecurrence;
 import org.obm.sync.calendar.ParticipationRole;
@@ -47,7 +47,7 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 			Event obmEvent) throws ConvertionException {
 
 		com.funambol.common.pim.calendar.Event event = new com.funambol.common.pim.calendar.Event();
-		appendExtId(event, obmEvent);
+		appendObmUid(event, obmEvent);
 		appendStart(event, obmEvent);
 		appendEnd(event, obmEvent);
 		appendAllDay(event, obmEvent);
@@ -413,12 +413,12 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 				getUTCFormat(temp.getTime()));
 	}
 
-	private void appendExtId(com.funambol.common.pim.calendar.Event event,
+	private void appendObmUid(com.funambol.common.pim.calendar.Event event,
 			Event obmEvent) throws ConvertionException {
-		if(obmEvent.getExtId() == null){
-			throw new ConvertionException("EventExtId cannot be null");
+		if(obmEvent.getObmId() == null){
+			throw new ConvertionException("EventObmId cannot be null");
 		}
-		event.getUid().setPropertyValue(obmEvent.getExtId().serializeToString());
+		event.getUid().setPropertyValue(obmEvent.getObmId().serializeToString());
 	}
 
 	private void appendAttendees(com.funambol.common.pim.calendar.Event event,
@@ -761,9 +761,18 @@ public class ObmEventConverter extends AbstractConverter implements IEventConver
 
 	private void appendUid(Event event,
 			com.funambol.common.pim.calendar.Event foundation) {
-		if (isNotEmptyProperties(foundation.getUid())) {
-			EventExtId id = new EventExtId(foundation.getUid().getPropertyValueAsString());
-			event.setExtId(id);
+		if (isNotEmptyProperties(foundation.getUid()) && isIntegerValue(foundation.getUid())) {
+			EventObmId uid = new EventObmId(foundation.getUid().getPropertyValueAsString());
+			event.setUid(uid);
+		}
+	}
+
+	private boolean isIntegerValue(Property uid) {
+		try{
+			Integer.valueOf(uid.getPropertyValueAsString());
+			return true;
+		}catch(NumberFormatException e){
+			return false;
 		}
 	}
 

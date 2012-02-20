@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.obm.sync.book.ContactKey;
-import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventObmId;
 
 import com.funambol.framework.engine.SyncItemKey;
 import com.google.common.base.Function;
@@ -28,11 +28,11 @@ public class SyncItemKeyConverter implements ISyncItemKeyConverter {
 	}
 	
 	@Override
-	public List<SyncItemKey> getSyncItemKeysFromEventExtIds(Collection<EventExtId> keys) {
-		final List<EventExtId> listKey = ImmutableList.<EventExtId>copyOf(keys);
-		return Lists.transform(listKey, new Function<EventExtId, SyncItemKey>() {
+	public List<SyncItemKey> getSyncItemKeysFromEventObmIds(Collection<EventObmId> keys) {
+		final List<EventObmId> listKey = ImmutableList.<EventObmId>copyOf(keys);
+		return Lists.transform(listKey, new Function<EventObmId, SyncItemKey>() {
 			@Override
-			public SyncItemKey apply(EventExtId input) {
+			public SyncItemKey apply(EventObmId input) {
 				final String key = input.serializeToString();
 				return new SyncItemKey(key);
 			}
@@ -40,9 +40,9 @@ public class SyncItemKeyConverter implements ISyncItemKeyConverter {
 	}
 	
 	@Override
-	public EventExtId getEventExtIdFromSyncItemKey(SyncItemKey syncItemKey) {
+	public EventObmId getEventObmIdFromSyncItemKey(SyncItemKey syncItemKey) {
 		final String itemKey = getCheckedSyncItemKeyAsString(syncItemKey);
-		return new EventExtId(itemKey);
+		return new EventObmId(itemKey);
 	}
 	
 	@Override
