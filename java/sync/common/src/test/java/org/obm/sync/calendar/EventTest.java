@@ -466,7 +466,7 @@ public class EventTest {
 		recurrence.setFrequence(1);
 		ev1.setRecurrence(recurrence);
 		
-		Event instance = ev1.getEventInstanceWithRecurrenceId(recurrenceId);
+		Event instance = ev1.getOccurrence(recurrenceId);
 		
 		Assert.assertNotNull(instance);
 		Assert.assertEquals(recurrenceId, instance.getDate());
@@ -489,7 +489,7 @@ public class EventTest {
 		recurrence.addEventException(exception);		
 		ev1.setRecurrence(recurrence);
 
-		Event instance = ev1.getEventInstanceWithRecurrenceId(recurrenceId);
+		Event instance = ev1.getOccurrence(recurrenceId);
 		
 		Assert.assertNotNull(instance);
 		Assert.assertEquals(exception, instance);

@@ -287,7 +287,7 @@ public class Event implements Indexed<Integer> {
 		Event event = new Event();
 		event.setAlert(alert);
 		event.setAllday(allday);
-		event.addAttendees(new LinkedList<Attendee>(attendees));
+		event.addAttendees(copyAttendees());
 		event.setCategory(category);
 		event.setCompletion(completion);
 		event.setDate(date);
@@ -323,7 +323,16 @@ public class Event implements Indexed<Integer> {
 		event.setTimeUpdate(timeUpdate);
 		return event;
 	}
-	
+
+	private LinkedList<Attendee> copyAttendees() {
+		LinkedList<Attendee> copyOfAttendees = Lists.newLinkedList();
+		for(Attendee attendee: attendees) {
+			copyOfAttendees.add(new Attendee(attendee));
+		}
+
+		return copyOfAttendees;
+	}
+
 	public String getTimezoneName() {
 		return timezoneName;
 	}
@@ -527,16 +536,25 @@ public class Event implements Indexed<Integer> {
 		return this.recurrence.getEventExceptionWithChangesExceptedOnException(event.recurrence);
 	}
 	
-	public Event getEventInstanceWithRecurrenceId(Date recurrenceId){
-		Event instance = recurrence.getEventExceptionWithRecurrenceId(recurrenceId);
-		if(instance == null){
-			instance = clone();
-			instance.date = recurrenceId;
-			instance.recurrenceId = recurrenceId;
-			instance.recurrence = new EventRecurrence();
-			instance.recurrence.setKind(RecurrenceKind.none);
+	public Event getOccurrence(Date recurrenceId){
+		Event occurrence = recurrence.getEventExceptionWithRecurrenceId(recurrenceId);
+		if(occurrence == null){
+			occurrence = buildOccurrence(recurrenceId);
 		}
-		return instance;
+		return occurrence;
+	}
+
+	private Event buildOccurrence(Date recurrenceId) {
+		Event occurrence = clone();
+		occurrence.date = recurrenceId;
+		occurrence.recurrenceId = recurrenceId;
+		occurrence.recurrence = new EventRecurrence();
+		occurrence.recurrence.setKind(RecurrenceKind.none);
+		return occurrence;
+	}
+	
+	public void addEventException(Event eventException) {
+		this.recurrence.addEventException(eventException);
 	}
 	
 	public boolean isRecurrent() {
