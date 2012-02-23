@@ -37,6 +37,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.isNull;
 import static org.junit.Assert.assertEquals;
+import static fr.aliacom.obm.ToolBox.mockAccessToken;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -79,12 +80,74 @@ import com.google.common.collect.Lists;
 
 import fr.aliacom.obm.ToolBox;
 import fr.aliacom.obm.common.FindException;
+import fr.aliacom.obm.common.domain.ObmDomain;
 import fr.aliacom.obm.common.user.ObmUser;
 import fr.aliacom.obm.common.user.UserService;
 import fr.aliacom.obm.utils.HelperService;
 
 public class CalendarBindingImplTest {
 
+	private class ColdWarFixtures {
+		private ObmDomain domain;
+		private ObmUser user;
+		private String calendar;
+		
+		private String userEmail = "beria@ussr";
+		private String userEmailWithoutDomain = "beria";
+		private String domainName = "ussr";
+
+		private CalendarInfo beriaInfo;
+		private CalendarInfo hooverInfo;
+		private CalendarInfo mccarthyInfo;
+		
+		private Attendee beriaAttendee;
+		private Attendee hooverAttendee;
+		private Attendee mccarthyAttendee;
+
+		private ColdWarFixtures() {
+			beriaInfo = new CalendarInfo();
+			beriaInfo.setUid("beria");
+			beriaInfo.setFirstname("Lavrenti");
+			beriaInfo.setLastname("Beria");
+			beriaInfo.setMail("beria@ussr");
+			beriaInfo.setRead(true);
+			beriaInfo.setWrite(true);
+			
+			hooverInfo = new CalendarInfo();
+			hooverInfo.setUid("hoover");
+			hooverInfo.setFirstname("John");
+			hooverInfo.setLastname("Hoover");
+			hooverInfo.setMail("hoover@usa");
+			hooverInfo.setRead(true);
+			hooverInfo.setWrite(false);
+			
+			mccarthyInfo = new CalendarInfo();
+			mccarthyInfo.setUid("mccarthy");
+			mccarthyInfo.setFirstname("Joseph");
+			mccarthyInfo.setLastname("McCarthy");
+			mccarthyInfo.setMail("mccarthy@usa");
+			mccarthyInfo.setRead(true);
+			mccarthyInfo.setWrite(false);
+			
+			domain = new ObmDomain();
+			domain.setName(domainName);
+			
+			user = new ObmUser();
+			user.setLogin(userEmailWithoutDomain);
+			user.setEmail(userEmailWithoutDomain);
+			user.setDomain(domain);
+			
+			calendar = userEmail;
+			
+			beriaAttendee = getFakeAttendee(beriaInfo.getMail());
+			beriaAttendee.setState(ParticipationState.NEEDSACTION);
+			hooverAttendee = getFakeAttendee(hooverInfo.getMail());
+			hooverAttendee.setState(ParticipationState.NEEDSACTION);
+			mccarthyAttendee = getFakeAttendee(mccarthyInfo.getMail());
+			mccarthyAttendee.setState(ParticipationState.NEEDSACTION);
+		}
+	}
+	
 	private HelperService mockRightsHelper(String calendar, AccessToken accessToken) {
 		HelperService rightsHelper = createMock(HelperService.class);
 		expect(rightsHelper.canWriteOnCalendar(eq(accessToken), eq(calendar))).andReturn(true).anyTimes();
@@ -92,6 +155,13 @@ public class CalendarBindingImplTest {
 		return rightsHelper;
 	}
 
+	private HelperService mockNoRightsHelper(String calendar, AccessToken accessToken) {
+		HelperService noRightsHelper = createMock(HelperService.class);
+		expect(noRightsHelper.canWriteOnCalendar(eq(accessToken), eq(calendar))).andReturn(false).anyTimes();
+		expect(noRightsHelper.canReadCalendar(eq(accessToken), eq(calendar))).andReturn(false).anyTimes();
+		return noRightsHelper;
+	}
+	
 	private String stripEmail(String email) {
 		String strippedEmail = email.substring(0, email.indexOf('@'));
 		return strippedEmail;
@@ -149,7 +219,7 @@ public class CalendarBindingImplTest {
 				mccarthyInfo,
 		};
 			
-		AccessToken accessToken = ToolBox.mockAccessToken();
+		AccessToken accessToken = mockAccessToken();
 		HelperService rightsHelper = createMock(HelperService.class);
 		
 		rightsHelper.constructEmailFromList(eq(defaultUser.getEmail()), eq(defaultUser.getDomain().getName()));
@@ -215,7 +285,7 @@ public class CalendarBindingImplTest {
 			
 		ObmUser defaultUser = ToolBox.getDefaultObmUser();
 		
-		AccessToken accessToken = ToolBox.mockAccessToken();
+		AccessToken accessToken = mockAccessToken();
 		HelperService rightsHelper = createMock(HelperService.class);
 		
 		rightsHelper.constructEmailFromList(eq(defaultUser.getLogin()), eq(defaultUser.getDomain().getName()));
@@ -246,17 +316,14 @@ public class CalendarBindingImplTest {
 		String calendar = "cal1";
 		EventExtId eventExtId = new EventExtId("extid");
 		
-		AccessToken accessToken = ToolBox.mockAccessToken();
+		AccessToken accessToken = mockAccessToken();
 		HelperService rightsHelper = mockRightsHelper(calendar, accessToken);
-		expect(rightsHelper.canWriteOnCalendar(accessToken, defaultUser.getEmail())).andReturn(false);
 		
 		final Event event = createMock(Event.class);
 		expect(event.getExtId()).andReturn(eventExtId).atLeastOnce();
 		expect(event.getObmId()).andReturn(null).atLeastOnce();
 		expect(event.isInternalEvent()).andReturn(false).atLeastOnce();
 		expect(event.getTitle()).andReturn("title").atLeastOnce();
-		expect(event.getAttendees()).andReturn(ImmutableList.of(getFakeAttendee(defaultUser.getEmail()))).atLeastOnce();
-		expect(event.getEventsExceptions()).andReturn(ImmutableList.<Event>of());
 		
 		event.findAttendeeFromEmail(defaultUser.getEmail());
 		EasyMock.expectLastCall().andReturn(null).atLeastOnce();
@@ -278,6 +345,7 @@ public class CalendarBindingImplTest {
 			calendarService.createEvent(accessToken, calendar, event, true);
 		} catch (ServerFault e) {
 			EasyMock.verify(mocks);
+			Assertions.assertThat(e.getMessage()).contains("doesn't involve calendar owner, ignoring creation");
 			throw e;
 		}
 	}
@@ -294,7 +362,7 @@ public class CalendarBindingImplTest {
 		Attendee fakeUserAttendee = getFakeAttendee(defaultUser.getEmail());
 		fakeUserAttendee.setState(ParticipationState.NEEDSACTION);
 		
-		AccessToken accessToken = ToolBox.mockAccessToken();
+		AccessToken accessToken = mockAccessToken();
 		
 		Event eventWithOwnerAttendee = createMock(Event.class);
 		expect(eventWithOwnerAttendee.getExtId()).andReturn(eventExtId).atLeastOnce();
@@ -343,7 +411,7 @@ public class CalendarBindingImplTest {
 		Attendee otherAttendee = getFakeAttendee(otherUserEmail);
 		userAttendee.setState(ParticipationState.NEEDSACTION);
 
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 
 		final Calendar oldEventDate = Calendar.getInstance();
 		oldEventDate.add(Calendar.MONTH, -8);
@@ -410,7 +478,7 @@ public class CalendarBindingImplTest {
 		Attendee fakeUserAttendee = getFakeAttendee(defaultUser.getEmail());
 		fakeUserAttendee.setState(ParticipationState.NEEDSACTION);
 		
-		AccessToken accessToken = ToolBox.mockAccessToken();
+		AccessToken accessToken = mockAccessToken();
 		
 		Event eventWithOwnerAttendee = createMock(Event.class);
 		expect(eventWithOwnerAttendee.getExtId()).andReturn(eventExtId).atLeastOnce();
@@ -473,7 +541,7 @@ public class CalendarBindingImplTest {
 		event.setLocation("aLocation");
 		event.setSequence(1);
 		
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
@@ -566,7 +634,7 @@ public class CalendarBindingImplTest {
 		dummyException.setRecurrence(new EventRecurrence());
 		dummyException.getRecurrence().setKind(RecurrenceKind.none);
 
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
@@ -670,7 +738,7 @@ public class CalendarBindingImplTest {
 		dummyException.setRecurrence(new EventRecurrence());
 		dummyException.getRecurrence().setKind(RecurrenceKind.none);
 
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
@@ -734,7 +802,7 @@ public class CalendarBindingImplTest {
 		event.setLocation("aLocation");
 		event.setSequence(1);
 
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
@@ -804,7 +872,7 @@ public class CalendarBindingImplTest {
 		event.setSequence(1);
 		event.getRecurrence().getEventExceptions().get(0).setLocation("aLocation");
 		
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
@@ -880,7 +948,7 @@ public class CalendarBindingImplTest {
 		newEvent.setAttendees(newAttendees);
 		newEvent.setSequence(sequence);
 
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 
 		UserService userService = createMock(UserService.class);
 		expect(userService.getUserFromCalendar(calendar, defaultUser.getDomain().getName())).andReturn(defaultUser).atLeastOnce();
@@ -972,7 +1040,7 @@ public class CalendarBindingImplTest {
 		Event eventFromIcs = new Event();
 		eventFromIcs.setExtId(extId);
 		
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 		HelperService helper = mockRightsHelper(calendar, accessToken);
 		
 		UserService userService = createMock(UserService.class);
@@ -1029,9 +1097,8 @@ public class CalendarBindingImplTest {
 		EventObmId obmId = new EventObmId(1);
 		eventCreated.setUid(obmId);
 		
-		AccessToken accessToken = ToolBox.mockAccessToken(calendar, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(calendar, defaultUser.getDomain());
 		HelperService helper = mockRightsHelper(calendar, accessToken);
-		expect(helper.canWriteOnCalendar(accessToken, defaultUser.getEmail())).andReturn(false);
 		
 		CalendarDao calendarDao = createMock(CalendarDao.class);
 		UserService userService = createMock(UserService.class);
@@ -1093,7 +1160,7 @@ public class CalendarBindingImplTest {
 		
 		ObmUser defaultUser = ToolBox.getDefaultObmUser();
 
-		AccessToken accessToken = ToolBox.mockAccessToken(userName, defaultUser.getDomain());
+		AccessToken accessToken = mockAccessToken(userName, defaultUser.getDomain());
 		
 		UserService userService = createMock(UserService.class);
 		expect(userService.getUserFromCalendar(calendar, defaultUser.getDomain().getName())).andReturn(defaultUser).atLeastOnce();
@@ -1147,5 +1214,165 @@ public class CalendarBindingImplTest {
 		
 		updatedEvent.addAttendee(attendee);
 		return updatedEvent;
+	}
+	
+	@Test(expected=ServerFault.class)
+	public void createNullEvent() throws ServerFault, EventAlreadyExistException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(null, null, null, null, null, null, null, null);
+		AccessToken validAccessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
+		try {
+			calendarService.createEvent(validAccessToken, fixtures.calendar, null, false);
+		} catch (ServerFault e) {
+			Assertions.assertThat(e.getMessage()).isEqualTo("event creation without any data");
+			throw e;
+		}
+	}
+	
+	@Test(expected=ServerFault.class)
+	public void createEventWithObmId() throws ServerFault, EventAlreadyExistException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(null, null, null, null, null, null, null, null);
+		AccessToken validAccessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
+		Event event = new Event();
+		event.setUid(new EventObmId(42));
+		try {
+			calendarService.createEvent(validAccessToken, fixtures.calendar, event, false);
+		} catch (ServerFault e) {
+			Assertions.assertThat(e.getMessage()).isEqualTo("event creation with an event coming from OBM");
+			throw e;
+		}
+	}
+
+	@Test(expected=EventAlreadyExistException.class)
+	public void createDuplicateEvent() throws ServerFault, EventAlreadyExistException, FindException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
+		AccessToken validAccessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
+		Event event = new Event();
+		event.setExtId(new EventExtId("123"));
+		event.setDate(new Date());
+		
+		UserService userService = createMock(UserService.class);
+		expect(userService.getUserFromCalendar(fixtures.userEmail, fixtures.domainName)).andReturn(fixtures.user).atLeastOnce();
+		
+		CalendarDao calendarDao = createMock(CalendarDao.class);
+		expect(calendarDao.findEventByExtId(validAccessToken, fixtures.user, event.getExtId())).andReturn(event).once();
+		
+		EasyMock.replay(validAccessToken, userService, calendarDao);
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(null, null, userService, calendarDao, null, null, null, null);
+
+		calendarService.createEvent(validAccessToken, fixtures.calendar, event, false);
+	}
+	
+	@Test(expected=ServerFault.class)
+	public void createUnauthorizedEventOnCalendar() throws ServerFault, EventAlreadyExistException, FindException {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
+		AccessToken validAccessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
+		Event event = new Event();
+		event.setExtId(new EventExtId("123"));
+		event.setDate(new Date());
+		
+		UserService userService = createMock(UserService.class);
+		expect(userService.getUserFromCalendar(fixtures.userEmail, fixtures.domainName)).andReturn(fixtures.user).atLeastOnce();
+		
+		CalendarDao calendarDao = createMock(CalendarDao.class);
+		expect(calendarDao.findEventByExtId(validAccessToken, fixtures.user, event.getExtId())).andReturn(null).once();
+		
+		HelperService helperService = mockNoRightsHelper(fixtures.calendar, validAccessToken);
+		
+		EasyMock.replay(validAccessToken, userService, calendarDao, helperService);
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(null, null, userService, calendarDao, null, helperService, null, null);
+
+		try {
+			calendarService.createEvent(validAccessToken, fixtures.calendar, event, false);
+		} catch (ServerFault e) {
+			Assertions.assertThat(e.getMessage()).contains("no write right");
+			throw e;
+		}
+	}
+	
+	@Test
+	public void testChangePartipationStateNoRightsOnAttendees() {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
+		AccessToken validAccessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
+		Event event = new Event();
+		List<Attendee> attendees = Lists.newArrayList(fixtures.beriaAttendee, fixtures.hooverAttendee, fixtures.mccarthyAttendee);
+		event.setAttendees(attendees);
+		
+		HelperService noRightsHelper = createMock(HelperService.class);
+		expect(noRightsHelper.canWriteOnCalendar(eq(validAccessToken), EasyMock.anyObject(String.class))).andReturn(false).anyTimes();
+
+		EasyMock.replay(validAccessToken, noRightsHelper);
+
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(null, null, null, null, null, noRightsHelper, null, null);
+		calendarService.assignDelegationRightsOnAttendees(validAccessToken, event);
+		
+		List<Attendee> attendeesToTest = event.getAttendees(); 
+		Assertions.assertThat(attendeesToTest).hasSize(3);
+		for(Attendee attendee: attendeesToTest) {
+			Assertions.assertThat(attendee.isCanWriteOnCalendar()).isEqualTo(false);
+		}
+	}
+	
+	@Test
+	public void testChangeParticipationStateHasRightOnOneAttendee() {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
+		AccessToken validAccessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
+		Event event = new Event();
+		List<Attendee> attendees = Lists.newArrayList(fixtures.beriaAttendee, fixtures.hooverAttendee, fixtures.mccarthyAttendee);
+		event.setAttendees(attendees);
+		
+		HelperService rightsHelper = createMock(HelperService.class);
+		expect(rightsHelper.canWriteOnCalendar(validAccessToken, fixtures.beriaAttendee.getEmail()))
+				.andReturn(true).atLeastOnce();
+		expect(rightsHelper.canWriteOnCalendar(validAccessToken, fixtures.hooverAttendee.getEmail()))
+				.andReturn(false).atLeastOnce();
+		expect(rightsHelper.canWriteOnCalendar(validAccessToken, fixtures.mccarthyAttendee.getEmail()))
+				.andReturn(false).atLeastOnce();
+
+		EasyMock.replay(validAccessToken, rightsHelper);
+
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(null, null, null, null, null, rightsHelper, null, null);
+		calendarService.assignDelegationRightsOnAttendees(validAccessToken, event);
+		
+		List<Attendee> attendeesToTest = event.getAttendees(); 
+		Assertions.assertThat(attendeesToTest).hasSize(3);
+		Attendee beria = attendeesToTest.get(0);
+		Attendee hoover = attendeesToTest.get(1);
+		Attendee mccarthy = attendeesToTest.get(2);
+
+		Assertions.assertThat(beria.isCanWriteOnCalendar()).isEqualTo(true);
+		Assertions.assertThat(hoover.isCanWriteOnCalendar()).isEqualTo(false);
+		Assertions.assertThat(mccarthy.isCanWriteOnCalendar()).isEqualTo(false);
+	}
+	
+	@Test
+	public void testChangeParticipationStateWithRecurrentEvent() {
+		ColdWarFixtures fixtures = new ColdWarFixtures();
+		AccessToken validAccessToken = mockAccessToken(fixtures.userEmail, fixtures.domain);
+		
+		Event recurrentEvent = new Event();
+		recurrentEvent.setRecurrence(new EventRecurrence());
+		List<Attendee> attendees = Lists.newArrayList(fixtures.beriaAttendee);
+		recurrentEvent.setAttendees(attendees);
+		
+		Event occurrence = recurrentEvent.getOccurrence(new Date());
+		recurrentEvent.addEventException(occurrence);
+		
+		HelperService rightsHelper = createMock(HelperService.class);
+		expect(rightsHelper.canWriteOnCalendar(validAccessToken, fixtures.beriaAttendee.getEmail()))
+				.andReturn(true).atLeastOnce();
+		
+		EasyMock.replay(validAccessToken, rightsHelper);
+		
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(null, null, null, null, null, rightsHelper, null, null);
+		calendarService.assignDelegationRightsOnAttendees(validAccessToken, recurrentEvent);
+		
+		EventRecurrence eventRecurrence = recurrentEvent.getRecurrence();
+		Event exception = Iterables.getOnlyElement(eventRecurrence.getEventExceptions());
+		List<Attendee> attendeesToTest = exception.getAttendees();
+		
+		Attendee beria = attendeesToTest.get(0);
+		Assertions.assertThat(beria.isCanWriteOnCalendar()).isEqualTo(true);
 	}
 }
