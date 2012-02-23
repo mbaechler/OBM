@@ -330,4 +330,30 @@ public class EventRecurrenceTest {
 	private boolean isOrganizer(int id) {
 		return id == 0 ? true : false;
 	}
+	
+	@Test
+	public void modifyDescriptionOnEventException() {
+		Event before = new Event();
+		Calendar calendar = Calendar.getInstance();
+		calendar.set(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(calendar.getTime());
+		
+		EventRecurrence eventRecurrence = new EventRecurrence();
+		eventRecurrence.setKind(RecurrenceKind.daily);
+		calendar.add(Calendar.DAY_OF_MONTH, 3);
+		eventRecurrence.setEnd(calendar.getTime());
+		before.setRecurrence(eventRecurrence);
+		
+		Event after = before.clone();
+		
+
+		calendar.add(Calendar.DAY_OF_MONTH, -2);
+		Event eventException = before.getOccurrence(calendar.getTime());
+		eventException.setDescription("my description");
+		after.addEventException(eventException);
+
+		List<Event> changes = after.getExceptionsWithImportantChanges(before);
+		
+		Assertions.assertThat(changes).isEmpty();
+	}
 }
