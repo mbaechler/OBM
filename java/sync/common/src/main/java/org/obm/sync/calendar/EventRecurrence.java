@@ -45,8 +45,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Lists;
 
 public class EventRecurrence {
@@ -58,9 +56,14 @@ public class EventRecurrence {
 	private List<Date> exceptions;
 	private List<Event> eventExceptions;
 
+	public EventRecurrence(RecurrenceKind kind) {
+		this.exceptions = new LinkedList<Date>();
+		this.eventExceptions = new LinkedList<Event>();
+		this.kind = kind;
+	}
+	
 	public EventRecurrence() {
-		exceptions = new LinkedList<Date>();
-		eventExceptions = new LinkedList<Event>();
+		this(RecurrenceKind.none);
 	}
 
 	public String getDays() {
@@ -171,24 +174,7 @@ public class EventRecurrence {
 		return false;
 	}
 	
-	public List<Event> getEventExceptionWithChangesExceptedOnException(EventRecurrence recurrence) {
-		if (recurrence == null) {
-			return ImmutableList.copyOf(this.getEventExceptions());
-		}
-		Builder<Event> eventExceptionWithChanges = ImmutableList.builder();
-		
-		final AllEventAttributesExceptExceptionsEquivalence equivalence = new AllEventAttributesExceptExceptionsEquivalence();
-		Collection<Wrapper<Event>> recurrenceEquivalenceWrappers = transformToEquivalenceWrapper(recurrence, equivalence);
-		
-		for(Event exp : eventExceptions){
-			Wrapper<Event> r = equivalence.wrap(exp);
-			if(!recurrenceEquivalenceWrappers.contains(r)) {
-				eventExceptionWithChanges.add(exp);
-			}
-		}
-		return eventExceptionWithChanges.build();
-	}
-	
+	/*
 	private Collection<Wrapper<Event>> transformToEquivalenceWrapper(EventRecurrence recurrence, 
 			final AllEventAttributesExceptExceptionsEquivalence equivalence) {
 		return Collections2.transform(recurrence.getEventExceptions(), new Function<Event, Equivalence.Wrapper<Event>>() {
@@ -198,7 +184,7 @@ public class EventRecurrence {
 				return wrapper;
 			}
 		});
-	}
+	}*/
 
 	public Event getEventExceptionWithRecurrenceId(Date recurrenceId) {
 		for(Event event : this.eventExceptions){

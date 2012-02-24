@@ -46,7 +46,7 @@ import com.google.common.collect.Lists;
 
 public class EventRecurrenceTest {
 	
-	@Test
+	/*@Test
 	public void testGetEventExceptionWithAttributeChangesWithoutChanges() {
 		EventRecurrence rec1 = getOneDailyEventRecurence();
 		EventRecurrence rec2 = rec1.clone();
@@ -93,7 +93,7 @@ public class EventRecurrenceTest {
 		
 		List<Event> list = rec2.getEventExceptionWithChangesExceptedOnException(rec1);
 		Assert.assertEquals(1, list.size());
-	}
+	}*/
 	
 	@Test
 	public void testGetEventExceptionWithRecurrenceIdWithoutExistedEventException() {

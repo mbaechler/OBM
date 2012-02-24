@@ -31,18 +31,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.calendar;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.obm.push.utils.collection.Sets;
 import org.obm.push.utils.index.Indexed;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 public class Event implements Indexed<Integer> {
@@ -90,6 +90,7 @@ public class Event implements Indexed<Integer> {
 		type = EventType.VEVENT;
 		timezoneName = "Europe/Paris";
 		sequence = 0;
+		recurrence = new EventRecurrence();
 	}
 
 	public String getTitle() {
@@ -309,9 +310,7 @@ public class Event implements Indexed<Integer> {
 		event.setPercent(percent);
 		event.setPriority(priority);
 		event.setPrivacy(privacy);
-		if (recurrence != null) {
-			event.setRecurrence(recurrence.clone());
-		}
+		event.setRecurrence(recurrence.clone());
 		event.setTimeUpdate(timeUpdate);
 		event.setTimezoneName(timezoneName);
 		event.setTitle(title);
@@ -363,7 +362,7 @@ public class Event implements Indexed<Integer> {
 		Date end = getEndDate();
 		Date now = new Date();
 		if (end != null && end.before(now) == true) {
-			if (getRecurrence() != null && getRecurrence().getEnd() != null && getRecurrence().getKind() != RecurrenceKind.none ) {
+			if (getRecurrence().getEnd() != null && getRecurrence().getKind() != RecurrenceKind.none ) {
 				return getRecurrence().getEnd().before(now);
 			}
 			return true;
@@ -489,7 +488,7 @@ public class Event implements Indexed<Integer> {
 		if (hasImportantChangesExceptedEventException(event)) {
 			return true;
 		}
-		if (getExceptionsWithImportantChanges(event).size() > 0) {
+		if (getEventExceptionsWithImportantChanges(event).size() > 0) {
 			return true;
 		}
 		return false;
@@ -511,29 +510,20 @@ public class Event implements Indexed<Integer> {
 		return false;
 	}
 	
-	public List<Event> getExceptionsWithImportantChanges(Event event) {
-		if (event.getRecurrence() == null) {
-			return Lists.newArrayList();
-		}
-		else if (recurrence == null) {
-			return event.getRecurrence().getEventExceptions();
-		}
-		else {
-			return Lists.newArrayList(computeExceptionsWithImportantChanges(event));
-		}
+	public List<Event> getEventExceptionsWithImportantChanges(Event before) {
+		Set<Event> ownOccurrences = generateOccurrencesMatchingEventExceptions(before.recurrence);
+		Set<Event> otherOccurrences = before.generateOccurrencesMatchingEventExceptions(this.recurrence);
+		Set<Event> differences = Sets.difference(ownOccurrences, otherOccurrences, new ComparatorUsingEventHasImportantChanges());
+		return Lists.newArrayList(differences);
 	}
 	
-	private Iterable<Event> computeExceptionsWithImportantChanges(Event event) {
-		List<Event> ownOccurrences = generateOccurrencesMatchingEventExceptions(this.recurrence);
-		List<Event> otherOccurrences = event.generateOccurrencesMatchingEventExceptions(event.recurrence);
-		return Sets.difference(ownOccurrences, otherOccurrences, new ComparatorUsingEventHasImportantChanges());
-	}
-	
-	private List<Event> generateOccurrencesMatchingEventExceptions(EventRecurrence recurrence) {
-		ArrayList<Event> occurrences = Lists.newArrayList();
+	private Set<Event> generateOccurrencesMatchingEventExceptions(EventRecurrence recurrence) {
+		HashSet<Event> occurrences = com.google.common.collect.Sets.newHashSet(this.getEventsExceptions());
 		for (Event exception: recurrence.getEventExceptions()) {
-			Event occurrence = getOccurrence(exception.recurrenceId);
-			occurrences.add(occurrence);
+			if (!occurrences.contains(exception)) {
+				Event occurrence = getOccurrence(exception.recurrenceId);
+				occurrences.add(occurrence);
+			}
 		}
 		return occurrences;
 	}
@@ -545,13 +535,6 @@ public class Event implements Indexed<Integer> {
 		}
 		AllEventAttributesExceptExceptionsEquivalence comparator = new AllEventAttributesExceptExceptionsEquivalence();
 		return !comparator.doEquivalent(this, event);
-	}
-
-	public List<Event> getEventExceptionWithModifiedAttributes(Event event) {
-		if(this.recurrence == null){
-			return ImmutableList.of();
-		}
-		return this.recurrence.getEventExceptionWithChangesExceptedOnException(event.recurrence);
 	}
 	
 	public Event getOccurrence(Date recurrenceId){
@@ -576,15 +559,15 @@ public class Event implements Indexed<Integer> {
 	}
 	
 	public boolean isRecurrent() {
-		return (this.getRecurrence() != null && getRecurrence().isRecurrent()); 
+		return getRecurrence().isRecurrent(); 
 	}
 
 	public List<Event> getEventsExceptions() {
-		if (recurrence == null) {
-			return ImmutableList.of();
-		} else {
-			return recurrence.getEventExceptions();
-		}
+		return recurrence.getEventExceptions();
+	}
+	
+	public void addException(Date recurrenceId) {
+		recurrence.addException(recurrenceId);
 	}
 	
 	public void changeParticipationState() {
@@ -664,10 +647,6 @@ public class Event implements Indexed<Integer> {
 			.add("uid", uid)
 			.add("date", date)
 			.toString();
-	}
-
-	public void addException(Date recurrenceId) {
-		recurrence.addException(recurrenceId);
 	}
 	
 }

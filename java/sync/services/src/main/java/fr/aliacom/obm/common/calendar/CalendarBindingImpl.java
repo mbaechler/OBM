@@ -388,6 +388,7 @@ public class CalendarBindingImpl implements ICalendar {
 		try {
 			assignDelegationRightsOnAttendees(token, event);
 			applyParticipationStateModifications(before, event);
+
 			
 			Event after = calendarDao.modifyEventForcingSequence(
 					token, calendar, event, updateAttendees, event.getSequence(), true);
@@ -412,7 +413,7 @@ public class CalendarBindingImpl implements ICalendar {
 		if (event.hasImportantChangesExceptedEventException(before)) {
 		    event.changeParticipationState();
 		} else {
-			List<Event> exceptionWithChanges = event.getExceptionsWithImportantChanges(before);
+			List<Event> exceptionWithChanges = event.getEventExceptionsWithImportantChanges(before);
 			for (Event exception: exceptionWithChanges) {
 				exception.changeParticipationState();
 			}

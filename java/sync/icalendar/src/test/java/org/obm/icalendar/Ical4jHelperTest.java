@@ -564,6 +564,7 @@ public class Ical4jHelperTest {
 
 		EventRecurrence er = new EventRecurrence();
 		er.setDays("1111111");
+		er.setKind(RecurrenceKind.daily);
 
 		Date[] except = new Date[2];
 		cal.set(Calendar.DAY_OF_YEAR, cal.get(Calendar.DAY_OF_YEAR) + 1);
