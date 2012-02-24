@@ -61,10 +61,10 @@ public class EventChangeHandler {
 	}
 
 	public void update(Event previous, Event current, boolean notification, AccessToken token)throws NotificationException {
-		if (current.hasChangesOnEventAttributesExceptedEventException(previous)) {
+		if (current.hasChangesExceptedEventException(previous)) {
 			update(notification, token, previous, current);
 		} else {
-			List<Event> exceptionWithChanges = current.getEventExceptionsWithImportantChanges(previous);
+			List<Event> exceptionWithChanges = current.getEventExceptionsWithChanges(previous);
 			for (Event exception: exceptionWithChanges) {
 				Event previousException = previous.getOccurrence(exception.getRecurrenceId());
 				update(notification, token, previousException, exception);

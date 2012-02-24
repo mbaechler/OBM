@@ -32,19 +32,14 @@
 package org.obm.sync.calendar;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.google.common.base.Equivalence;
-import com.google.common.base.Equivalence.Wrapper;
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 
 public class EventRecurrence {
@@ -148,10 +143,10 @@ public class EventRecurrence {
 
 	public boolean hasImportantChanges(EventRecurrence recurrence) {
 		boolean hasImportantChangesExceptedEventException = this.hasImportantChangesExceptedEventException(recurrence);
-		if(hasImportantChangesExceptedEventException) {
+		if (hasImportantChangesExceptedEventException) {
 			return true;
 		}
-		/*
+		/* FIXME : write some more tests
 		if (recurrence != null && !(this.eventExceptions.size() == recurrence.eventExceptions.size())) {
 			return true;
 		}

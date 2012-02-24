@@ -478,7 +478,7 @@ public class EventTest {
 		Event ev1 = createOneEvent(3);
 		Event ev2 = ev1.clone();
 		
-		boolean change = ev1.hasChangesOnEventAttributesExceptedEventException(ev2);
+		boolean change = ev1.hasChangesExceptedEventException(ev2);
 		
 		Assert.assertFalse(change);
 	}
@@ -490,7 +490,7 @@ public class EventTest {
 		
 		ev2.setTitle("Change: "+ev2.getTitle());
 		
-		boolean change = ev1.hasChangesOnEventAttributesExceptedEventException(ev2);
+		boolean change = ev1.hasChangesExceptedEventException(ev2);
 		
 		Assert.assertTrue(change);
 	}

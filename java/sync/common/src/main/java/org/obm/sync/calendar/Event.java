@@ -509,6 +509,13 @@ public class Event implements Indexed<Integer> {
 		}
 		return false;
 	}
+
+	public List<Event> getEventExceptionsWithChanges(Event before) {
+		HashSet<Event> ownOccurrences = generateOccurrencesMatchingEventExceptions(before.recurrence);
+		HashSet<Event> otherOccurrences = before.generateOccurrencesMatchingEventExceptions(this.recurrence);
+		Set<Event> differences = com.google.common.collect.Sets.difference(ownOccurrences, otherOccurrences);
+		return Lists.newArrayList(differences);
+	}
 	
 	public List<Event> getEventExceptionsWithImportantChanges(Event before) {
 		Set<Event> ownOccurrences = generateOccurrencesMatchingEventExceptions(before.recurrence);
@@ -517,7 +524,7 @@ public class Event implements Indexed<Integer> {
 		return Lists.newArrayList(differences);
 	}
 	
-	private Set<Event> generateOccurrencesMatchingEventExceptions(EventRecurrence recurrence) {
+	private HashSet<Event> generateOccurrencesMatchingEventExceptions(EventRecurrence recurrence) {
 		HashSet<Event> occurrences = com.google.common.collect.Sets.newHashSet(this.getEventsExceptions());
 		for (Event exception: recurrence.getEventExceptions()) {
 			if (!occurrences.contains(exception)) {
@@ -529,7 +536,7 @@ public class Event implements Indexed<Integer> {
 	}
 
 	
-	public boolean hasChangesOnEventAttributesExceptedEventException(Event event) {
+	public boolean hasChangesExceptedEventException(Event event) {
 		if(event == null){
 			return true;
 		}
