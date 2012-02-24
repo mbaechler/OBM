@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.fest.assertions.Assertions;
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -241,7 +243,7 @@ public class EventTest {
 	@Test
 	public void testEventRecurrenceClone() {
 		Event newEvent = createOneEvent(5);
-		EventRecurrence recurrence = createRecurrence(newEvent);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(newEvent.getDate());
 		newEvent.setRecurrence(recurrence);
 		
 		Event eventCloned = newEvent.clone();
@@ -251,7 +253,7 @@ public class EventTest {
 	@Test
 	public void testModifiedEventRecurrenceClone() {
 		Event newEvent = createOneEvent(5);
-		EventRecurrence recurrence = createRecurrence(newEvent);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(newEvent.getDate());
 		recurrence.setFrequence(10);
 		newEvent.setRecurrence(recurrence);
 		
@@ -272,7 +274,7 @@ public class EventTest {
 	@Test
 	public void testHasImportantChangesEventRecurrence() {
 		Event newEvent = createOneEvent(5);
-		EventRecurrence recurrence = createRecurrence(newEvent);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(newEvent.getDate());
 		newEvent.setRecurrence(recurrence);
 	
 		Event updateEvent = newEvent.clone();
@@ -287,7 +289,7 @@ public class EventTest {
 	@Test
 	public void testHasNotImportantChangesEventRecurrence() {
 		Event newEvent = createOneEvent(5);
-		EventRecurrence recurrence = createRecurrence(newEvent);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(newEvent.getDate());
 		newEvent.setRecurrence(recurrence);
 	
 		Event updateEvent = newEvent.clone();
@@ -298,7 +300,7 @@ public class EventTest {
 	@Test
 	public void testHasNotImportantChangesEventAdddingAttendees() {
 		Event newEvent = createOneEvent(5);
-		EventRecurrence recurrence = createRecurrence(newEvent);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(newEvent.getDate());
 		newEvent.setRecurrence(recurrence);
 	
 		Event updateEvent = newEvent.clone();
@@ -310,7 +312,7 @@ public class EventTest {
 	@Test
 	public void testHasImportantChangesEventWithAddingAttendeesAndUpdatedLocation() {
 		Event newEvent = createOneEvent(5);
-		EventRecurrence recurrence = createRecurrence(newEvent);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(newEvent.getDate());
 		newEvent.setRecurrence(recurrence);
 	
 		Event updateEvent = newEvent.clone();
@@ -323,7 +325,7 @@ public class EventTest {
 	@Test
 	public void testHasImportantChangesEventWithUpdatedRecurrence() {
 		Event newEvent = createOneEvent(5);
-		EventRecurrence recurrence = createRecurrence(newEvent);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(newEvent.getDate());
 		newEvent.setRecurrence(recurrence);
 	
 		Event updateEvent = newEvent.clone();
@@ -337,31 +339,79 @@ public class EventTest {
 	}
 	
 	@Test
-	public void testHasImportantChangesEventWithUpdatedOneEventOfRecurrence() {
-		Event newEvent = createOneEvent(5);
+	public void testModifiedEventExceptionHasImportantChanges() {
+		Event before = createOneEvent(5);
 
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.HOUR, 10);
-		Event one = newEvent.clone();
-		one.setDate(cal.getTime());
+		DateTime recurrenceEnd = new DateTime(before.getDate()).plusDays(5);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(recurrenceEnd.toDate());
+		before.setRecurrence(recurrence);
 		
-		cal.add(Calendar.HOUR, 2);
-		Event two = newEvent.clone();
-		two.setDate(cal.getTime());
+		DateTime dateTime = new DateTime(before.getDate());
+		Event secondOccurrence = before.getOccurrence(dateTime.plusDays(1).toDate());
 		
-		EventRecurrence recurrence = createRecurrence(newEvent);
-		newEvent.setRecurrence(recurrence);
-		recurrence.getEventExceptions().add(one);
-		recurrence.getEventExceptions().add(two);
+		DateTime secondOccurrenceRecurrenceId = new DateTime(secondOccurrence.getDate());
+		secondOccurrence.setDate(secondOccurrenceRecurrenceId.plusHours(10).toDate());
 		
-		Event updateEvent = newEvent.clone();
-		EventRecurrence updateRecurrence = updateEvent.getRecurrence();
+		recurrence.getEventExceptions().add(secondOccurrence);
 		
-		Calendar calendarUpdate = Calendar.getInstance();
-		calendarUpdate.add(Calendar.HOUR, 4);
-		updateRecurrence.getEventExceptions().get(0).setDate(calendarUpdate.getTime());
+		Event after = before.clone();
+		EventRecurrence updateRecurrence = after.getRecurrence();
 		
-		Assert.assertTrue(updateEvent.hasImportantChanges(newEvent));
+		Event firstException = updateRecurrence.getEventExceptions().get(0);
+		firstException.setDate(new DateTime(firstException.getDate()).plusHours(4).toDate());
+		
+		Assert.assertTrue(after.hasImportantChanges(before));
+	}
+
+	@Test
+	public void testHasImportantChangesWithModifiedDescriptionEventException() {
+		Event before = createOneEvent(5);
+
+		DateTime recurrenceEnd = new DateTime(before.getDate()).plusDays(5);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(recurrenceEnd.toDate());
+		before.setRecurrence(recurrence);
+		
+		DateTime dateTime = new DateTime(before.getDate());
+		Event secondOccurrence = before.getOccurrence(dateTime.plusDays(1).toDate());
+		
+		DateTime secondOccurrenceRecurrenceId = new DateTime(secondOccurrence.getDate());
+		secondOccurrence.setDate(secondOccurrenceRecurrenceId.plusHours(10).toDate());
+		
+		recurrence.getEventExceptions().add(secondOccurrence);
+		
+		Event after = before.clone();
+		EventRecurrence updateRecurrence = after.getRecurrence();
+		
+		Event firstException = updateRecurrence.getEventExceptions().get(0);
+		firstException.setDescription("my very different description");
+		
+		Assert.assertFalse(after.hasImportantChanges(before));
+	}
+
+	
+	@Test
+	public void testModifiedEventExceptionHasImportantChangesExceptedEventException() {
+		Event before = createOneEvent(5);
+
+		DateTime recurrenceEnd = new DateTime(before.getDate()).plusDays(5);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(recurrenceEnd.toDate());
+		before.setRecurrence(recurrence);
+		
+		DateTime dateTime = new DateTime(before.getDate());
+		Event secondOccurrence = before.getOccurrence(dateTime.plusDays(1).toDate());
+		
+		DateTime secondOccurrenceRecurrenceId = new DateTime(secondOccurrence.getDate());
+		secondOccurrence.setDate(secondOccurrenceRecurrenceId.plusHours(10).toDate());
+
+		recurrence.getEventExceptions().add(secondOccurrence);
+		
+		Event after = before.clone();
+		EventRecurrence updateRecurrence = after.getRecurrence();
+		
+		Event firstException = updateRecurrence.getEventExceptions().get(0);
+		firstException.setDate(new DateTime(firstException.getDate()).plusHours(4).toDate());
+		
+		Assert.assertFalse(after.hasImportantChangesExceptedEventException(before));
 	}
 	
 	@Test
@@ -429,15 +479,13 @@ public class EventTest {
 	
 	@Test
 	public void testHasImportantChangesExceptedEventExceptionWithoutChanges() {
-		Event ev1 = createOneEvent(3);
-		Event ev2 = ev1.clone();
+		Event before = createOneEvent(3);
+		Event after = before.clone();
 		
-		EventRecurrence recurrence = createRecurrence(ev1);
-		ev2.setRecurrence(recurrence);
+		EventRecurrence recurrence = createDailyRecurrenceUntil(before.getDate());
+		after.setRecurrence(recurrence);
 		
-		boolean change = ev1.hasImportantChangesExceptedEventException(ev2);
-		
-		Assert.assertFalse(change);
+		Assertions.assertThat(after.hasImportantChangesExceptedEventException(before)).isTrue();
 	}
 	
 	@Test
@@ -502,13 +550,14 @@ public class EventTest {
 	}
 	
 	private Event createOneEvent(int nbAttendees) {
+		Date currentDate = new Date();
 		Event event = new Event();
 		event.setAlert(10);
 		event.setAllday(true);
 		event.setAttendees( createAttendees(nbAttendees) );
 		event.setCategory("category");
-		event.setCompletion(new Date());
-		event.setDate(new Date());
+		event.setCompletion(currentDate);
+		event.setDate(currentDate);
 		event.setDescription("description");
 		event.setDomain("domain");
 		event.setDuration(10);
@@ -524,9 +573,9 @@ public class EventTest {
 		event.setPriority(1);
 		event.setPrivacy(1);
 		event.setSequence(0);
-		event.setRecurrenceId(new Date());
-		event.setTimeCreate(new Date());
-		event.setTimeUpdate(new Date());
+		event.setRecurrenceId(currentDate);
+		event.setTimeCreate(currentDate);
+		event.setTimeUpdate(currentDate);
 		event.setTimezoneName("timeZone");
 		event.setTitle("title");
 		event.setType(EventType.VEVENT);
@@ -558,16 +607,132 @@ public class EventTest {
 		}
 	}
 	
-	private EventRecurrence createRecurrence(Event event) {
+	private EventRecurrence createDailyRecurrenceUntil(Date endDate) {
 		EventRecurrence recurrence = new EventRecurrence();
 		recurrence.setKind(RecurrenceKind.daily);
-		recurrence.setDays("1100111");
-		recurrence.setEnd(new Date());
+		recurrence.setDays("1111111");
+		recurrence.setEnd(endDate);
 		recurrence.setFrequence(1);
-		List<Event> events = new LinkedList<Event>();
-		events.add(event.clone());
-		recurrence.setEventExceptions(events);
 		return recurrence;
 	}
+
+	@Test
+	public void modifyDescriptionOnEventException() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		
+		DateTime recurrenceEndDate = new DateTime(before.getDate()).plusDays(3);
+		EventRecurrence eventRecurrence = createDailyRecurrenceUntil(recurrenceEndDate.toDate());
+		before.setRecurrence(eventRecurrence);
+		
+		Event after = before.clone();
+
+		Event eventException = before.getOccurrence(recurrenceStartDate.plusDays(1).toDate());
+		eventException.setDescription("my description");
+		after.addEventException(eventException);
+
+		List<Event> changes = after.getExceptionsWithImportantChanges(before);
+		
+		Assertions.assertThat(changes).isEmpty();
+	}
+
+	@Test
+	public void testHasImportantChangeWithAddedRecurrence() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		
+		Event after = before.clone();
+		after.setRecurrence(createDailyRecurrenceUntil(recurrenceStartDate.plusDays(4).toDate()));
+		
+		Assertions.assertThat(after.hasImportantChanges(before)).isTrue();
+	}
+
+	@Test
+	public void testHasImportantChangeWithRemovedRecurrence() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		
+		Event after = before.clone();
+		
+		before.setRecurrence(createDailyRecurrenceUntil(recurrenceStartDate.plusDays(4).toDate()));
+		
+		Assertions.assertThat(after.hasImportantChanges(before)).isTrue();
+	}
+
+	@Test
+	public void testHasImportantChangeWithRemovedOccurrence() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		before.setRecurrence(createDailyRecurrenceUntil(recurrenceStartDate.plusDays(4).toDate()));
+		
+		Event after = before.clone();
+		after.addException(recurrenceStartDate.plusDays(1).toDate());
+		
+		Assertions.assertThat(after.hasImportantChanges(before)).isFalse();
+	}
 	
+	@Test
+	public void testHasImportantChangeExceptedEventExceptionWithRemovedOccurrence() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		before.setRecurrence(createDailyRecurrenceUntil(recurrenceStartDate.plusDays(4).toDate()));
+		
+		Event after = before.clone();
+		after.addException(recurrenceStartDate.plusDays(1).toDate());
+		
+		Assertions.assertThat(after.hasImportantChangesExceptedEventException(before)).isFalse();
+	}
+	
+	@Test
+	public void testHasImportantChangeWithRemovedExceptionalOccurrence() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		before.setRecurrence(createDailyRecurrenceUntil(recurrenceStartDate.plusDays(4).toDate()));
+		
+		Event after = before.clone();
+		Date secondOccurrenceDate = recurrenceStartDate.plusDays(1).toDate();
+		
+		before.addEventException(before.getOccurrence(secondOccurrenceDate));
+		after.addException(secondOccurrenceDate);
+		
+		Assertions.assertThat(after.hasImportantChanges(before)).isTrue();
+	}
+	
+	@Test
+	public void testHasImportantChangeExceptedEventExceptionWithRemovedExceptionalOccurrence() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		before.setRecurrence(createDailyRecurrenceUntil(recurrenceStartDate.plusDays(4).toDate()));
+		
+		Event after = before.clone();
+		Date secondOccurrenceDate = recurrenceStartDate.plusDays(1).toDate();
+		
+		before.addEventException(before.getOccurrence(secondOccurrenceDate));
+		after.addException(secondOccurrenceDate);
+		
+		Assertions.assertThat(after.hasImportantChangesExceptedEventException(before)).isFalse();
+	}
+	
+	@Test
+	public void testGetExceptionsWithImportantChangesWithRemovedExceptionalOccurrence() {
+		Event before = new Event();
+		DateTime recurrenceStartDate = new DateTime(2012, Calendar.FEBRUARY, 23, 14, 0);
+		before.setDate(recurrenceStartDate.toDate());
+		before.setRecurrence(createDailyRecurrenceUntil(recurrenceStartDate.plusDays(4).toDate()));
+		
+		Event after = before.clone();
+		Date secondOccurrenceDate = recurrenceStartDate.plusDays(1).toDate();
+		
+		before.addEventException(before.getOccurrence(secondOccurrenceDate));
+		after.addException(secondOccurrenceDate);
+		
+		Assertions.assertThat(after.getExceptionsWithImportantChanges(before)).hasSize(1);
+	}
 }

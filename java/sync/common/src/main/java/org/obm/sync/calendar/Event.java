@@ -31,12 +31,14 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.sync.calendar;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.obm.push.utils.collection.Sets;
 import org.obm.push.utils.index.Indexed;
 
 import com.google.common.base.Objects;
@@ -484,29 +486,29 @@ public class Event implements Indexed<Integer> {
 	}
 	
 	public boolean hasImportantChanges(Event event) {
-		ComparatorUsingEventHasImportantChanges comparator = new ComparatorUsingEventHasImportantChanges();
-		boolean hasImportantChanges = false;
-		if (comparator.equals(this, event)) {
-			if (this.isRecurrent()) {
-				hasImportantChanges =  this.recurrence.hasImportantChanges(event.getRecurrence());
-			}
-		} else {
-			hasImportantChanges = true;
+		if (hasImportantChangesExceptedEventException(event)) {
+			return true;
 		}
-		return hasImportantChanges;
+		if (getExceptionsWithImportantChanges(event).size() > 0) {
+			return true;
+		}
+		return false;
 	}
-	
+
 	public boolean hasImportantChangesExceptedEventException(Event event) {
 		ComparatorUsingEventHasImportantChanges comparator = new ComparatorUsingEventHasImportantChanges();
-		boolean hasImportantChanges = false;
-		if (comparator.equals(this, event)) {
-			if (this.isRecurrent()) {
-				hasImportantChanges =  this.recurrence.hasImportantChangesExceptedEventException(event.getRecurrence());
-			}
-		} else {
-			hasImportantChanges = true;
+		if (!comparator.equals(this, event)) {
+			return true;
 		}
-		return hasImportantChanges;
+		if (this.isRecurrent() != event.isRecurrent()) {
+			return true;
+		}
+		if (this.isRecurrent()) {
+			if (recurrence.hasImportantChanges(event.getRecurrence())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public List<Event> getExceptionsWithImportantChanges(Event event) {
@@ -517,9 +519,25 @@ public class Event implements Indexed<Integer> {
 			return event.getRecurrence().getEventExceptions();
 		}
 		else {
-			return this.recurrence.getExceptionsWithImportantChanges(event.getRecurrence());
+			return Lists.newArrayList(computeExceptionsWithImportantChanges(event));
 		}
 	}
+	
+	private Iterable<Event> computeExceptionsWithImportantChanges(Event event) {
+		List<Event> ownOccurrences = generateOccurrencesMatchingEventExceptions(this.recurrence);
+		List<Event> otherOccurrences = event.generateOccurrencesMatchingEventExceptions(event.recurrence);
+		return Sets.difference(ownOccurrences, otherOccurrences, new ComparatorUsingEventHasImportantChanges());
+	}
+	
+	private List<Event> generateOccurrencesMatchingEventExceptions(EventRecurrence recurrence) {
+		ArrayList<Event> occurrences = Lists.newArrayList();
+		for (Event exception: recurrence.getEventExceptions()) {
+			Event occurrence = getOccurrence(exception.recurrenceId);
+			occurrences.add(occurrence);
+		}
+		return occurrences;
+	}
+
 	
 	public boolean hasChangesOnEventAttributesExceptedEventException(Event event) {
 		if(event == null){
@@ -538,7 +556,7 @@ public class Event implements Indexed<Integer> {
 	
 	public Event getOccurrence(Date recurrenceId){
 		Event occurrence = recurrence.getEventExceptionWithRecurrenceId(recurrenceId);
-		if(occurrence == null){
+		if (occurrence == null) {
 			occurrence = buildOccurrence(recurrenceId);
 		}
 		return occurrence;
@@ -646,6 +664,10 @@ public class Event implements Indexed<Integer> {
 			.add("uid", uid)
 			.add("date", date)
 			.toString();
+	}
+
+	public void addException(Date recurrenceId) {
+		recurrence.addException(recurrenceId);
 	}
 	
 }

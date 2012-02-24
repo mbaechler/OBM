@@ -32,26 +32,22 @@
 package org.obm.sync.calendar;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-
-import org.obm.push.utils.collection.Sets;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Equivalence.Wrapper;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Lists;
-import com.google.common.base.Preconditions;
 
 public class EventRecurrence {
 
@@ -107,16 +103,12 @@ public class EventRecurrence {
 		this.kind = kind;
 	}
 
-	public Date[] getExceptions() {
-		return exceptions.toArray(new Date[exceptions.size()]);
-	}
-
-	public List<Date> getListExceptions() {
+	public Iterable<Date> getExceptions() {
 		return exceptions;
 	}
 
-	public void setExceptions(Date[] exceptions) {
-		this.exceptions = Arrays.asList(exceptions);
+	public void setExceptions(Iterable<Date> exceptions) {
+		this.exceptions = Lists.newArrayList(exceptions);
 	}
 
 	public void addException(Date d) {
@@ -150,37 +142,29 @@ public class EventRecurrence {
 		eventRecurrence.setKind(this.kind);
 		return eventRecurrence;
 	}
-	
+
 	public boolean hasImportantChanges(EventRecurrence recurrence) {
-		boolean hasImportantChangesExceptedEventException = hasImportantChangesExceptedEventException(recurrence);
+		boolean hasImportantChangesExceptedEventException = this.hasImportantChangesExceptedEventException(recurrence);
 		if(hasImportantChangesExceptedEventException) {
 			return true;
 		}
-		
+		/*
 		if (recurrence != null && !(this.eventExceptions.size() == recurrence.eventExceptions.size())) {
 			return true;
 		}
 		
 		Collection<Event> difference = getExceptionsWithImportantChanges(recurrence);
-		return !difference.isEmpty();
-	}
-
-	public List<Event> getExceptionsWithImportantChanges(EventRecurrence recurrence) {
-		Set<Event> difference = Sets.difference(this.getEventExceptions(),
-				recurrence.getEventExceptions(),
-				new ComparatorUsingEventHasImportantChanges());
-		List<Event> exceptionsWithImportantChanges = Lists.newArrayList(difference);
-		return exceptionsWithImportantChanges;
+		return !difference.isEmpty();*/
+		return false;
 	}
 	
-	public boolean hasImportantChangesExceptedEventException(EventRecurrence recurrence) {
+	private boolean hasImportantChangesExceptedEventException(EventRecurrence recurrence) {
 		if (recurrence == null) {
 			return true;
 		}
 		if ( !(Objects.equal(this.end, recurrence.end)
 				&& Objects.equal(this.kind, recurrence.kind)
-				&& Objects.equal(this.frequence, recurrence.frequence)
-				&& (this.exceptions.size() == recurrence.exceptions.size())) ) {
+				&& Objects.equal(this.frequence, recurrence.frequence)) ) {
 			return true;
 		}
 		
