@@ -579,7 +579,7 @@ public class CalendarBindingImpl implements ICalendar {
 		notifyOrganizerForExternalEvent(token, calendar, ev, calendarOwnerAsAttendee.getState(), notification);
 	}
 
-	private Event createInternalEvent(AccessToken token, String calendar, Event event, boolean notification) throws ServerFault {
+	@VisibleForTesting Event createInternalEvent(AccessToken token, String calendar, Event event, boolean notification) throws ServerFault {
 		try{
 			assignDelegationRightsOnAttendees(token, event);
 			event.changeParticipationState();

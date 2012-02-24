@@ -38,6 +38,7 @@ import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.isNull;
 import static org.junit.Assert.assertEquals;
 import static fr.aliacom.obm.ToolBox.mockAccessToken;
+import static fr.aliacom.obm.ToolBox.getFakeAttendee;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -975,12 +976,6 @@ public class CalendarBindingImplTest {
 		Assert.assertEquals(ParticipationState.NEEDSACTION, guestAttendee2.getState());
 	}
 
-	private Attendee getFakeAttendee(String userEmail) {
-		Attendee att = new Attendee();
-		att.setEmail(userEmail);
-		return att;
-	}
-	
 	private Ical4jHelper mockIcal4jHelper(Ical4jUser ical4jUser, String icsData, Event eventWithOwnerAttendee) throws IOException, ParserException{
 		Ical4jHelper ical4jHelper = createMock(Ical4jHelper.class);
 		expect(ical4jHelper.parseICSEvent(icsData, ical4jUser)).andReturn(ImmutableList.of(eventWithOwnerAttendee)).once();
@@ -1289,6 +1284,36 @@ public class CalendarBindingImplTest {
 			Assertions.assertThat(e.getMessage()).contains("no write right");
 			throw e;
 		}
+	}
+	
+	@Test
+	public void createInternalEvent() throws EventNotFoundException, ServerFault, FindException, SQLException {
+		ObmUser defaultObmUser = ToolBox.getDefaultObmUser();
+		AccessToken accessToken = ToolBox.mockAccessToken(defaultObmUser.getLogin(), defaultObmUser.getDomain());
+		String calendar = "cal1";
+		Event internalEvent = new Event();
+		internalEvent.setInternalEvent(true);
+		internalEvent.setUid(new EventObmId(1));
+
+		Event expectedEvent = new Event();
+		expectedEvent.setInternalEvent(true);
+		expectedEvent.setUid(new EventObmId(1));
+
+		CalendarDao calendarDao = createMock(CalendarDao.class);
+		expect(calendarDao.createEvent(accessToken, calendar, internalEvent, true)).andReturn(internalEvent).once();
+		expect(calendarDao.findEventById(accessToken, internalEvent.getObmId())).andReturn(internalEvent).once();
+
+		EventChangeHandler eventChangeHandler = createMock(EventChangeHandler.class);
+		eventChangeHandler.create(internalEvent, false, accessToken);
+
+		EasyMock.replay(calendarDao, eventChangeHandler);
+
+		CalendarBindingImpl calendarService = new CalendarBindingImpl(eventChangeHandler, null, null, calendarDao, null, null, null, null);
+		Event createdEvent = calendarService.createInternalEvent(accessToken, calendar, internalEvent, false);
+
+		EasyMock.verify(calendarDao, eventChangeHandler);
+
+		Assertions.assertThat(createdEvent).isEqualTo(expectedEvent);
 	}
 	
 	@Test
