@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2013  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -545,6 +545,37 @@ public class CalendarDaoJdbcImpl implements CalendarDao {
             return result;
     }
 	
+	@Override
+    public boolean doesEventExist(ObmUser calendar, EventExtId extId) throws SQLException {
+		String ev = "SELECT COUNT(*)"
+				+ " FROM Event e "
+				+ "INNER JOIN EventLink link ON link.eventlink_event_id=e.event_id "
+				+ "INNER JOIN UserEntity ON userentity_entity_id=eventlink_entity_id "
+				+ "INNER JOIN UserObm u ON u.userobm_id=userentity_user_id "
+				+ "WHERE e.event_ext_id=? " 
+				+ "AND u.userobm_login=?";
+
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		Connection con = null;
+
+		try {
+			con = obmHelper.getConnection();
+			ps = con.prepareStatement(ev);
+			ps.setString(1, extId.getExtId());
+			ps.setString(2, calendar.getLogin());
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1) > 0;
+			}
+		} catch (SQLException e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+			obmHelper.cleanup(con, ps, rs);
+		}
+			
+		return false;
+    }
 
 	@Override
 	public Event findEventById(AccessToken token, EventObmId uid) throws EventNotFoundException, ServerFault {

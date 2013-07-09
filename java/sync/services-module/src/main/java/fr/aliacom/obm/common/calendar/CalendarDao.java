@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (C) 2011-2012  Linagora
+ * Copyright (C) 2013  Linagora
  *
  * This program is free software: you can redistribute it and/or 
  * modify it under the terms of the GNU Affero General Public License as 
@@ -66,6 +66,8 @@ public interface CalendarDao {
 
 	List<Event> findAllEvents(AccessToken token, ObmUser calendarUser, EventType typeFilter);
 
+	boolean doesEventExist(ObmUser calendar, EventExtId extId) throws SQLException;
+	
 	Event findEventById(AccessToken token, EventObmId eventId) throws EventNotFoundException, ServerFault;
 
 	Event findEventByExtId(AccessToken token, ObmUser calendarUser, EventExtId eventExtId);
