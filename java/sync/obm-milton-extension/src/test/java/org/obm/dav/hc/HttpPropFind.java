@@ -29,50 +29,51 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.dav;
+package org.obm.dav.hc;
 
-import fr.aliacom.obm.common.domain.DomainService;
-import fr.aliacom.obm.common.domain.ObmDomain;
-import io.milton.annotations.ChildOf;
-import io.milton.annotations.ChildrenOf;
-import io.milton.annotations.ResourceController;
-import io.milton.annotations.Root;
+import java.net.URI;
 
-import com.google.inject.Inject;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.methods.HttpRequestBase;
 
-@ResourceController
-public class ObmRootController {
+/**
+ * HTTP DELETE method
+ * <p>
+ * The HTTP DELETE method is defined in section 9.7 of <a
+ * href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>: <blockquote> The
+ * DELETE method requests that the origin server delete the resource identified
+ * by the Request-URI. [...] The client cannot be guaranteed that the operation
+ * has been carried out, even if the status code returned from the origin server
+ * indicates that the action has been completed successfully. </blockquote>
+ * 
+ * @since 4.0
+ */
+@NotThreadSafe
+// HttpRequestBase is @NotThreadSafe
+public class HttpPropFind extends HttpRequestBase {
 
-	@Inject
-	private DomainService domainService;
+	public final static String METHOD_NAME = "PROPFIND";
 
-	@Root
-	public ObmRootController getRoot() {
-		return this;
+	public HttpPropFind() {
+		super();
 	}
 
-	@ChildrenOf
-	public DomainRoot getDomainRoot(ObmRootController root) {
-		return new DomainRoot();
+	public HttpPropFind(final URI uri) {
+		super();
+		setURI(uri);
 	}
 
 	/**
-	 * For example, to resolve:
-	 * 
-	 * /dav/my.domain/brad/calendars/default
-	 * 
-	 * @param root
-	 * @param name
-	 * @return
+	 * @throws IllegalArgumentException
+	 *             if the uri is invalid.
 	 */
-	@ChildOf
-	public ObmDomain getDomain(DomainRoot root, String name) {
-		return domainService.findDomainByName(name);
+	public HttpPropFind(String uri) {
+		super();
+		setURI(URI.create(uri));
 	}
 
-	public class DomainRoot {
-		public String getName() {
-			return "dav";
-		}
+	@Override
+	public String getMethod() {
+		return METHOD_NAME;
 	}
 }

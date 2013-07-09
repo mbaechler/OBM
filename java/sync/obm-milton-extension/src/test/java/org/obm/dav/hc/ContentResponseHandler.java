@@ -29,50 +29,34 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.dav;
+package org.obm.dav.hc;
 
-import fr.aliacom.obm.common.domain.DomainService;
-import fr.aliacom.obm.common.domain.ObmDomain;
-import io.milton.annotations.ChildOf;
-import io.milton.annotations.ChildrenOf;
-import io.milton.annotations.ResourceController;
-import io.milton.annotations.Root;
+import java.io.IOException;
 
-import com.google.inject.Inject;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.entity.ContentType;
+import org.apache.http.util.EntityUtils;
 
-@ResourceController
-public class ObmRootController {
+class ContentResponseHandler implements ResponseHandler<Content> {
 
-	@Inject
-	private DomainService domainService;
-
-	@Root
-	public ObmRootController getRoot() {
-		return this;
-	}
-
-	@ChildrenOf
-	public DomainRoot getDomainRoot(ObmRootController root) {
-		return new DomainRoot();
-	}
-
-	/**
-	 * For example, to resolve:
-	 * 
-	 * /dav/my.domain/brad/calendars/default
-	 * 
-	 * @param root
-	 * @param name
-	 * @return
-	 */
-	@ChildOf
-	public ObmDomain getDomain(DomainRoot root, String name) {
-		return domainService.findDomainByName(name);
-	}
-
-	public class DomainRoot {
-		public String getName() {
-			return "dav";
+	public Content handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+		StatusLine statusLine = response.getStatusLine();
+		if (statusLine.getStatusCode() >= 300) {
+			throw new HttpResponseException(statusLine.getStatusCode(), statusLine.getReasonPhrase());
 		}
+		
+		HttpEntity entity = response.getEntity();
+		if (entity != null) {
+			return Content.builder()
+					.raw(EntityUtils.toByteArray(entity))
+					.type(ContentType.getOrDefault(entity))
+					.build();
+		}
+		return Content.NO_CONTENT;
 	}
 }

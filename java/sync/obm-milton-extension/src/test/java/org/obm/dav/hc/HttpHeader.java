@@ -29,50 +29,14 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.dav;
+package org.obm.dav.hc;
 
-import fr.aliacom.obm.common.domain.DomainService;
-import fr.aliacom.obm.common.domain.ObmDomain;
-import io.milton.annotations.ChildOf;
-import io.milton.annotations.ChildrenOf;
-import io.milton.annotations.ResourceController;
-import io.milton.annotations.Root;
+public class HttpHeader {
 
-import com.google.inject.Inject;
-
-@ResourceController
-public class ObmRootController {
-
-	@Inject
-	private DomainService domainService;
-
-	@Root
-	public ObmRootController getRoot() {
-		return this;
-	}
-
-	@ChildrenOf
-	public DomainRoot getDomainRoot(ObmRootController root) {
-		return new DomainRoot();
-	}
-
-	/**
-	 * For example, to resolve:
-	 * 
-	 * /dav/my.domain/brad/calendars/default
-	 * 
-	 * @param root
-	 * @param name
-	 * @return
-	 */
-	@ChildOf
-	public ObmDomain getDomain(DomainRoot root, String name) {
-		return domainService.findDomainByName(name);
-	}
-
-	public class DomainRoot {
-		public String getName() {
-			return "dav";
-		}
-	}
+    public static final String CONTENT_LENGTH = "Content-Length";
+    public static final String DATE = "Date";
+    public static final String CACHE_CONTROL = "Cache-Control";
+    public static final String CONTENT_TYPE = "Content-Type";
+    public static final String IF_MODIFIED_SINCE = "If-Modified-Since";
+    public static final String IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
 }

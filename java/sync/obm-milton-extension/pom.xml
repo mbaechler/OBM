@@ -58,5 +58,10 @@
             <artifactId>fest-assert-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>services-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

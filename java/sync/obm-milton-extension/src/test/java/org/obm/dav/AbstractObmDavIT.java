@@ -32,12 +32,17 @@
 package org.obm.dav;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.fluent.Request;
+import org.easymock.EasyMock;
+import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
+import org.obm.dav.hc.Request;
+import org.obm.icalendar.Ical4jHelper;
+import org.obm.sync.date.DateProvider;
+import org.obm.sync.services.AttendeeService;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -45,8 +50,13 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.GuiceFilter;
 
+import fr.aliacom.obm.common.calendar.CalendarDao;
+import fr.aliacom.obm.common.domain.DomainService;
+import fr.aliacom.obm.common.session.SessionManagement;
+import fr.aliacom.obm.common.user.UserService;
+
 public class AbstractObmDavIT {
-    
+
 	public static class Env extends AbstractModule {
 
 		@Provides
@@ -63,7 +73,16 @@ public class AbstractObmDavIT {
 
 		@Override
 		protected void configure() {
+			IMocksControl control = EasyMock.createControl();
 			install(new DavModule());
+			bind(IMocksControl.class).toInstance(control);
+			bind(CalendarDao.class).toInstance(control.createMock(CalendarDao.class));
+			bind(DomainService.class).toInstance(control.createMock(DomainService.class));
+			bind(UserService.class).toInstance(control.createMock(UserService.class));
+			bind(SessionManagement.class).toInstance(control.createMock(SessionManagement.class));
+			bind(DateProvider.class).toInstance(control.createMock(DateProvider.class));
+			bind(AttendeeService.class).toInstance(control.createMock(AttendeeService.class));
+			bind(Ical4jHelper.class).toInstance(control.createMock(Ical4jHelper.class));
 		}
 	}
 
@@ -88,5 +107,13 @@ public class AbstractObmDavIT {
 
 	protected HttpResponse options(String path) throws Exception {
 		return Request.Options(baseUrl + path).execute().returnResponse();
+	}
+
+	protected HttpResponse get(String path) throws Exception {
+		return Request.Get(baseUrl + path).execute().returnResponse();
+	}
+
+	protected HttpResponse propfind(String path, int depth) throws Exception {
+		return Request.Propfind(baseUrl + path).addHeader("Depth", depth + "").execute().returnResponse();
 	}
 }

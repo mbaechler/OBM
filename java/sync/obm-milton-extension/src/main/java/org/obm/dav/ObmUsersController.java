@@ -31,32 +31,71 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.dav;
 
+import fr.aliacom.obm.common.domain.ObmDomain;
+import fr.aliacom.obm.common.session.SessionManagement;
 import fr.aliacom.obm.common.user.ObmUser;
+import fr.aliacom.obm.common.user.UserService;
+import io.milton.annotations.AccessControlList;
+import io.milton.annotations.Authenticate;
 import io.milton.annotations.ChildOf;
 import io.milton.annotations.ChildrenOf;
 import io.milton.annotations.ResourceController;
 import io.milton.annotations.Users;
+import io.milton.http.HttpManager;
+import io.milton.http.Request;
+import io.milton.resource.AccessControlledResource;
 
+import java.util.Collections;
 import java.util.List;
+
+import org.obm.sync.auth.AccessToken;
+
+import com.google.inject.Inject;
 
 @ResourceController
 public class ObmUsersController {
-	
-	@ChildrenOf
-	public ObmUsersController getMusiciansRoot(ObmRootController root) {
-		return this;
+
+	public static AccessToken getAccessToken() {
+		return (AccessToken) HttpManager.request().getAttributes() .get("accessToken");
 	}
+
+	@Inject
+	private UserService userService;
+
+	@Inject
+	private SessionManagement sessionManagement;
 
 	@ChildrenOf
 	@Users
 	// ties in with the @AccessControlList and @Authenticate methods below
-	public List<ObmUser> getUsers(ObmUsersController root) {
-		return null;
+	public List<ObmUser> getUsers(ObmDomain domain) {
+		return Collections.EMPTY_LIST;
 	}
 
 	@ChildOf
 	@Users
-	public ObmUser findUserByName(ObmUsersController root, String name) {
-		return null;
-	}    
+	public ObmUser findUserByName(ObmDomain domain, String userName) {
+		return userService.getUserFromLogin(userName, domain.getName());
+	}
+
+	@Authenticate
+	public Boolean checkPassword(ObmUser user, String password) {
+		Request request = HttpManager.request();
+		String clientIp = request.getHeaders().get("X-Forwarded-For");
+		String remoteIp = request.getRemoteAddr();
+		
+		AccessToken accessToken = sessionManagement.login(user.getLogin(),
+				password, "MiltonDav", clientIp, remoteIp, null, null, false);
+		setAccessToken(accessToken, request);
+		return accessToken != null;
+	}
+
+	@AccessControlList
+	public List<AccessControlledResource.Priviledge> getAccessControlList(ObmUser target, ObmUser currentUser) {
+		return AccessControlledResource.READ_WRITE;
+	}
+
+	private void setAccessToken(AccessToken accessToken, Request request) {
+		request.getAttributes().put("accessToken", accessToken);
+	}
 }

@@ -29,50 +29,80 @@
  * OBM connectors. 
  * 
  * ***** END LICENSE BLOCK ***** */
-package org.obm.dav;
+package org.obm.dav.hc;
 
-import fr.aliacom.obm.common.domain.DomainService;
-import fr.aliacom.obm.common.domain.ObmDomain;
-import io.milton.annotations.ChildOf;
-import io.milton.annotations.ChildrenOf;
-import io.milton.annotations.ResourceController;
-import io.milton.annotations.Root;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
-import com.google.inject.Inject;
+import org.apache.http.entity.ContentType;
+import org.apache.http.protocol.HTTP;
 
-@ResourceController
-public class ObmRootController {
+public class Content {
 
-	@Inject
-	private DomainService domainService;
+	public static final Content NO_CONTENT = new Content(new byte[] {}, ContentType.DEFAULT_BINARY);
 
-	@Root
-	public ObmRootController getRoot() {
-		return this;
+	public static Builder builder() {
+		return new Builder();
 	}
-
-	@ChildrenOf
-	public DomainRoot getDomainRoot(ObmRootController root) {
-		return new DomainRoot();
-	}
-
-	/**
-	 * For example, to resolve:
-	 * 
-	 * /dav/my.domain/brad/calendars/default
-	 * 
-	 * @param root
-	 * @param name
-	 * @return
-	 */
-	@ChildOf
-	public ObmDomain getDomain(DomainRoot root, String name) {
-		return domainService.findDomainByName(name);
-	}
-
-	public class DomainRoot {
-		public String getName() {
-			return "dav";
+	
+	public static class Builder {
+		private byte[] raw;
+		private ContentType type;
+	
+		private Builder() {
 		}
+		
+		public Builder raw(byte[] raw) {
+			this.raw = raw;
+			return this;
+		}
+		
+		public Builder type(ContentType type) {
+			this.type = type;
+			return this;
+		}
+		
+		public Content build() {
+			return new Content(raw, type);
+		}
+	}
+	
+	private final byte[] raw;
+	private final ContentType type;
+
+	private Content(final byte[] raw, final ContentType type) {
+		this.raw = raw;
+		this.type = type;
+	}
+
+	public ContentType getType() {
+		return type;
+	}
+
+	public byte[] asBytes() {
+		return raw.clone();
+	}
+
+	public String asString() {
+		try {
+			Charset charset = type.getCharset();
+			if (charset == null) {
+				charset = HTTP.DEF_CONTENT_CHARSET;
+			}
+			return new String(raw, charset.name());
+		} catch (UnsupportedEncodingException ex) {
+			return new String(raw);
+		}
+	}
+
+	public InputStream asStream() {
+		return new ByteArrayInputStream(raw);
+	}
+
+	@Override
+	public String toString() {
+		return asString();
 	}
 }

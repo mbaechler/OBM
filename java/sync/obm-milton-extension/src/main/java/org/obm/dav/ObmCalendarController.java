@@ -31,9 +31,10 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.dav;
 
-import fr.aliacom.obm.common.user.ObmUser;
+import io.milton.annotations.ChildOf;
 import io.milton.annotations.ChildrenOf;
 import io.milton.annotations.CreatedDate;
+import io.milton.annotations.Delete;
 import io.milton.annotations.Get;
 import io.milton.annotations.ICalData;
 import io.milton.annotations.ModifiedDate;
@@ -41,12 +42,30 @@ import io.milton.annotations.Name;
 import io.milton.annotations.PutChild;
 import io.milton.annotations.UniqueId;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import org.obm.icalendar.Ical4jHelper;
+import org.obm.sync.auth.AccessToken;
 import org.obm.sync.calendar.Event;
+import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventType;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Inject;
+
+import fr.aliacom.obm.common.calendar.CalendarDao;
+import fr.aliacom.obm.common.user.ObmUser;
 
 public class ObmCalendarController {
+
+	@Inject
+	private CalendarDao calendarDao;
+	@Inject
+	private Ical4jHelper ical4jHelper;
 
 	@ChildrenOf
 	public ObmUserCalendars getUsers(ObmUser user) {
@@ -60,13 +79,20 @@ public class ObmCalendarController {
 
 	@ChildrenOf
 	public List<Event> getEvents(ObmUserCalendar cal) {
-		return null;
+		return calendarDao.findAllEvents(null, cal.user, EventType.VEVENT);
+	}
+
+	@ChildOf
+	public Event getEvent(ObmUserCalendar cal, String eventName) {
+		EventExtId eventExtId = new EventExtId(eventName);
+		return calendarDao.findEventByExtId(null, cal.user, eventExtId);
 	}
 
 	@ICalData
 	@Get
-	public byte[] getEventData(Event c) {
-		return null;
+	public byte[] getEventData(Event event) throws UnsupportedEncodingException {
+		String ical = ical4jHelper.buildIcs(null, ImmutableList.of(event), ObmUsersController.getAccessToken());
+		return ical.getBytes("UTF-8");
 	}
 
 	@PutChild
@@ -74,9 +100,20 @@ public class ObmCalendarController {
 		return null;
 	}
 
+	@Delete
+	public void deleteEvent(Event event) {
+		try {
+			AccessToken token = ObmUsersController.getAccessToken();
+			// TODO: check if owner, if not just remove attendance
+			calendarDao.removeEvent(token, event, EventType.VEVENT, event.getSequence());
+		} catch (SQLException e) {
+			throw Throwables.propagate(e);
+		}
+	}
+
 	@Name
 	public String getEventName(Event event) {
-		return event.getTitle();
+		return event.getExtId().getExtId();
 	}
 
 	@ModifiedDate
@@ -91,7 +128,7 @@ public class ObmCalendarController {
 
 	@UniqueId
 	public String getEventId(Event event) {
-		return event.getExtId().toString();
+		return event.getExtId().getExtId();
 	}
 
 	// @CTag
