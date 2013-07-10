@@ -31,7 +31,6 @@ package fr.aliacom.obm.common.calendar;
 
 import static fr.aliacom.obm.ToolBox.getDefaultObmUser;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -43,9 +42,8 @@ import org.easymock.IMocksControl;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.obm.dao.utils.H2ConnectionProvider;
+import org.obm.dao.utils.DaoTestModule;
 import org.obm.dao.utils.H2InMemoryDatabase;
-import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.filter.Slow;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.SlowGuiceRunner;
@@ -53,9 +51,7 @@ import org.obm.icalendar.Ical4jHelper;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.solr.SolrHelper;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
-import com.google.inject.name.Names;
 import com.mysql.jdbc.PreparedStatement;
 
 import fr.aliacom.obm.common.user.ObmUser;
@@ -66,23 +62,17 @@ import fr.aliacom.obm.utils.ObmHelper;
 @GuiceModule(H2CalendarDaoJdbcImplTest.Env.class)
 public class H2CalendarDaoJdbcImplTest {
 
-	public static class Env extends AbstractModule {
-		private IMocksControl mocksControl = createControl();
+	public static class Env extends DaoTestModule {
 
-		@Override
-		protected void configure() {
-			bind(IMocksControl.class).toInstance(mocksControl);
-			bindConstant().annotatedWith(Names.named("initialSchema")).to("sql/initial.sql");
+		@Override protected String initialSqlSchemaPath() {
+			return "sql/initial.sql";
+		}
 
+		@Override protected void configureImpl() {
 			bindWithMock(SolrHelper.Factory.class);
 			bindWithMock(ObmHelper.class);
 			bindWithMock(Ical4jHelper.class);
-			bind(DatabaseConnectionProvider.class).to(H2ConnectionProvider.class);
 			bind(CalendarDao.class).to(CalendarDaoJdbcImpl.class);
-		}
-
-		private <T> void bindWithMock(Class<T> cls) {
-			bind(cls).toInstance(mocksControl.createMock(cls));
 		}
 	}
 
