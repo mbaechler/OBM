@@ -32,6 +32,8 @@
 package org.obm.dav;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.FluentPropFind;
+import org.apache.http.client.fluent.Request;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
@@ -39,7 +41,6 @@ import org.junit.Before;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.DefaultServlet;
-import org.obm.dav.hc.Request;
 import org.obm.icalendar.Ical4jHelper;
 import org.obm.sync.date.DateProvider;
 import org.obm.sync.services.AttendeeService;
@@ -109,11 +110,12 @@ public class AbstractObmDavIT {
 		return Request.Options(baseUrl + path).execute().returnResponse();
 	}
 
-	protected HttpResponse get(String path) throws Exception {
-		return Request.Get(baseUrl + path).execute().returnResponse();
+	protected Request get(String path) {
+		return Request.Get(baseUrl + path);
 	}
 
-	protected HttpResponse propfind(String path, int depth) throws Exception {
-		return Request.Propfind(baseUrl + path).addHeader("Depth", depth + "").execute().returnResponse();
+	protected Request propfind(String path, int depth) {
+		FluentPropFind fluentPropFind = new FluentPropFind(baseUrl + path);
+		return fluentPropFind.addHeader("Depth", String.valueOf(depth));
 	}
 }

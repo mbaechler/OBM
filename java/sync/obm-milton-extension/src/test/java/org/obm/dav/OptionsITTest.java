@@ -99,7 +99,9 @@ public class OptionsITTest extends AbstractObmDavIT {
 			.andReturn(user);
 
 		control.replay();
-		HttpResponse response = propfind("/dav/my.domain/joe", 1);
+		HttpResponse response = propfind("/dav/my.domain/joe", 1)
+				.execute()
+				.returnResponse();
 		control.verify();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
 	}
@@ -125,7 +127,9 @@ public class OptionsITTest extends AbstractObmDavIT {
 			.andReturn(events);
 
 		control.replay();
-		HttpResponse response = propfind("/dav/my.domain/joe/calendars/default", 1);
+		HttpResponse response = propfind("/dav/my.domain/joe/calendars/default", 1)
+				.execute()
+				.returnResponse();
 		control.verify();
 
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(
@@ -159,7 +163,9 @@ public class OptionsITTest extends AbstractObmDavIT {
 			.andReturn(ical);
 
 		control.replay();
-		HttpResponse response = get("/dav/my.domain/joe/calendars/default/event1");
+		HttpResponse response = get("/dav/my.domain/joe/calendars/default/event1")
+				.execute()
+				.returnResponse();
 		control.verify();
 
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
