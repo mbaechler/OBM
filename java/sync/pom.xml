@@ -115,6 +115,7 @@
 	        <module>healthcheck-api</module>
 		<module>guice-webapp-extensions</module>
 		<module>obm-milton-extension</module>
+		<module>obm-milton-dao</module>
 		<module>services-dav-webapp</module>
 	</modules>
 
