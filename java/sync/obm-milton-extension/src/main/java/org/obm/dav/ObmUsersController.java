@@ -31,7 +31,6 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.dav;
 
-import fr.aliacom.obm.common.domain.ObmDomain;
 import fr.aliacom.obm.common.session.SessionManagement;
 import fr.aliacom.obm.common.user.ObmUser;
 import fr.aliacom.obm.common.user.UserService;
@@ -48,15 +47,19 @@ import io.milton.resource.AccessControlledResource;
 import java.util.Collections;
 import java.util.List;
 
+import org.obm.dav.ObmRootController.UsersHome;
 import org.obm.sync.auth.AccessToken;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 @ResourceController
 public class ObmUsersController {
 
 	public static AccessToken getAccessToken() {
-		return (AccessToken) HttpManager.request().getAttributes() .get("accessToken");
+		return (AccessToken) HttpManager.request().getAttributes().get("accessToken");
 	}
 
 	@Inject
@@ -68,14 +71,17 @@ public class ObmUsersController {
 	@ChildrenOf
 	@Users
 	// ties in with the @AccessControlList and @Authenticate methods below
-	public List<ObmUser> getUsers(ObmDomain domain) {
+	public List<ObmUser> getUsers(UsersHome home) {
 		return Collections.EMPTY_LIST;
 	}
 
 	@ChildOf
 	@Users
-	public ObmUser findUserByName(ObmDomain domain, String userName) {
-		return userService.getUserFromLogin(userName, domain.getName());
+	public ObmUser findUserByName(UsersHome home, String userName) {
+		Iterable<String> loginParts = Splitter.on('@').split(userName);
+		String login = Iterables.get(loginParts, 0);
+		String domain = Iterables.get(loginParts, 1);
+		return userService.getUserFromLogin(login, domain);
 	}
 
 	@Authenticate
@@ -92,7 +98,10 @@ public class ObmUsersController {
 
 	@AccessControlList
 	public List<AccessControlledResource.Priviledge> getAccessControlList(ObmUser target, ObmUser currentUser) {
-		return AccessControlledResource.READ_WRITE;
+		if (currentUser != null) {
+			return AccessControlledResource.READ_WRITE;
+		}
+		return ImmutableList.of();
 	}
 
 	private void setAccessToken(AccessToken accessToken, Request request) {

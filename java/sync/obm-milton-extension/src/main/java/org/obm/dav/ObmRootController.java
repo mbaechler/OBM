@@ -32,8 +32,6 @@
 package org.obm.dav;
 
 import fr.aliacom.obm.common.domain.DomainService;
-import fr.aliacom.obm.common.domain.ObmDomain;
-import io.milton.annotations.ChildOf;
 import io.milton.annotations.ChildrenOf;
 import io.milton.annotations.ResourceController;
 import io.milton.annotations.Root;
@@ -51,28 +49,23 @@ public class ObmRootController {
 		return this;
 	}
 
-	@ChildrenOf
-	public DomainRoot getDomainRoot(ObmRootController root) {
-		return new DomainRoot();
-	}
-
 	/**
 	 * For example, to resolve:
 	 * 
-	 * /dav/my.domain/brad/calendars/default
+	 * /users/brad@my.domain/calendars/default
 	 * 
 	 * @param root
 	 * @param name
 	 * @return
 	 */
-	@ChildOf
-	public ObmDomain getDomain(DomainRoot root, String name) {
-		return domainService.findDomainByName(name);
+	@ChildrenOf
+	public UsersHome getDomainRoot(ObmRootController root) {
+		return new UsersHome();
 	}
 
-	public class DomainRoot {
+	public class UsersHome {
 		public String getName() {
-			return "dav";
+			return "users";
 		}
 	}
 }

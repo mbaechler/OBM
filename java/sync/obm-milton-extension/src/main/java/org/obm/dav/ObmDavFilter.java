@@ -112,7 +112,7 @@ public class ObmDavFilter implements Filter {
 			log.trace("Is this a dav request? {}", httpRequest.getPathInfo());
 			if (httpRequest.getMethod().equals("PROPFIND")
 					|| httpRequest.getMethod().equals("OPTIONS")
-					|| httpRequest.getPathInfo().startsWith("/dav")) {
+					|| httpRequest.getPathInfo().startsWith("/users")) {
 				log.trace("YES!!");
 				doMiltonProcessing((HttpServletRequest) request, (HttpServletResponse) response);
 			} else {

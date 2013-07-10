@@ -32,8 +32,10 @@
 package org.obm.dav;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.FluentPropFind;
 import org.apache.http.client.fluent.Request;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
@@ -75,7 +77,7 @@ public class AbstractObmDavIT {
 		@Override
 		protected void configure() {
 			IMocksControl control = EasyMock.createControl();
-			install(new DavModule());
+			install(new DavModule()); 
 			bind(IMocksControl.class).toInstance(control);
 			bind(CalendarDao.class).toInstance(control.createMock(CalendarDao.class));
 			bind(DomainService.class).toInstance(control.createMock(DomainService.class));
@@ -92,6 +94,7 @@ public class AbstractObmDavIT {
 
 	protected String baseUrl;
 	protected int serverPort;
+	protected Executor executor;
 
 	@Before
 	public void setUp() throws Exception {
@@ -99,6 +102,7 @@ public class AbstractObmDavIT {
 
 		serverPort = server.getConnectors()[0].getLocalPort();
 		baseUrl = "http://localhost:" + serverPort;
+		executor = Executor.newInstance(new DefaultHttpClient());
 	}
 
 	@After
