@@ -35,6 +35,9 @@ import static org.easymock.EasyMock.expect;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -55,7 +58,6 @@ import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventType;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 
 import fr.aliacom.obm.common.calendar.CalendarDao;
@@ -78,7 +80,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 	private CalendarDao calendarDao;
 	@Inject
 	private Ical4jHelper ical4jHelper;
-	@Inject
+	@Inject 
 	private SessionManagement sessionManagement;
 
 	@Inject
@@ -93,19 +95,18 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 	@Test
 	public void testUsersPropFind() throws Exception {
+
+
 		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
 		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
-		expect(userService.getUserFromLogin("joe", "my.domain"))
-			.andReturn(user).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false))
-			.andReturn(accessToken);
+		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
+		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
-		HttpResponse response = executor.execute(propfind("/users/joe@my.domain", 1))
-				.returnResponse();
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain", 1)).returnResponse();
 		control.verify();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
 	}
@@ -116,66 +117,63 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
 		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
-
+		List<Event> events = new ArrayList<Event>();
 		Event event = new Event();
 		event.setExtId(new EventExtId("event1"));
-		event.setTimeCreate(now);
+		event.setTimeCreate(now );
 		event.setTimeUpdate(now);
-		List<Event> events = ImmutableList.of(event);
+		events.add(event);
 
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
-		expect(userService.getUserFromLogin("joe", "my.domain"))
-			.andReturn(user).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false))
-			.andReturn(accessToken);
-		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT))
-			.andReturn(events);
+		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
+		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT)).andReturn(events);
+		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
 
 		control.replay();
-		executor.auth("joe@my.domain", "password");
-		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/default", 1))
-				.returnResponse();
-		control.verify();
 
-		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(
-				HttpStatus.SC_MULTI_STATUS);
+		executor.auth("joe@my.domain", "password");
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/default",1)).returnResponse();
+		control.verify();
+		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
 		List<PropFindResponse> responses = PropFindResponse.parse(response, 1);
 		assertThat(responses).hasSize(1);
 		PropFindResponse first = responses.get(0);
 		assertThat(first.getName()).isEqualTo("event1");
 		assertThat(first.getModifiedDate().toString()).isEqualTo(now.toString());
 		assertThat(first.getCreatedDate().toString()).isEqualTo(now.toString());
-	}
+	}    
 
 	@Test
 	public void testEventGetWithAuthentication() throws Exception {
+
 		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
 		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
-
-		EventExtId eventId = new EventExtId("event1");
 		Event event = new Event();
+		EventExtId eventId = new EventExtId("event1");
 		event.setExtId(eventId);
-		List<Event> events = ImmutableList.of(event);
+
+		Collection<Event> events = Arrays.asList(event);
 		String ical = "FAKE ICAL";
 
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
-		         
+
+		//expect(domainService.list()).andReturn(ImmutableList.of(domain)).anyTimes();
 		expect(domainService.findDomainByName("my.domain") ).andReturn(domain).anyTimes();
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(calendarDao.findEventByExtId(null, user, eventId)).andReturn(event).anyTimes();
 		expect(ical4jHelper.buildIcs(null, events, accessToken)).andReturn(ical).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
-		          
+
+
 		control.replay();
 		executor.auth("joe@my.domain", "password");
 		HttpResponse response = executor.execute(Request.Get(baseUrl + "/users/joe@my.domain/calendars/default/event1")).returnResponse();
 		control.verify();
-		          
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		IOUtils.copy(response.getEntity().getContent(), outputStream);
-		String actualIcal = outputStream.toString();
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		IOUtils.copy(response.getEntity().getContent(), bout);
+		String actualIcal = bout.toString();
 		assertThat(actualIcal).isEqualTo(ical);
-	}
+	}   
 }
