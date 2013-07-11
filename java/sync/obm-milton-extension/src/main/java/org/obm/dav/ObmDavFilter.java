@@ -83,14 +83,16 @@ public class ObmDavFilter implements Filter {
 			servletContext = configWrapper.getServletContext();
 
 			AnnotationResourceFactory resourceFactory = new AnnotationResourceFactory();
-			resourceFactory.setControllers(ImmutableList.of(calendarController, 
+			resourceFactory.setContextPath(config.getServletContext().getContextPath());
+			resourceFactory.setControllers(ImmutableList.of(
+					calendarController, 
 					usersController, 
 					rootController));
 			
 			HttpManagerBuilder builder = new HttpManagerBuilderEnt();
 			builder.setEnableDigestAuth(false);
 			builder.setMainResourceFactory(resourceFactory);
-
+			
 			httpManager = builder.buildHttpManager();
 		} catch (Throwable e) {
 			log.error("Exception starting milton servlet", e);
@@ -109,19 +111,23 @@ public class ObmDavFilter implements Filter {
 		
 		if (request instanceof HttpServletRequest) {
 			HttpServletRequest httpRequest = (HttpServletRequest) request;
-			log.trace("Is this a dav request? {}", httpRequest.getPathInfo());
-			if (httpRequest.getMethod().equals("PROPFIND")
-					|| httpRequest.getMethod().equals("OPTIONS")
-					|| httpRequest.getPathInfo().startsWith("/users")) {
-				log.trace("YES!!");
+			String requestContextPath = httpRequest.getRequestURI().replaceFirst(httpRequest.getContextPath(), "");
+			if (isCalDavSpecificHttpMethod(httpRequest) || requestContextPath.startsWith("/users")) {
+				log.debug("Processing a DAV request: {}", requestContextPath);
 				doMiltonProcessing((HttpServletRequest) request, (HttpServletResponse) response);
 			} else {
-				log.trace("no... :(");
+				log.debug("Propagate the request as it not seems to be a DAV request: {}", requestContextPath);
+				chain.doFilter(request, response);
 			}
-
 		} else {
+			log.debug("Not an HttpServletRequest, let propagate it as not seems to be a DAV request");
 			chain.doFilter(request, response);
 		}
+	}
+
+	private boolean isCalDavSpecificHttpMethod(HttpServletRequest request) {
+		return request.getMethod().equals("PROPFIND")
+			|| request.getMethod().equals("OPTIONS");
 	}
 
 	private void doMiltonProcessing(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
