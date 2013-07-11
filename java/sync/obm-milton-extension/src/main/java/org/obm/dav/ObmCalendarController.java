@@ -52,6 +52,7 @@ import io.milton.resource.AccessControlledResource;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
@@ -71,6 +72,8 @@ import org.obm.sync.calendar.EventType;
 import org.obm.sync.services.ICalendar;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -89,6 +92,13 @@ public class ObmCalendarController {
 	@Inject
 	private HelperService helperService;
 
+	private static AccessToken requestAccessToken() {
+		return ObmUsersController.getAccessToken();
+	}
+	private static ObmUser requestUser() {
+		return ObmUsersController.getUser();
+	}
+	
 	@ChildrenOf
 	public ObmUserCalendars getUsers(ObmUser user) {
 		return new ObmUserCalendars(user);
@@ -107,20 +117,28 @@ public class ObmCalendarController {
 	}
 	
 	@ChildrenOf
-	public List<Event> getEvents(ObmUserCalendar cal) {
-		return calendarDao.findAllEvents(null, cal.user, EventType.VEVENT);
+	public List<EventResource> getEvents(ObmUserCalendar cal) {
+		AccessToken requestAccessToken = requestAccessToken();
+		// TODO: Hack because milton sometimes tries to find if an event already exist without authentication
+		if (requestAccessToken != null) { 
+			return eventsToEventResources(calendarDao.findAllEvents(requestAccessToken, cal.user, EventType.VEVENT));
+		}
+		return ImmutableList.of();
 	}
 
 	@ChildOf
-	public Event getEvent(ObmUserCalendar cal, String eventName) {
+	public EventResource getEvent(ObmUserCalendar cal, String eventName) throws SQLException {
 		EventExtId eventExtId = new EventExtId(eventName);
-		return calendarDao.findEventByExtId(null, cal.user, eventExtId);
+		if (calendarDao.doesEventExist(cal.user, eventExtId)) {
+			return new EventResource(eventExtId);
+		}
+		return null;
 	}
 
 	@AccessControlList
 	public List<AccessControlledResource.Priviledge> getAccessControlList(ObmUserCalendar calendar, ObmUser currentUser) {
 		if (calendar != null) {
-			AccessToken token = ObmUsersController.getAccessToken();
+			AccessToken token = requestAccessToken();
 			if (token != null) {
 				if (helperService.canWriteOnCalendar(token, calendar.getName())) {
 					return AccessControlledResource.READ_WRITE;
@@ -135,50 +153,51 @@ public class ObmCalendarController {
 
 	@ICalData
 	@Get
-	public byte[] getEventData(Event event) throws UnsupportedEncodingException {
-		String ical = ical4jHelper.buildIcs(null, ImmutableList.of(event), ObmUsersController.getAccessToken());
+	public byte[] getEventData(EventResource eventResource) throws UnsupportedEncodingException {
+		String ical = ical4jHelper.buildIcs(null, ImmutableList.of(eventResource.getEvent()), requestAccessToken());
 		return ical.getBytes("UTF-8");
 	}
 
 	@Name
-	public String getEventName(Event event) {
-		return event.getExtId().getExtId();
+	public String getEventName(EventResource eventResource) {
+		return eventResource.getExtId().getExtId();
 	}
 
 	@ModifiedDate
-	public Date getModifiedDateForEvent(Event event) {
-		return event.getTimeUpdate();
+	public Date getModifiedDateForEvent(EventResource eventResource) {
+		return eventResource.getEvent().getTimeUpdate();
 	}
 
 	@CreatedDate
-	public Date getCreatedDate(Event event) {
-		return event.getTimeCreate();
+	public Date getCreatedDate(EventResource eventResource) {
+		return eventResource.getEvent().getTimeCreate();
 	}
 
 	@UniqueId
-	public String getEventId(Event event) {
-		return event.getExtId().getExtId();
+	public String getEventId(EventResource eventResource) {
+		return eventResource.getExtId().getExtId();
 	}
 
 	@PutChild
-	public Event updateEvent(Event event, byte[] ical, ObmUserCalendar cal) throws ServerFault, NotAllowedException, IOException, ParserException {
-		AccessToken token = ObmUsersController.getAccessToken();
+	public EventResource updateEvent(EventResource eventResource, byte[] ical, ObmUserCalendar cal) throws ServerFault, NotAllowedException, IOException, ParserException {
+		AccessToken token = requestAccessToken();
 		ObmUser user = cal.getUser();
 		Event newEvent = parseIcalendarBytes(ical, user);
-		newEvent.setUid(event.getUid());
-		return calendarService.modifyEvent(token, user.getLogin(), newEvent, true, false);
+		newEvent.setUid(eventResource.getEvent().getUid());
+		calendarService.modifyEvent(token, user.getLogin(), newEvent, true, false);
+		return eventResource;
 	}
 
 	@PutChild
-	public Event createEvent(ObmUserCalendar cal, String newName, byte[] ical) 
+	public EventResource createEvent(ObmUserCalendar cal, String newName, byte[] ical) 
 			throws IOException, ParserException, ServerFault, EventAlreadyExistException, NotAllowedException, EventNotFoundException {
-		AccessToken token = ObmUsersController.getAccessToken();
+		AccessToken token = requestAccessToken();
 		ObmUser user = cal.getUser();
 		String calendar = user.getLogin();
 		Event event = parseIcalendarBytes(ical, user);
 		EventObmId createdEventId = calendarService.createEvent(token, calendar, event, false, 
 				ClientId.builder().user(user).filename(newName).build().getHash());
-		return calendarService.getEventFromId(token, calendar, createdEventId);
+		return new EventResource(calendarService.getEventFromId(token, calendar, createdEventId));
 	}
 
 	private Event parseIcalendarBytes(byte[] ical, ObmUser user)
@@ -189,9 +208,9 @@ public class ObmCalendarController {
 	}
 
 	@Delete
-	public void deleteEvent(Event event, ObmUserCalendar calendar) throws ServerFault, NotAllowedException {
-		AccessToken token = ObmUsersController.getAccessToken();
-		calendarService.removeEventByExtId(token, calendar.getUser().getLogin(), event.getExtId(), event.getSequence(), false);
+	public void deleteEvent(EventResource eventResource, ObmUserCalendar calendar) throws ServerFault, NotAllowedException {
+		AccessToken token = requestAccessToken();
+		calendarService.removeEventByExtId(token, calendar.getUser().getLogin(), eventResource.getExtId(), eventResource.getEvent().getSequence(), false);
 	}
 
 
@@ -230,4 +249,44 @@ public class ObmCalendarController {
 			return name;
 		}
 	}
+	
+	public class EventResource {
+		
+		private final EventExtId eventExtId;
+		private Event event;
+		
+		public EventResource(final EventExtId eventExtId) {
+			this.eventExtId = eventExtId;
+			this.event = null; 
+		}
+
+		public EventResource(Event event) {
+			this.eventExtId = event.getExtId();
+			this.event = event; 
+		}
+
+		public Event getEvent() {
+			if (event == null) {
+				event = calendarDao.findEventByExtId(requestAccessToken(), requestUser(), eventExtId);
+			}
+			return event;
+		}
+
+		public EventExtId getExtId() {
+			return eventExtId;
+		}
+	}
+
+	public List<EventResource> eventsToEventResources(Iterable<Event> events) {
+		return FluentIterable
+			.from(events)
+			.transform(new Function<Event, EventResource>() {
+
+				@Override
+				public EventResource apply(Event input) {
+					return new EventResource(input);
+				}
+			}).toList();
+	}
+		
 }

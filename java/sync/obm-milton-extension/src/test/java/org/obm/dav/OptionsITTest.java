@@ -58,6 +58,7 @@ import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventType;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 
 import fr.aliacom.obm.common.calendar.CalendarDao;
@@ -128,8 +129,8 @@ public class OptionsITTest extends AbstractObmDavIT {
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
-		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT)).andReturn(events);
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
+		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(events);
 		expect(helperService.canWriteOnCalendar(accessToken, "default")).andReturn(true);
 
 		control.replay();
@@ -162,7 +163,8 @@ public class OptionsITTest extends AbstractObmDavIT {
 		//expect(domainService.list()).andReturn(ImmutableList.of(domain)).anyTimes();
 		expect(domainService.findDomainByName("my.domain") ).andReturn(domain).anyTimes();
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
-		expect(calendarDao.findEventByExtId(null, user, eventId)).andReturn(event).anyTimes();
+		expect(calendarDao.doesEventExist(user, eventId)).andReturn(true).anyTimes();
+		expect(calendarDao.findEventByExtId(accessToken, user, eventId)).andReturn(event).anyTimes();
 		expect(ical4jHelper.buildIcs(null, events, accessToken)).andReturn(ical).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
 		expect(helperService.canWriteOnCalendar(accessToken, "default")).andReturn(true);
@@ -178,6 +180,23 @@ public class OptionsITTest extends AbstractObmDavIT {
 		String actualIcal = bout.toString();
 		assertThat(actualIcal).isEqualTo(ical);
 	}
+
+	@Test
+	public void testEventGetWithAuthenticationWhenEventDoesNotExist() throws Exception {
+		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
+		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
+		         
+		expect(domainService.findDomainByName("my.domain") ).andReturn(domain).anyTimes();
+		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
+		expect(calendarDao.doesEventExist(user, new EventExtId("event1"))).andReturn(false).anyTimes();
+		          
+		control.replay();
+		executor.auth("joe@my.domain", "password");
+		HttpResponse response = executor.execute(Request.Get(baseUrl + "/users/joe@my.domain/calendars/default/event1")).returnResponse();
+		control.verify();
+		          
+		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+	}
 	
 	@Test
 	public void testCalendarRights() throws Exception {
@@ -188,7 +207,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
 		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(true);
-		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT)).andReturn(null);
+		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
@@ -207,7 +226,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
 		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(false);
 		expect(helperService.canReadCalendar(accessToken, "mine")).andReturn(true);
-		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT)).andReturn(null);
+		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
