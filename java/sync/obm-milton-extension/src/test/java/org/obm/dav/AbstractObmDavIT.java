@@ -46,6 +46,7 @@ import org.mortbay.jetty.servlet.DefaultServlet;
 import org.obm.icalendar.Ical4jHelper;
 import org.obm.sync.date.DateProvider;
 import org.obm.sync.services.AttendeeService;
+import org.obm.sync.services.ICalendar;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -77,7 +78,7 @@ public class AbstractObmDavIT {
 		@Override
 		protected void configure() {
 			IMocksControl control = EasyMock.createControl();
-			install(new DavModule()); 
+			install(new DavModule());
 			bind(IMocksControl.class).toInstance(control);
 			bind(CalendarDao.class).toInstance(control.createMock(CalendarDao.class));
 			bind(DomainService.class).toInstance(control.createMock(DomainService.class));
@@ -86,6 +87,7 @@ public class AbstractObmDavIT {
 			bind(DateProvider.class).toInstance(control.createMock(DateProvider.class));
 			bind(AttendeeService.class).toInstance(control.createMock(AttendeeService.class));
 			bind(Ical4jHelper.class).toInstance(control.createMock(Ical4jHelper.class));
+			bind(ICalendar.class).toInstance(control.createMock(ICalendar.class));
 		}
 	}
 
@@ -94,6 +96,7 @@ public class AbstractObmDavIT {
 
 	protected String baseUrl;
 	protected int serverPort;
+
 	protected Executor executor;
 
 	@Before

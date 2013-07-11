@@ -42,19 +42,29 @@ import io.milton.annotations.Name;
 import io.milton.annotations.PutChild;
 import io.milton.annotations.UniqueId;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import net.fortuna.ical4j.data.ParserException;
+
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jUser;
+import org.obm.sync.NotAllowedException;
 import org.obm.sync.auth.AccessToken;
+import org.obm.sync.auth.EventAlreadyExistException;
+import org.obm.sync.auth.EventNotFoundException;
+import org.obm.sync.auth.ServerFault;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
+import org.obm.sync.calendar.EventObmId;
 import org.obm.sync.calendar.EventType;
+import org.obm.sync.services.ICalendar;
 
-import com.google.common.base.Throwables;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import fr.aliacom.obm.common.calendar.CalendarDao;
@@ -66,6 +76,10 @@ public class ObmCalendarController {
 	private CalendarDao calendarDao;
 	@Inject
 	private Ical4jHelper ical4jHelper;
+	@Inject
+	private ICalendar calendarService;
+	@Inject
+	private Ical4jUser.Factory ical4jUserFactory;
 
 	@ChildrenOf
 	public ObmUserCalendars getUsers(ObmUser user) {
@@ -95,22 +109,6 @@ public class ObmCalendarController {
 		return ical.getBytes("UTF-8");
 	}
 
-	@PutChild
-	public Event createEvent(ObmUserCalendar cal, String newName, byte[] ical) {
-		return null;
-	}
-
-	@Delete
-	public void deleteEvent(Event event) {
-		try {
-			AccessToken token = ObmUsersController.getAccessToken();
-			// TODO: check if owner, if not just remove attendance
-			calendarDao.removeEvent(token, event, EventType.VEVENT, event.getSequence());
-		} catch (SQLException e) {
-			throw Throwables.propagate(e);
-		}
-	}
-
 	@Name
 	public String getEventName(Event event) {
 		return event.getExtId().getExtId();
@@ -131,11 +129,45 @@ public class ObmCalendarController {
 		return event.getExtId().getExtId();
 	}
 
-	// @CTag
-	// public static getCalendarCTag(ObmUserCalendar cal ) {
-	// return
-	// }
+	@PutChild
+	public Event updateEvent(Event event, byte[] ical, ObmUserCalendar cal) throws ServerFault, NotAllowedException, IOException, ParserException {
+		AccessToken token = ObmUsersController.getAccessToken();
+		ObmUser user = cal.getUser();
+		Event newEvent = parseIcalendarBytes(ical, user);
+		newEvent.setUid(event.getUid());
+		return calendarService.modifyEvent(token, user.getLogin(), newEvent, true, false);
+	}
 
+	@PutChild
+	public Event createEvent(ObmUserCalendar cal, String newName, byte[] ical) 
+			throws IOException, ParserException, ServerFault, EventAlreadyExistException, NotAllowedException, EventNotFoundException {
+		AccessToken token = ObmUsersController.getAccessToken();
+		ObmUser user = cal.getUser();
+		String calendar = user.getLogin();
+		Event event = parseIcalendarBytes(ical, user);
+		EventObmId createdEventId = calendarService.createEvent(token, calendar, event, false, 
+				ClientId.builder().user(user).filename(newName).build().getHash());
+		return calendarService.getEventFromId(token, calendar, createdEventId);
+	}
+
+	private Event parseIcalendarBytes(byte[] ical, ObmUser user)
+			throws IOException, ParserException {
+		Ical4jUser ical4jUser = ical4jUserFactory.createIcal4jUser(user.getEmail(), user.getDomain());
+		List<Event> events = ical4jHelper.parseICS(new String(ical, Charsets.UTF_8), ical4jUser, null);
+		return Iterables.getOnlyElement(events);
+	}
+
+	@Delete
+	public void deleteEvent(Event event, ObmUserCalendar calendar) throws ServerFault, NotAllowedException {
+		AccessToken token = ObmUsersController.getAccessToken();
+		calendarService.removeEventByExtId(token, calendar.getUser().getLogin(), event.getExtId(), event.getSequence(), false);
+	}
+
+
+	//    @CTag
+	//    public static getCalendarCTag(ObmUserCalendar cal   ) {
+	//        return 
+	//    }
 	public class ObmUserCalendars {
 
 		private ObmUser user;
@@ -155,6 +187,10 @@ public class ObmCalendarController {
 
 		public ObmUserCalendar(ObmUser user) {
 			this.user = user;
+		}
+
+		public ObmUser getUser() {
+			return user;
 		}
 
 		public String getName() {
