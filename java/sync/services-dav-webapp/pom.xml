@@ -12,6 +12,7 @@
 
 	<artifactId>services-dav-webapp</artifactId>
 	<name>services-dav-webapp</name>
+	<packaging>war</packaging>
 
 	<dependencies>
 		<dependency>
