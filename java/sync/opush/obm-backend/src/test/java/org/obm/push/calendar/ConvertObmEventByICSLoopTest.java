@@ -41,6 +41,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.push.exception.ConversionException;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventExtId.Factory;
@@ -62,7 +63,7 @@ public class ConvertObmEventByICSLoopTest extends ConvertObmEventToMsEventIntegr
 		dateProvider = createMock(DateProvider.class);
 		attendeeService = new SimpleAttendeeService();
 		Factory eventExtIdFactory = createMock(EventExtId.Factory.class);
-		ical4jHelper = new Ical4jHelper(dateProvider, eventExtIdFactory, attendeeService);
+		ical4jHelper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, attendeeService);
 		
 		expect(dateProvider.getDate()).andReturn(now).anyTimes();		
 		replay(dateProvider);

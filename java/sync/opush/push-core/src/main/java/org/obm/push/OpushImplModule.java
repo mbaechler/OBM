@@ -33,6 +33,8 @@ package org.obm.push;
 
 import org.obm.annotations.transactional.TransactionalModule;
 import org.obm.configuration.ConfigurationModule;
+import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.push.backend.BackendWindowingService;
 import org.obm.push.backend.IContentsExporter;
 import org.obm.push.backend.IContentsImporter;
@@ -126,7 +128,7 @@ public class OpushImplModule extends AbstractModule {
 		bind(String.class).annotatedWith(Names.named("opushPolicyConfigurationFile")).toInstance("/etc/opush/policy.ini");
 		bind(PolicyConfigurationService.class).to(PolicyConfigurationServiceFileImpl.class);
 		bind(ICollectionPathHelper.class).to(CollectionPathHelper.class);
-		
+		bind(Ical4jHelper.class).to(Ical4jHelperImpl.class);
 		Multibinder<ISearchSource> searchSources = Multibinder.newSetBinder(binder(), ISearchSource.class);
 		searchSources.addBinding().to(BookSource.class);
 		

@@ -145,7 +145,7 @@ import com.google.common.io.CharStreams;
 import fr.aliacom.obm.common.domain.ObmDomain;
 
 @RunWith(SlowFilterRunner.class)
-public class Ical4jHelperTest {
+public class Ical4jHelperImplTest {
 
 	private static class StringLengthLessThan extends TypeSafeMatcher<String> {
 
@@ -190,7 +190,7 @@ public class Ical4jHelperTest {
 		}
 	}
 	
-	private Ical4jHelper ical4jHelper;
+	private Ical4jHelperImpl ical4jHelper;
 	private DateProvider dateProvider;
 	private EventExtId.Factory eventExtIdFactory;
 	private AttendeeService attendeeService;
@@ -202,7 +202,7 @@ public class Ical4jHelperTest {
 		dateProvider = createMock(DateProvider.class);
 		eventExtIdFactory = createMock(EventExtId.Factory.class);
 		attendeeService = new SimpleAttendeeService();
-		ical4jHelper = new Ical4jHelper(dateProvider, eventExtIdFactory, attendeeService);
+		ical4jHelper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, attendeeService);
 		
 		expect(dateProvider.getDate()).andReturn(now).anyTimes();
 		replay(dateProvider);
@@ -1657,7 +1657,7 @@ public class Ical4jHelperTest {
 		ObmDomain domain = getDefaultObmDomain();
 		Attendee attendee = UnidentifiedAttendee.builder().email(email).entityId(1).build();
 		AttendeeService service = createMock(AttendeeService.class);
-		Ical4jHelper helper = new Ical4jHelper(dateProvider, eventExtIdFactory, service);
+		Ical4jHelperImpl helper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, service);
 		
 		expect(service.findAttendee(name, email, true, domain, 1)).andReturn(attendee).once();
 		replay(service);
@@ -1679,7 +1679,7 @@ public class Ical4jHelperTest {
 		ObmDomain domain = getDefaultObmDomain();
 		ResourceAttendee attendee = ResourceAttendee.builder().email(email).entityId(1).build();
 		AttendeeService service = createMock(AttendeeService.class);
-		Ical4jHelper helper = new Ical4jHelper(dateProvider, eventExtIdFactory, service);
+		Ical4jHelperImpl helper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, service);
 		
 		expect(service.findResourceAttendee(name, email, domain, 1)).andReturn(attendee).once();
 		replay(service);
@@ -1696,7 +1696,7 @@ public class Ical4jHelperTest {
 		ObmDomain domain = getDefaultObmDomain();
 		ResourceAttendee attendee = ResourceAttendee.builder().email(email).entityId(1).build();
 		AttendeeService service = createMock(AttendeeService.class);
-		Ical4jHelper helper = new Ical4jHelper(dateProvider, eventExtIdFactory, service);
+		Ical4jHelperImpl helper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, service);
 		
 		expect(service.findResourceAttendee(name, email, domain, 1)).andReturn(attendee).once();
 		replay(service);
@@ -1722,7 +1722,7 @@ public class Ical4jHelperTest {
 		ObmDomain domain = getDefaultObmDomain();
 		UserAttendee attendee = UserAttendee.builder().email(email).entityId(1).build();
 		AttendeeService service = createMock(AttendeeService.class);
-		Ical4jHelper helper = new Ical4jHelper(dateProvider, eventExtIdFactory, service);
+		Ical4jHelperImpl helper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, service);
 		
 		expect(service.findUserAttendee(name, email, domain)).andReturn(attendee).once();
 		replay(service);
@@ -1739,7 +1739,7 @@ public class Ical4jHelperTest {
 		ObmDomain domain = getDefaultObmDomain();
 		ContactAttendee attendee = ContactAttendee.builder().email(email).entityId(1).build();
 		AttendeeService service = createMock(AttendeeService.class);
-		Ical4jHelper helper = new Ical4jHelper(dateProvider, eventExtIdFactory, service);
+		Ical4jHelperImpl helper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, service);
 		
 		expect(service.findUserAttendee(name, email, domain)).andReturn(null).once();
 		expect(service.findContactAttendee(name, email, true, domain, 1)).andReturn(attendee).once();
@@ -1959,7 +1959,7 @@ public class Ical4jHelperTest {
 		Ical4jUser ical4jUser = getDefaultObmUser();
 		String ics = getICSAsString("4Events.ics");
 		AttendeeService attendeeService = createMock(AttendeeService.class);
-		Ical4jHelper ical4jHelper = new Ical4jHelper(dateProvider, eventExtIdFactory, attendeeService);
+		Ical4jHelper ical4jHelper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, attendeeService);
 		UserAttendee userAttendee = UserAttendee.builder().email("user@test.tlse.lng").build();
 		UserAttendee organizerAttendee = UserAttendee.builder().email("organizer@test.tlse.lng").build();
 

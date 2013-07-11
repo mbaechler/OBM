@@ -62,6 +62,8 @@ import org.obm.dbcp.DatabaseConfigurationFixturePostgreSQL;
 import org.obm.dbcp.DatabaseConnectionProvider;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.SlowGuiceRunner;
+import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.locator.store.LocatorService;
 import org.obm.push.utils.DateUtils;
 import org.obm.sync.auth.AccessToken;
@@ -103,7 +105,9 @@ public class CalendarDaoJdbcImplTest {
 		@Override
 		protected void configure() {
 			bind(IMocksControl.class).toInstance(mocksControl);
-			
+
+			bind(Ical4jHelper.class).to(Ical4jHelperImpl.class);
+
 			bindWithMock(UserDao.class);
 			bindWithMock(LocatorService.class);
 			bindWithMock(CalendarDao.class);

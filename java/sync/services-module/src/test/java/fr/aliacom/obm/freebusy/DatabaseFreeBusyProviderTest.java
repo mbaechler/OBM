@@ -14,6 +14,7 @@ import org.obm.DateUtils;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.SlowGuiceRunner;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.sync.calendar.FreeBusy;
 import org.obm.sync.calendar.FreeBusyInterval;
 import org.obm.sync.calendar.FreeBusyRequest;
@@ -40,7 +41,9 @@ public class DatabaseFreeBusyProviderTest {
 		protected void configure() {
 			bind(IMocksControl.class).toInstance(mocksControl);
 			
-			bindWithMock(Ical4jHelper.class);
+			bind(Ical4jHelper.class).to(Ical4jHelperImpl.class);
+
+			bindWithMock(Ical4jHelperImpl.class);
 			bindWithMock(UserService.class);
 			bindWithMock(CalendarDao.class);
 		}

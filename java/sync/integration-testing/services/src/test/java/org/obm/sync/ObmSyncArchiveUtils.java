@@ -85,6 +85,7 @@ import org.obm.healthcheck.handlers.JavaInformationHandler;
 import org.obm.healthcheck.handlers.RootHandler;
 import org.obm.icalendar.ICalendarFactory;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.icalendar.ical4jwrapper.EventDate;
 import org.obm.icalendar.ical4jwrapper.ICalendarEvent;
@@ -568,6 +569,7 @@ public class ObmSyncArchiveUtils {
 	public static Class<?>[] projectICalendarClasses() {
 		return new Class<?>[] {
 				Ical4jHelper.class,
+				Ical4jHelperImpl.class,
 				Ical4jUser.class,
 				EventDate.class,
 				ICalendarEvent.class,

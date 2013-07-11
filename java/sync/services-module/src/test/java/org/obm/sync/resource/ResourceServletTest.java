@@ -49,6 +49,7 @@ import org.easymock.IMocksControl;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
@@ -82,7 +83,7 @@ public class ResourceServletTest {
 		dateProvider = control.createMock(DateProvider.class);
 		attendeeService = new SimpleAttendeeService();
 		Factory eventExtIdFactory = control.createMock(EventExtId.Factory.class);
-		helper = new Ical4jHelper(dateProvider, eventExtIdFactory, attendeeService);
+		helper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, attendeeService);
 		iCalUser = Ical4jUser.Factory.create().createIcal4jUser("toto@toto.com",
 				ToolBox.getDefaultObmDomain());
 

@@ -68,6 +68,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.obm.filter.SlowFilterRunner;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Comment;
@@ -221,7 +222,7 @@ public abstract class EventChangeMailerTest {
 		mailService = createMock(MailService.class);
 		logger = createNiceMock(Logger.class);
 		attendeeService = new SimpleAttendeeService();
-		ical4jHelper = new Ical4jHelper(dateProvider, null, attendeeService);
+		ical4jHelper = new Ical4jHelperImpl(dateProvider, null, attendeeService);
 		accessToken = new AccessToken(1, "unitTest");
 		obmUser = ServicesToolBox.getDefaultObmUser();
 

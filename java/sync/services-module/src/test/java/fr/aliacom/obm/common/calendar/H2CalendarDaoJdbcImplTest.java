@@ -48,6 +48,7 @@ import org.obm.filter.Slow;
 import org.obm.guice.GuiceModule;
 import org.obm.guice.SlowGuiceRunner;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.solr.SolrHelper;
 
@@ -69,9 +70,10 @@ public class H2CalendarDaoJdbcImplTest {
 		}
 
 		@Override protected void configureImpl() {
+			bind(Ical4jHelper.class).to(Ical4jHelperImpl.class);
+			bindWithMock(Ical4jHelperImpl.class);
 			bindWithMock(SolrHelper.Factory.class);
 			bindWithMock(ObmHelper.class);
-			bindWithMock(Ical4jHelper.class);
 			bind(CalendarDao.class).to(CalendarDaoJdbcImpl.class);
 		}
 	}

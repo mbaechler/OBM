@@ -64,6 +64,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import org.obm.filter.SlowFilterRule;
 import org.obm.icalendar.ICalendarFactory;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.calendar.Attendee;
@@ -226,7 +227,7 @@ public class EventNotificationServiceImplTest {
 		
 		@Override
 		protected EventChangeMailer expectationSameAttendeeTwice(Attendee attendee, Event event, ObmUser obmUser) {
-			Ical4jHelper ical4jHelper = createMock(Ical4jHelper.class);
+			Ical4jHelper ical4jHelper = createMock(Ical4jHelperImpl.class);
 			AccessToken token = ToolBox.mockAccessToken();
 			String ics = ical4jHelper.buildIcsInvitationRequest(ServicesToolBox.getIcal4jUser(obmUser), event, token);
 			EventChangeMailer mailer = createMock(EventChangeMailer.class);

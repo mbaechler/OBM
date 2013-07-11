@@ -47,6 +47,7 @@ import org.fest.assertions.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.icalendar.Ical4jUser.Factory;
 import org.obm.push.bean.Credentials;
@@ -91,7 +92,7 @@ public class EventServiceImplTest {
 		dateProvider = mocksControl.createMock(DateProvider.class);
 		attendeeService = new SimpleAttendeeService();
 		eventExtIdFactory = mocksControl.createMock(EventExtId.Factory.class);
-		ical4jHelper = new Ical4jHelper(dateProvider, eventExtIdFactory, attendeeService);
+		ical4jHelper = new Ical4jHelperImpl(dateProvider, eventExtIdFactory, attendeeService);
 		
 		expect(dateProvider.getDate()).andReturn(now).anyTimes();		
 	}

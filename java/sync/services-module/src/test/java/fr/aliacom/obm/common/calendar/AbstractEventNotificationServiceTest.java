@@ -44,6 +44,7 @@ import java.util.List;
 import org.easymock.EasyMock;
 import org.obm.icalendar.ICalendarFactory;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.sync.auth.AccessToken;
 import org.obm.sync.calendar.Attendee;
 import org.obm.sync.calendar.Event;

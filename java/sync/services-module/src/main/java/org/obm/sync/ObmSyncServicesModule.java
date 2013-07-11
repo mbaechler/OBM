@@ -39,6 +39,8 @@ import java.util.ServiceLoader;
 import org.obm.configuration.ConfigurationService;
 import org.obm.configuration.ConfigurationServiceImpl;
 import org.obm.configuration.module.LoggerModule;
+import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.locator.store.LocatorCache;
 import org.obm.locator.store.LocatorService;
 import org.obm.sync.date.DateProvider;
@@ -79,6 +81,7 @@ public class ObmSyncServicesModule extends AbstractModule {
 	
     @Override
     protected void configure() {
+    	bind(Ical4jHelper.class).to(Ical4jHelperImpl.class);
         bind(DomainService.class).to(DomainCache.class);
         bind(UserService.class).to(UserServiceImpl.class);
         bind(SettingsService.class).to(SettingsServiceImpl.class);

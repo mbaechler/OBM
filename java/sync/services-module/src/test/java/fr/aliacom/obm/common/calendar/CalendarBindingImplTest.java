@@ -79,6 +79,7 @@ import org.obm.guice.GuiceModule;
 import org.obm.guice.SlowGuiceRunner;
 import org.obm.icalendar.ICalendarFactory;
 import org.obm.icalendar.Ical4jHelper;
+import org.obm.icalendar.Ical4jHelperImpl;
 import org.obm.icalendar.Ical4jUser;
 import org.obm.sync.NotAllowedException;
 import org.obm.sync.auth.AccessToken;
@@ -138,6 +139,7 @@ public class CalendarBindingImplTest {
 		protected void configure() {
 			bind(IMocksControl.class).toInstance(mocksControl);
 			
+			bind(Ical4jHelper.class).to(Ical4jHelperImpl.class);
 			bindWithMock(CalendarDao.class);
 			bindWithMock(CommitedOperationDao.class);
 			bindWithMock(EventNotificationService.class);
@@ -2964,7 +2966,7 @@ public class CalendarBindingImplTest {
 		String domainName = "test.tlse.lng", calendar = "user";
 		String ics = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("ics/4Events.ics"));
 		AttendeeService attendeeService = mocksControl.createMock(AttendeeService.class);
-		Ical4jHelper ical4jHelper = new Ical4jHelper(mocksControl.createMock(DateProvider.class), eventExtIdFactory, attendeeService);
+		Ical4jHelper ical4jHelper = new Ical4jHelperImpl(mocksControl.createMock(DateProvider.class), eventExtIdFactory, attendeeService);
 		CalendarBindingImpl binding = new CalendarBindingImpl(eventChangeHandler, domainService, userService, calendarDao, categoryDao, commitedOperationDao, helperService, ical4jHelper, calendarFactory, attendeeService);
 		UserAttendee userAttendee = UserAttendee.builder().email(calendar).build();
 		UserAttendee organizerAttendee = UserAttendee.builder().email("organizer@test.tlse.lng").build();
