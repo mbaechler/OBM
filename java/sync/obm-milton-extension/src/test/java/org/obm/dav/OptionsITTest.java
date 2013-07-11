@@ -66,6 +66,7 @@ import fr.aliacom.obm.common.domain.ObmDomain;
 import fr.aliacom.obm.common.session.SessionManagement;
 import fr.aliacom.obm.common.user.ObmUser;
 import fr.aliacom.obm.common.user.UserService;
+import fr.aliacom.obm.utils.HelperService;
 
 @Slow
 @GuiceModule(AbstractObmDavIT.Env.class)
@@ -82,6 +83,8 @@ public class OptionsITTest extends AbstractObmDavIT {
 	private Ical4jHelper ical4jHelper;
 	@Inject 
 	private SessionManagement sessionManagement;
+	@Inject
+	private HelperService helperService;
 
 	@Inject
 	IMocksControl control;
@@ -95,8 +98,6 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 	@Test
 	public void testUsersPropFind() throws Exception {
-
-
 		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
 		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
@@ -129,6 +130,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT)).andReturn(events);
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
+		expect(helperService.canWriteOnCalendar(accessToken, "default")).andReturn(true);
 
 		control.replay();
 
@@ -146,7 +148,6 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 	@Test
 	public void testEventGetWithAuthentication() throws Exception {
-
 		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
 		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
 		Event event = new Event();
@@ -164,6 +165,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(calendarDao.findEventByExtId(null, user, eventId)).andReturn(event).anyTimes();
 		expect(ical4jHelper.buildIcs(null, events, accessToken)).andReturn(ical).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
+		expect(helperService.canWriteOnCalendar(accessToken, "default")).andReturn(true);
 
 
 		control.replay();
@@ -175,5 +177,60 @@ public class OptionsITTest extends AbstractObmDavIT {
 		IOUtils.copy(response.getEntity().getContent(), bout);
 		String actualIcal = bout.toString();
 		assertThat(actualIcal).isEqualTo(ical);
-	}   
+	}
+	
+	@Test
+	public void testCalendarRights() throws Exception {
+		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
+		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
+		AccessToken accessToken = new AccessToken(142, "MiltonDav");
+
+		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
+		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
+		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(true);
+		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT)).andReturn(null);
+
+		control.replay();
+		executor.auth("joe@my.domain", "password");
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/mine", 1)).returnResponse();
+		control.verify();
+		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
+	}
+	
+	@Test
+	public void testCalendarReadRights() throws Exception {
+		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
+		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
+		AccessToken accessToken = new AccessToken(142, "MiltonDav");
+
+		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
+		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
+		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(false);
+		expect(helperService.canReadCalendar(accessToken, "mine")).andReturn(true);
+		expect(calendarDao.findAllEvents(null, user, EventType.VEVENT)).andReturn(null);
+
+		control.replay();
+		executor.auth("joe@my.domain", "password");
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/mine", 1)).returnResponse();
+		control.verify();
+		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
+	}
+	
+	@Test
+	public void testCalendarNoRights() throws Exception {
+		ObmDomain domain = ObmDomain.builder().name("my.domain").build();
+		ObmUser user = ObmUser.builder().login("joe").domain(domain).build();
+		AccessToken accessToken = new AccessToken(142, "MiltonDav");
+
+		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
+		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
+		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(false);
+		expect(helperService.canReadCalendar(accessToken, "mine")).andReturn(false);
+
+		control.replay();
+		executor.auth("joe@my.domain", "password");
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/mine", 1)).returnResponse();
+		control.verify();
+		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
+	}
 }

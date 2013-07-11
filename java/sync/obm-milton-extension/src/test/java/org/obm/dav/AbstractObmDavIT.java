@@ -58,6 +58,7 @@ import fr.aliacom.obm.common.calendar.CalendarDao;
 import fr.aliacom.obm.common.domain.DomainService;
 import fr.aliacom.obm.common.session.SessionManagement;
 import fr.aliacom.obm.common.user.UserService;
+import fr.aliacom.obm.utils.HelperService;
 
 public class AbstractObmDavIT {
 
@@ -88,6 +89,7 @@ public class AbstractObmDavIT {
 			bind(AttendeeService.class).toInstance(control.createMock(AttendeeService.class));
 			bind(Ical4jHelper.class).toInstance(control.createMock(Ical4jHelper.class));
 			bind(ICalendar.class).toInstance(control.createMock(ICalendar.class));
+			bind(HelperService.class).toInstance(control.createMock(HelperService.class));
 		}
 	}
 

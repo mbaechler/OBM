@@ -31,6 +31,11 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.dav;
 
+import fr.aliacom.obm.common.calendar.CalendarDao;
+import fr.aliacom.obm.common.user.ObmUser;
+import fr.aliacom.obm.utils.HelperService;
+import io.milton.annotations.AccessControlList;
+import io.milton.annotations.Calendars;
 import io.milton.annotations.ChildOf;
 import io.milton.annotations.ChildrenOf;
 import io.milton.annotations.CreatedDate;
@@ -40,10 +45,13 @@ import io.milton.annotations.ICalData;
 import io.milton.annotations.ModifiedDate;
 import io.milton.annotations.Name;
 import io.milton.annotations.PutChild;
+import io.milton.annotations.ResourceController;
 import io.milton.annotations.UniqueId;
+import io.milton.resource.AccessControlledResource;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -67,9 +75,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
-import fr.aliacom.obm.common.calendar.CalendarDao;
-import fr.aliacom.obm.common.user.ObmUser;
-
+@ResourceController
 public class ObmCalendarController {
 
 	@Inject
@@ -80,6 +86,8 @@ public class ObmCalendarController {
 	private ICalendar calendarService;
 	@Inject
 	private Ical4jUser.Factory ical4jUserFactory;
+	@Inject
+	private HelperService helperService;
 
 	@ChildrenOf
 	public ObmUserCalendars getUsers(ObmUser user) {
@@ -87,10 +95,17 @@ public class ObmCalendarController {
 	}
 
 	@ChildrenOf
-	public ObmUserCalendar getCalendarsForUser(ObmUserCalendars userCalendarsHome) {
-		return new ObmUserCalendar(userCalendarsHome.user);
+	@Calendars
+	public List<ObmUserCalendar> getCalendarsForUser(ObmUserCalendars userCalendarsHome) {
+		return Collections.EMPTY_LIST;
 	}
 
+	@ChildOf
+	@Calendars
+	public ObmUserCalendar getCalendarForUser(ObmUserCalendars userCalendarsHome, String name) {
+		return new ObmUserCalendar(userCalendarsHome.user, name);
+	}
+	
 	@ChildrenOf
 	public List<Event> getEvents(ObmUserCalendar cal) {
 		return calendarDao.findAllEvents(null, cal.user, EventType.VEVENT);
@@ -100,6 +115,22 @@ public class ObmCalendarController {
 	public Event getEvent(ObmUserCalendar cal, String eventName) {
 		EventExtId eventExtId = new EventExtId(eventName);
 		return calendarDao.findEventByExtId(null, cal.user, eventExtId);
+	}
+
+	@AccessControlList
+	public List<AccessControlledResource.Priviledge> getAccessControlList(ObmUserCalendar calendar, ObmUser currentUser) {
+		if (calendar != null) {
+			AccessToken token = ObmUsersController.getAccessToken();
+			if (token != null) {
+				if (helperService.canWriteOnCalendar(token, calendar.getName())) {
+					return AccessControlledResource.READ_WRITE;
+				}
+				if (helperService.canReadCalendar(token, calendar.getName())) {
+					return AccessControlledResource.READ_BROWSE;
+				}
+			}
+		}
+		return ImmutableList.of();
 	}
 
 	@ICalData
@@ -184,9 +215,11 @@ public class ObmCalendarController {
 	public class ObmUserCalendar {
 
 		private ObmUser user;
+		private String name;
 
-		public ObmUserCalendar(ObmUser user) {
+		public ObmUserCalendar(ObmUser user, String name) { 
 			this.user = user;
+			this.name = name;
 		}
 
 		public ObmUser getUser() {
@@ -194,7 +227,7 @@ public class ObmCalendarController {
 		}
 
 		public String getName() {
-			return "default";
+			return name;
 		}
 	}
 }
