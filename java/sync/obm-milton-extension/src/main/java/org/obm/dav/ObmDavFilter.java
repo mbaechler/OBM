@@ -56,6 +56,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -111,7 +114,7 @@ public class ObmDavFilter implements Filter {
 		
 		if (request instanceof HttpServletRequest) {
 			HttpServletRequest httpRequest = (HttpServletRequest) request;
-			String requestContextPath = httpRequest.getRequestURI().replaceFirst(httpRequest.getContextPath(), "");
+			String requestContextPath = buildRequestContextPath(httpRequest);
 			if (isCalDavSpecificHttpMethod(httpRequest) || requestContextPath.startsWith("/users")) {
 				log.debug("Processing a DAV request: {}", requestContextPath);
 				doMiltonProcessing((HttpServletRequest) request, (HttpServletResponse) response);
@@ -123,6 +126,15 @@ public class ObmDavFilter implements Filter {
 			log.debug("Not an HttpServletRequest, let propagate it as not seems to be a DAV request");
 			chain.doFilter(request, response);
 		}
+	}
+
+	@VisibleForTesting String buildRequestContextPath(HttpServletRequest httpRequest) {
+		String requestURI = httpRequest.getRequestURI();
+		String contextPath = httpRequest.getContextPath();
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(requestURI), "requestURI cannot be null");
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(contextPath), "contextPath cannot be null");
+		Preconditions.checkArgument(requestURI.startsWith(contextPath), "requestURI must start with contextPath");
+		return requestURI.substring(contextPath.length());
 	}
 
 	private boolean isCalDavSpecificHttpMethod(HttpServletRequest request) {

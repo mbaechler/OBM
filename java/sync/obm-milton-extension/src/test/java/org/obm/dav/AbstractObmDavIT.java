@@ -62,13 +62,15 @@ import fr.aliacom.obm.utils.HelperService;
 
 public class AbstractObmDavIT {
 
+	private static final String CONTEXT_PATH = "/context";
+
 	public static class Env extends AbstractModule {
 
 		@Provides
 		@Singleton
 		protected Server createServer() {
 			Server server = new Server(0);
-			Context root = new Context(server, "/", Context.SESSIONS);
+			Context root = new Context(server, CONTEXT_PATH, Context.SESSIONS);
 
 			root.addFilter(GuiceFilter.class, "/*", 0);
 			root.addServlet(DefaultServlet.class, "/*");
@@ -106,7 +108,7 @@ public class AbstractObmDavIT {
 		server.start();
 
 		serverPort = server.getConnectors()[0].getLocalPort();
-		baseUrl = "http://localhost:" + serverPort;
+		baseUrl = "http://localhost:" + serverPort + CONTEXT_PATH;
 		executor = Executor.newInstance(new DefaultHttpClient());
 	}
 
