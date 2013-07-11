@@ -7,9 +7,9 @@
 		<version>2.6.0-SNAPSHOT</version>
 	</parent>
 	
-	<artifactId>services-integration-testing</artifactId>
+	<artifactId>obm-milton-integration-testing</artifactId>
 	<packaging>jar</packaging>
-	<name>OBM Sync integration testing</name>
+	<name>OBM Milton integration testing</name>
 	<url>http://www.obm.org/</url>
 	<version>2.6.0-SNAPSHOT</version>
 
@@ -41,6 +41,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>${apache-commons-compress.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.linagora.obm.integration-testing</groupId>
 			<artifactId>arquillian-bundle</artifactId>
 			<version>${obm.version}</version>
@@ -59,15 +64,9 @@
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
-			<artifactId>services-module</artifactId>
+			<artifactId>obm-milton-extension</artifactId>
 			<version>${obm.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.linagora.obm</groupId>
-			<artifactId>services-module</artifactId>
-			<version>${obm.version}</version>
-			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>com.linagora.obm</groupId>
@@ -81,12 +80,6 @@
 			<artifactId>configuration</artifactId>
 			<version>${obm.version}</version>
 			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.linagora.obm</groupId>
-			<artifactId>client</artifactId>
-			<version>${obm.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

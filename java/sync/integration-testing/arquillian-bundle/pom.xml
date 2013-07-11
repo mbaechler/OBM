@@ -41,9 +41,13 @@
 			<artifactId>fluent-hc</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>${apache-commons-compress.version}</version>
+		</dependency>
+		<dependency>
 			<artifactId>shrinkwrap-descriptors-spi</artifactId>
 			<groupId>org.jboss.shrinkwrap.descriptors</groupId>
-			<version>1.1.0-beta-1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.spec</groupId>

@@ -36,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -102,8 +103,8 @@ public final class ManagedTomcatInstaller {
 	}
 
 	private static void copyTomcatManager() throws IOException, ArchiveException {
-		URL resource = Resources.getResource(TOMCAT_MANAGER_RESOURCE);
-		File tarFile = uncompressBZ2File(new FileInputStream(new File(resource.getFile())));
+		InputStream asStream = ClassLoader.getSystemResourceAsStream(TOMCAT_MANAGER_RESOURCE);
+		File tarFile = uncompressBZ2File(asStream);
 
 		File tomcatWebapps = new File(TOMCAT_TEMPORARY_VERSION_FOLDER, "webapps/");
 		uncompressTarFile(tomcatWebapps, tarFile);
@@ -116,10 +117,10 @@ public final class ManagedTomcatInstaller {
 		uncompressTarFile(TOMCAT_TEMPORARY_MAIN_FOLDER, tarFile);
 	}
 	
-	private static File uncompressBZ2File(FileInputStream inputStream) throws IOException {
+	private static File uncompressBZ2File(InputStream asStream) throws IOException {
 		File tarFile = File.createTempFile("uncompress", "bz2");
 		FileOutputStream outputStream = new FileOutputStream(tarFile);
-		BZip2CompressorInputStream bzInputStream = new BZip2CompressorInputStream(inputStream);
+		BZip2CompressorInputStream bzInputStream = new BZip2CompressorInputStream(asStream);
 		IOUtils.copy(bzInputStream, outputStream);
 		
 		outputStream.close();
