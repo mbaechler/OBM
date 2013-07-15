@@ -35,6 +35,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 import static org.obm.DateUtils.dateUTC;
 
 import java.io.InputStream;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -80,7 +81,7 @@ public class ImportICalendarIntegrationTest extends ObmSyncIntegrationTest {
 		event1.setLocation("");
 		event1.setCategory("");
 		event1.setTimezoneName("Etc/GMT");
-		event1.setPriority(0);
+		event1.setPriority(2);
 		event1.setExtId(new EventExtId("2e8de6deb053002a23c664e11c94dc65032452a779399e26bce4f61598a28709c8a1cc84eb01e4a4d00ebaa2491186186cfa0bc97787ecec4dbc7522123b31b7d3726dcde275e362"));
 		event1.setTimeCreate(dateUTC("2013-04-07T12:09:37"));
 		event1.setTimeUpdate(dateUTC("2013-04-07T12:09:37"));
@@ -98,7 +99,7 @@ public class ImportICalendarIntegrationTest extends ObmSyncIntegrationTest {
 		event2.setLocation("location");
 		event2.setCategory("existing_category");
 		event2.setTimezoneName("Etc/GMT");
-		event2.setPriority(0);
+		event2.setPriority(2);
 		event2.setExtId(new EventExtId("3e8de6deb053002a23c664e11c94dc65032452a779399e26bce4f61598a28709c8a1cc84eb01e4a4d00ebaa2491186186cfa0bc97787ecec4dbc7522123b31b7d3726dcde275e362"));
 		event2.setTimeCreate(dateUTC("2013-04-07T12:09:37"));
 		event2.setTimeUpdate(dateUTC("2013-04-07T12:09:37"));
@@ -116,7 +117,7 @@ public class ImportICalendarIntegrationTest extends ObmSyncIntegrationTest {
 		event3.setLocation("");
 		event3.setCategory("");
 		event3.setTimezoneName("Etc/GMT");
-		event3.setPriority(0);
+		event3.setPriority(2);
 		event3.setExtId(new EventExtId("4e8de6deb053002a23c664e11c94dc65032452a779399e26bce4f61598a28709c8a1cc84eb01e4a4d00ebaa2491186186cfa0bc97787ecec4dbc7522123b31b7d3726dcde275e362"));
 		event3.setTimeCreate(dateUTC("2013-04-07T12:09:37"));
 		event3.setTimeUpdate(dateUTC("2013-04-07T12:09:37"));
@@ -133,7 +134,7 @@ public class ImportICalendarIntegrationTest extends ObmSyncIntegrationTest {
 		event4.setDescription("");
 		event4.setLocation("");
 		event4.setCategory("");
-		event4.setPriority(0);
+		event4.setPriority(2);
 		event4.setTimezoneName("Etc/GMT");
 		event4.setExtId(new EventExtId("5e8de6deb053002a23c664e11c94dc65032452a779399e26bce4f61598a28709c8a1cc84eb01e4a4d00ebaa2491186186cfa0bc97787ecec4dbc7522123b31b7d3726dcde275e362"));
 		event4.setTimeCreate(dateUTC("2013-04-07T12:09:37"));
@@ -143,7 +144,8 @@ public class ImportICalendarIntegrationTest extends ObmSyncIntegrationTest {
 		
 		assertThat(importCount).isEqualTo(4);
 		assertThat(eventsInDB.getDeletedEvents()).isEmpty();
-		assertThat(eventsInDB.getUpdated())
+		Set<Event> updated = eventsInDB.getUpdated();
+		assertThat(updated)
 			.usingElementComparator(ignoreDatabaseElementsComparator())
 			.containsOnly(event1, event2, event3, event4);
 	}

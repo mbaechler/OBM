@@ -1990,6 +1990,7 @@ public class Ical4jHelperImplTest {
 		event1.setTimezoneName("Etc/GMT");
 		event1.setOwner(organizerEmail);
 		event1.setOwnerEmail(organizerEmail);
+		event1.setPriority(2);
 		event1.addAttendee(UserAttendee.builder().email(organizerEmail).participation(Participation.accepted()).asOrganizer().build());
 		event1.addAttendee(UserAttendee.builder().email(userEmail).build());
 
@@ -2000,6 +2001,7 @@ public class Ical4jHelperImplTest {
 		event2.setTimezoneName("Etc/GMT");
 		event2.setOwner(organizerEmail);
 		event2.setOwnerEmail(organizerEmail);
+		event2.setPriority(2);
 		event2.addAttendee(UserAttendee.builder().email(organizerEmail).participation(Participation.accepted()).asOrganizer().build());
 		event2.addAttendee(UserAttendee.builder().email(userEmail).participation(Participation.accepted()).build());
 
@@ -2010,6 +2012,7 @@ public class Ical4jHelperImplTest {
 		event3.setTimezoneName("Etc/GMT");
 		event3.setOwner(organizerEmail);
 		event3.setOwnerEmail(organizerEmail);
+		event3.setPriority(2);
 		event3.addAttendee(UserAttendee.builder().email(organizerEmail).participation(Participation.accepted()).asOrganizer().build());
 		event3.addAttendee(UserAttendee.builder().email(userEmail).build());
 
@@ -2020,6 +2023,7 @@ public class Ical4jHelperImplTest {
 		event4.setTimezoneName("Etc/GMT");
 		event4.setOwner(userEmail);
 		event4.setOwnerEmail(userEmail);
+		event4.setPriority(2);
 		event4.addAttendee(UserAttendee.builder().email(userEmail).participation(Participation.accepted()).asOrganizer().build());
 		event4.addAttendee(UserAttendee.builder().email(organizerEmail).participation(Participation.declined()).build());
 

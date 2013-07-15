@@ -548,8 +548,8 @@ public class Ical4jHelperImpl implements Ical4jHelper {
 			} else if (priority.getLevel() > 0 && priority.getLevel() < 3) {
 				value = 3;
 			}
-			event.setPriority(value);
 		}
+		event.setPriority(value);
 	}
 
 	@VisibleForTesting void appendAllDay(Event event, DtStart startDate, DateProperty endDate) {
@@ -1675,6 +1675,8 @@ public class Ical4jHelperImpl implements Ical4jHelper {
 			if (dashIndex != -1) {
 				attendee.setParticipationRole(ParticipationRole.valueOf(role.substring(0, dashIndex)));
 			}
+		} else {
+			attendee.setParticipationRole(ParticipationRole.REQ);
 		}
 
 		if (partStat != null) {
