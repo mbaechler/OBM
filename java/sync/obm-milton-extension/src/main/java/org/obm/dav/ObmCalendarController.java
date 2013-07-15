@@ -51,8 +51,8 @@ import io.milton.resource.AccessControlledResource;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Collections;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -179,11 +179,12 @@ public class ObmCalendarController {
 	}
 
 	@PutChild
-	public EventResource updateEvent(EventResource eventResource, byte[] ical, ObmUserCalendar cal) throws ServerFault, NotAllowedException, IOException, ParserException {
+	public EventResource updateEvent(EventResource eventResource, byte[] ical, ObmUserCalendar cal) throws ServerFault, NotAllowedException, IOException, ParserException, EventNotFoundException {
 		AccessToken token = requestAccessToken();
 		ObmUser user = cal.getUser();
 		Event newEvent = parseIcalendarBytes(ical, user);
-		newEvent.setUid(eventResource.getEvent().getUid());
+		Event event = calendarService.getEventFromExtId(token, user.getLogin(), eventResource.getExtId());
+		newEvent.setUid(event.getUid());
 		calendarService.modifyEvent(token, user.getLogin(), newEvent, true, false);
 		return eventResource;
 	}

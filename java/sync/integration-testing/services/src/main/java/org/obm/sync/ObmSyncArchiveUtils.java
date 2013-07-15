@@ -426,7 +426,7 @@ public class ObmSyncArchiveUtils {
 						H2GuiceServletContextListener.class);
 	}
 
-	private static File[] projectDependencies() {
+	protected static File[] projectDependencies() {
 		return filterObmDependencies(allObmSyncDependencies());
 	}
 
@@ -467,7 +467,7 @@ public class ObmSyncArchiveUtils {
 		};
 	}
 
-	private static Asset webXml(Class<? extends Module> guiceModule) {
+	protected static Asset webXml(Class<? extends Module> guiceModule) {
 		return new StringAsset(
 			"<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
 			"<!DOCTYPE web-app PUBLIC \"-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN\" \"http://java.sun.com/dtd/web-app_2_3.dtd\">" +

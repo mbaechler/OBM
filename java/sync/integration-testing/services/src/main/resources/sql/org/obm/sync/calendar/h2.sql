@@ -7,6 +7,7 @@ CREATE DOMAIN vcomponent AS VARCHAR(32);
 CREATE DOMAIN vopacity AS VARCHAR(32);
 CREATE DOMAIN vpartstat AS VARCHAR(32);
 CREATE DOMAIN vrole AS VARCHAR(32);
+CREATE DOMAIN vkind AS VARCHAR(32);
 
 --
 -- Table userobm
@@ -657,6 +658,16 @@ ALTER TABLE resource
     ADD CONSTRAINT resource_usercreate_userobm_id_fkey FOREIGN KEY (resource_usercreate) REFERENCES userobm(userobm_id) ON UPDATE CASCADE ON DELETE SET NULL;
 ALTER TABLE resource
     ADD CONSTRAINT resource_userupdate_userobm_id_fkey FOREIGN KEY (resource_userupdate) REFERENCES userobm(userobm_id) ON UPDATE CASCADE ON DELETE SET NULL;
+    
+--
+-- Name: commitedoperation; Type: TABLE; Schema: public; Owner: obm; Tablespace: 
+--
+
+CREATE TABLE commitedoperation (
+    commitedoperation_hash_client_id character varying(44) NOT NULL,
+    commitedoperation_entity_id integer NOT NULL,
+    commitedoperation_kind vkind DEFAULT 'VEVENT'::vkind
+);
 
 --
 -- Data inserts
