@@ -29,10 +29,6 @@
                     <artifactId>milton-mail-server</artifactId>
                     <groupId>io.milton</groupId>
                 </exclusion>
-                <exclusion>
-                    <artifactId>milton-mail-api</artifactId>
-                    <groupId>io.milton</groupId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
