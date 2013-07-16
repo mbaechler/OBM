@@ -204,7 +204,7 @@ public class ObmCalendarController {
 	private Event parseIcalendarBytes(byte[] ical, ObmUser user)
 			throws IOException, ParserException {
 		Ical4jUser ical4jUser = ical4jUserFactory.createIcal4jUser(user.getEmail(), user.getDomain());
-		List<Event> events = ical4jHelper.parseICS(new String(ical, Charsets.UTF_8), ical4jUser, null);
+		List<Event> events = ical4jHelper.parseICS(new String(ical, Charsets.UTF_8), ical4jUser, user.getEntityId());
 		return Iterables.getOnlyElement(events);
 	}
 

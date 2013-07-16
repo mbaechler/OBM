@@ -44,7 +44,6 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.fluent.Request;
 import org.easymock.IMocksControl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,7 +103,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
+		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken);
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
@@ -129,7 +128,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
+		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken);
 		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(events);
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
 
@@ -166,13 +165,13 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(calendarDao.doesEventExist(user, eventId)).andReturn(true).anyTimes();
 		expect(calendarDao.findEventByExtId(accessToken, user, eventId)).andReturn(event).anyTimes();
 		expect(ical4jHelper.buildIcs(null, events, accessToken)).andReturn(ical).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
+		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken);
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
 
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
-		HttpResponse response = executor.execute(Request.Get(baseUrl + "/users/joe@my.domain/calendars/default/event1")).returnResponse();
+		HttpResponse response = executor.execute(get("/users/joe@my.domain/calendars/default/" + eventId.getExtId())).returnResponse();
 		control.verify();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -192,7 +191,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		          
 		control.replay();
 		executor.auth("joe@my.domain", "password");
-		HttpResponse response = executor.execute(Request.Get(baseUrl + "/users/joe@my.domain/calendars/default/event1")).returnResponse();
+		HttpResponse response = executor.execute(get("/users/joe@my.domain/calendars/default/event1")).returnResponse();
 		control.verify();
 		          
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
@@ -205,7 +204,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
+		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
 		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
 
@@ -223,7 +222,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
+		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(false);
 		expect(helperService.canReadCalendar(accessToken, "joe")).andReturn(true);
 		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
@@ -242,7 +241,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		AccessToken accessToken = new AccessToken(142, "MiltonDav");
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
-		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
+		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(false);
 		expect(helperService.canReadCalendar(accessToken, "joe")).andReturn(false);
 

@@ -59,19 +59,22 @@ public class ReverseProxyTest extends ObmMiltonIntegrationTest {
 
 		executor.auth("user1@domain.org", "user1");
 		HttpResponse putResponse = executor
-				.execute(Request.Put(baseURL + "obm-sync/users/user1@domain.org/calendars/user1@domain.org/event1")
+				.execute(Request.Put(baseURL + "obm-sync/users/user1@domain.org/calendars/default/event1")
+						.addHeader("X-Forwarded-For", "obm-sync")
 						.bodyByteArray(expectedIcs.getBytes())).returnResponse();
 		assertThat(putResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_CREATED);
 		
 		String eventExtId = getEventExtId(putResponse);
 		HttpResponse getResponse = executor
-				.execute(propfind(baseURL + "obm-sync/users/user1@domain.org/calendars/user1@domain.org/" + eventExtId, 1)).returnResponse();
+				.execute(propfind(baseURL + "obm-sync/users/user1@domain.org/calendars/default/" + eventExtId, 1)).returnResponse();
 		assertThat(getResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
 	}
 
 	private Request propfind(String path, int depth) {
 		FluentPropFind fluentPropFind = new FluentPropFind(baseURL + path);
-		return fluentPropFind.addHeader("Depth", String.valueOf(depth));
+		return fluentPropFind
+				.addHeader("Depth", String.valueOf(depth))
+				.addHeader("X-Forwarded-For", "obm-sync");
 	}
 
 	private String getEventExtId(HttpResponse putResponse) {

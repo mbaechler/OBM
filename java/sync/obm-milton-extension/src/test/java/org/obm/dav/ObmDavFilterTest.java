@@ -87,11 +87,71 @@ public class ObmDavFilterTest {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testGetProxylessURIWithNullRequestURI() {
-		new ObmDavFilter().getProxylessURI(null);
+		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
+		expect(httpRequest.getRequestURI()).andReturn(null);
+		
+		control.replay();
+		try {
+			new ObmDavFilter().getProxylessURI(httpRequest);
+		} catch (IllegalArgumentException e) {
+			control.verify();
+			throw e;
+		}
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testGetProxylessURIWithEmptyRequestURI() {
-		new ObmDavFilter().getProxylessURI("");
+		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
+		expect(httpRequest.getRequestURI()).andReturn("");
+		
+		control.replay();
+		try {
+			new ObmDavFilter().getProxylessURI(httpRequest);
+		} catch (IllegalArgumentException e) {
+			control.verify();
+			throw e;
+		}
+	}
+	
+	@Test
+	public void testGetProxylessURIWithoutProxy() {
+		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
+		String expectedURI = "/users/path";
+		expect(httpRequest.getRequestURI()).andReturn(expectedURI);
+		expect(httpRequest.getHeader("X-Forwarded-For")).andReturn(null);
+
+		control.replay();
+		String proxylessURI = new ObmDavFilter().getProxylessURI(httpRequest);
+		control.verify();
+		
+		assertThat(proxylessURI).isEqualTo(expectedURI);
+	}
+	
+	@Test
+	public void testGetProxylessURIBehindProxy() {
+		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
+		String expectedURI = "/users/path";
+		expect(httpRequest.getRequestURI()).andReturn("/context/" + expectedURI);
+		expect(httpRequest.getHeader("X-Forwarded-For")).andReturn("/context");
+
+		control.replay();
+		String proxylessURI = new ObmDavFilter().getProxylessURI(httpRequest);
+		control.verify();
+		
+		assertThat(proxylessURI).isEqualTo(expectedURI);
+	}
+	
+	@Test
+	public void testGetProxylessURIContainingMultipleRootInPath() {
+		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
+		String expectedURI = "/users/itchy/users/scratchy/users/path";
+		expect(httpRequest.getRequestURI()).andReturn("/context/" + expectedURI);
+		expect(httpRequest.getHeader("X-Forwarded-For")).andReturn("/context");
+
+		control.replay();
+		String proxylessURI = new ObmDavFilter().getProxylessURI(httpRequest);
+		control.verify();
+		
+		assertThat(proxylessURI).isEqualTo(expectedURI);
 	}
 }

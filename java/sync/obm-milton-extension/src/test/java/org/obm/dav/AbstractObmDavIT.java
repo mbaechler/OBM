@@ -118,15 +118,21 @@ public class AbstractObmDavIT {
 	}
 
 	protected HttpResponse options(String path) throws Exception {
-		return Request.Options(baseUrl + path).execute().returnResponse();
+		return Request.Options(baseUrl + path)
+				.addHeader("X-Forwarded-For", CONTEXT_PATH)
+				.execute()
+				.returnResponse();
 	}
 
 	protected Request get(String path) {
-		return Request.Get(baseUrl + path);
+		return Request.Get(baseUrl + path)
+				.addHeader("X-Forwarded-For", CONTEXT_PATH);
 	}
 
 	protected Request propfind(String path, int depth) {
 		FluentPropFind fluentPropFind = new FluentPropFind(baseUrl + path);
-		return fluentPropFind.addHeader("Depth", String.valueOf(depth));
+		return fluentPropFind
+				.addHeader("X-Forwarded-For", CONTEXT_PATH)
+				.addHeader("Depth", String.valueOf(depth));
 	}
 }

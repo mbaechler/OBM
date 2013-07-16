@@ -56,7 +56,7 @@ public class EventsCRUDActionsTest extends ObmMiltonIntegrationTest {
 	public void testGetUnknownEvent() throws Exception {
 		executor.auth("user1@domain.org", "user1");
 		HttpResponse getResponse = executor
-				.execute(Request.Get(baseURL + "users/user1@domain.org/calendars/user1@domain.org/event1")).returnResponse();
+				.execute(get(baseURL + "users/user1@domain.org/calendars/default/event1")).returnResponse();
 		
 		assertThat(getResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
 	}
@@ -68,13 +68,13 @@ public class EventsCRUDActionsTest extends ObmMiltonIntegrationTest {
 
 		executor.auth("user1@domain.org", "user1");
 		HttpResponse putResponse = executor
-				.execute(Request.Put(baseURL + "users/user1@domain.org/calendars/user1@domain.org/event1")
-						.bodyByteArray(expectedIcs.getBytes())).returnResponse();
+				.execute(put(baseURL + "users/user1@domain.org/calendars/default/event1", expectedIcs.getBytes()))
+				.returnResponse();
 		assertThat(putResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_CREATED);
 		
 		String eventExtId = getEventExtId(putResponse);
 		HttpResponse getResponse = executor
-				.execute(Request.Get(baseURL + "users/user1@domain.org/calendars/user1@domain.org/" + eventExtId)).returnResponse();
+				.execute(get(baseURL + "users/user1@domain.org/calendars/default/" + eventExtId)).returnResponse();
 		assertThat(getResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
 		// TODO: assert event with caldav4j
 	}
@@ -86,22 +86,23 @@ public class EventsCRUDActionsTest extends ObmMiltonIntegrationTest {
 
 		executor.auth("user1@domain.org", "user1");
 		HttpResponse putResponse = executor
-				.execute(Request.Put(baseURL + "users/user1@domain.org/calendars/user1@domain.org/event1")
-						.bodyByteArray(expectedIcs.getBytes())).returnResponse();
+				.execute(put(baseURL + "users/user1@domain.org/calendars/default/event1", expectedIcs.getBytes()))
+				.returnResponse();
 		assertThat(putResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_CREATED);
 
 		// To be sure that the event is really inserted
 		String eventExtId = getEventExtId(putResponse);
 		HttpResponse getResponse = executor
-				.execute(Request.Get(baseURL + "users/user1@domain.org/calendars/user1@domain.org/" + eventExtId)).returnResponse();
+				.execute(get(baseURL + "users/user1@domain.org/calendars/default/" + eventExtId)).returnResponse();
 		assertThat(getResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
 		
 		HttpResponse deleteResponse = executor
-				.execute(Request.Delete(baseURL + "users/user1@domain.org/calendars/user1@domain.org/" + eventExtId)).returnResponse();
+				.execute(delete(baseURL + "users/user1@domain.org/calendars/default/" + eventExtId))
+				.returnResponse();
 		assertThat(deleteResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NO_CONTENT);
 		
 		HttpResponse getAfterDeleteResponse = executor
-				.execute(Request.Get(baseURL + "users/user1@domain.org/calendars/user1@domain.org/" + eventExtId)).returnResponse();
+				.execute(get(baseURL + "users/user1@domain.org/calendars/default/" + eventExtId)).returnResponse();
 		assertThat(getAfterDeleteResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NOT_FOUND);
 	}
 
@@ -112,23 +113,23 @@ public class EventsCRUDActionsTest extends ObmMiltonIntegrationTest {
 
 		executor.auth("user1@domain.org", "user1");
 		HttpResponse putResponse = executor
-				.execute(Request.Put(baseURL + "users/user1@domain.org/calendars/user1@domain.org/event1")
-						.bodyByteArray(expectedIcs.getBytes())).returnResponse();
+				.execute(put(baseURL + "users/user1@domain.org/calendars/default/event1", expectedIcs.getBytes()))
+				.returnResponse();
 		assertThat(putResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_CREATED);
 		
 		// To be sure that the event is really inserted
 		String eventExtId = getEventExtId(putResponse);
 		HttpResponse getResponse = executor
-				.execute(Request.Get(baseURL + "users/user1@domain.org/calendars/user1@domain.org/" + eventExtId)).returnResponse();
+				.execute(get(baseURL + "users/user1@domain.org/calendars/default/" + eventExtId)).returnResponse();
 		assertThat(getResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
 		
 		HttpResponse updateResponse = executor
-				.execute(Request.Put(baseURL + "users/user1@domain.org/calendars/user1@domain.org/" + eventExtId)
-						.bodyByteArray(expectedIcs.getBytes())).returnResponse();
+				.execute(put(baseURL + "users/user1@domain.org/calendars/default/" + eventExtId, expectedIcs.getBytes()))
+				.returnResponse();
 		assertThat(updateResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_NO_CONTENT);
 		
 		HttpResponse getAfterUpdateResponse = executor
-				.execute(Request.Get(baseURL + "users/user1@domain.org/calendars/user1@domain.org/" + eventExtId)).returnResponse();
+				.execute(get(baseURL + "users/user1@domain.org/calendars/default/" + eventExtId)).returnResponse();
 		assertThat(getAfterUpdateResponse.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
 		// TODO: assert event with caldav4j
 	}
@@ -137,5 +138,21 @@ public class EventsCRUDActionsTest extends ObmMiltonIntegrationTest {
 		String eventExtId = putResponse.getFirstHeader("Etag").getValue();
 		Iterable<String> split = Splitter.on('"').split(eventExtId);
 		return Iterables.get(split, 1);
+	}
+	
+	private Request put(String url, byte[] expectedIcs) {
+		return Request.Put(url)
+				.addHeader("X-Forwarded-For", "obm-sync")
+				.bodyByteArray(expectedIcs);
+	}
+	
+	private Request get(String url) {
+		return Request.Get(url)
+				.addHeader("X-Forwarded-For", "obm-sync");
+	}
+	
+	private Request delete(String url) {
+		return Request.Delete(url)
+				.addHeader("X-Forwarded-For", "obm-sync");
 	}
 }
