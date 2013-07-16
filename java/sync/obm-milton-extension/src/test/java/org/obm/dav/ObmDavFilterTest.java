@@ -31,9 +31,9 @@
  * ***** END LICENSE BLOCK ***** */
 package org.obm.dav;
 
-import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.createControl;
-import static org.fest.assertions.api.Assertions.*;
+import static org.easymock.EasyMock.expect;
+import static org.fest.assertions.api.Assertions.assertThat;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,25 +54,31 @@ public class ObmDavFilterTest {
 	}
 	
 	@Test
-	public void testBuildRequestContextPath() {
+	public void testBuildMiltonURL() {
 		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
-		expect(httpRequest.getContextPath()).andReturn("/context");
-		expect(httpRequest.getRequestURI()).andReturn("/context/with/path");
+		
+		String requestURI = "/users/path";
+		String serverURL = "http://127.0.0.1:8080";
+		expect(httpRequest.getRequestURL()).andReturn(new StringBuffer()
+			.append(serverURL)
+			.append("/url")
+			.append(requestURI));
 		
 		control.replay();
-		assertThat(new ObmDavFilter().buildRequestContextPath(httpRequest)).isEqualTo("/with/path");
+		assertThat(new ObmDavFilter().buildMiltonURL(httpRequest, requestURI)).isEqualTo(serverURL + requestURI);
 		control.verify();
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testBuildRequestContextPathWhenNotStartWithContext() throws Exception {
+	public void testBuildMiltonURLWithoutRequestURL() throws Exception {
 		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
-		expect(httpRequest.getContextPath()).andReturn("/context");
-		expect(httpRequest.getRequestURI()).andReturn("/anotherContext/with/path");
+		String requestURI = "/users/path";
+		
+		expect(httpRequest.getRequestURL()).andReturn(new StringBuffer());
 		
 		control.replay();
 		try {
-			new ObmDavFilter().buildRequestContextPath(httpRequest);
+			new ObmDavFilter().buildMiltonURL(httpRequest, requestURI);
 		} catch (Exception e) {
 			control.verify();
 			throw e;
@@ -80,63 +86,12 @@ public class ObmDavFilterTest {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testBuildRequestContextPathWhenContextIsNull() throws Exception {
-		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
-		expect(httpRequest.getContextPath()).andReturn(null);
-		expect(httpRequest.getRequestURI()).andReturn("/anotherContext/with/path");
-		
-		control.replay();
-		try {
-			new ObmDavFilter().buildRequestContextPath(httpRequest);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
+	public void testGetProxylessURIWithNullRequestURI() {
+		new ObmDavFilter().getProxylessURI(null);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testBuildRequestContextPathWhenContextIsEmpty() throws Exception {
-		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
-		expect(httpRequest.getContextPath()).andReturn("");
-		expect(httpRequest.getRequestURI()).andReturn("/anotherContext/with/path");
-		
-		control.replay();
-		try {
-			new ObmDavFilter().buildRequestContextPath(httpRequest);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
+	public void testGetProxylessURIWithEmptyRequestURI() {
+		new ObmDavFilter().getProxylessURI("");
 	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testBuildRequestContextPathWhenURIIsNull() throws Exception {
-		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
-		expect(httpRequest.getContextPath()).andReturn("/context");
-		expect(httpRequest.getRequestURI()).andReturn(null);
-		
-		control.replay();
-		try {
-			new ObmDavFilter().buildRequestContextPath(httpRequest);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
-	}
-	
-	@Test(expected=IllegalArgumentException.class)
-	public void testBuildRequestContextPathWhenURIIsEmpty() throws Exception {
-		HttpServletRequest httpRequest = control.createMock(HttpServletRequest.class);
-		expect(httpRequest.getContextPath()).andReturn("/context");
-		expect(httpRequest.getRequestURI()).andReturn("");
-		
-		control.replay();
-		try {
-			new ObmDavFilter().buildRequestContextPath(httpRequest);
-		} catch (Exception e) {
-			control.verify();
-			throw e;
-		}
-	}
-	
 }

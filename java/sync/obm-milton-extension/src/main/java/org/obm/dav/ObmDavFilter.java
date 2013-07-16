@@ -42,6 +42,7 @@ import io.milton.servlet.MiltonFilter;
 import io.milton.servlet.MiltonServlet;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -58,15 +59,18 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class ObmDavFilter implements Filter {
 
+	private static final String CALDAV_ROOT_PATH = "/users"; 
 	private static final Logger log = LoggerFactory.getLogger(MiltonFilter.class);
 	private FilterConfigWrapper configWrapper;
 	private ServletContext servletContext;
@@ -114,12 +118,13 @@ public class ObmDavFilter implements Filter {
 		
 		if (request instanceof HttpServletRequest) {
 			HttpServletRequest httpRequest = (HttpServletRequest) request;
-			String requestContextPath = buildRequestContextPath(httpRequest);
-			if (isCalDavSpecificHttpMethod(httpRequest) || requestContextPath.startsWith("/users")) {
-				log.debug("Processing a DAV request: {}", requestContextPath);
-				doMiltonProcessing((HttpServletRequest) request, (HttpServletResponse) response);
+			String proxylessURI = getProxylessURI(httpRequest.getRequestURI());
+			if (isCalDavSpecificHttpMethod(httpRequest) || proxylessURI.startsWith(CALDAV_ROOT_PATH)) {
+				String miltonRequestURL = buildMiltonURL(httpRequest, proxylessURI); 
+				log.debug("Processing a DAV request: {}", miltonRequestURL);
+				doMiltonProcessing(miltonRequestURL, (HttpServletRequest) request, (HttpServletResponse) response);
 			} else {
-				log.debug("Propagate the request as it not seems to be a DAV request: {}", requestContextPath);
+				log.debug("Propagate the request as it not seems to be a DAV request: {}", proxylessURI);
 				chain.doFilter(request, response);
 			}
 		} else {
@@ -128,28 +133,43 @@ public class ObmDavFilter implements Filter {
 		}
 	}
 
-	@VisibleForTesting String buildRequestContextPath(HttpServletRequest httpRequest) {
-		String requestURI = httpRequest.getRequestURI();
-		String contextPath = httpRequest.getContextPath();
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(requestURI), "requestURI cannot be null");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(contextPath), "contextPath cannot be null");
-		Preconditions.checkArgument(requestURI.startsWith(contextPath), "requestURI must start with contextPath");
-		return requestURI.substring(contextPath.length());
-	}
-
 	private boolean isCalDavSpecificHttpMethod(HttpServletRequest request) {
 		return request.getMethod().equals("PROPFIND")
 			|| request.getMethod().equals("OPTIONS");
 	}
 
-	private void doMiltonProcessing(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+	@VisibleForTesting String getProxylessURI(String requestURI) {
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(requestURI), "requestURI cannot be null");
+		if (requestURI.contains(CALDAV_ROOT_PATH)) {
+			return new StringBuilder()
+				.append(CALDAV_ROOT_PATH)
+				.append(Iterables.get(Splitter.on(CALDAV_ROOT_PATH).split(requestURI), 1))
+				.toString();
+		}
+		return requestURI;
+	}
+	
+	@VisibleForTesting String buildMiltonURL(HttpServletRequest httpRequest, String requestURI) {
+		String requestURL = httpRequest.getRequestURL().toString();
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(requestURL), "requestURL cannot be null");
+		if (requestURI.contains(CALDAV_ROOT_PATH)) {
+			URI uri = URI.create(requestURL);
+			return new StringBuilder()
+				.append(uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort())
+				.append(requestURI)
+				.toString();
+		}
+		return requestURL;
+	}
+
+	private void doMiltonProcessing(String requestContextPath, HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
 		// Do this part in its own try/catch block, because if there's a
 		// classpath
 		// problem it will probably be seen here
 		Request request;
 		Response response;
 		try {
-			request = new io.milton.servlet.ServletRequest(httpRequest, servletContext);
+			request = new MyRequest(httpRequest, servletContext, requestContextPath);
 			response = new io.milton.servlet.ServletResponse(httpResponse);
 		} catch (Throwable e) {
 			// OK, I know its not cool to log AND throw. But we really want to
@@ -171,6 +191,21 @@ public class ObmDavFilter implements Filter {
 			MiltonServlet.clearThreadlocals();
 			httpResponse.getOutputStream().flush();
 			httpResponse.flushBuffer();
+		}
+	}
+	
+	public class MyRequest extends io.milton.servlet.ServletRequest {
+		
+		private final String miltonUrl;
+
+		public MyRequest(HttpServletRequest r, ServletContext servletContext, String url) {
+			super(r, servletContext);
+			miltonUrl = url;
+		}
+
+		@Override
+		public String getAbsoluteUrl() {
+			return miltonUrl;
 		}
 	}
 }
