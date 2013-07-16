@@ -131,7 +131,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
 		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(events);
-		expect(helperService.canWriteOnCalendar(accessToken, "default")).andReturn(true);
+		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
 
 		control.replay();
 
@@ -167,7 +167,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(calendarDao.findEventByExtId(accessToken, user, eventId)).andReturn(event).anyTimes();
 		expect(ical4jHelper.buildIcs(null, events, accessToken)).andReturn(ical).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken);
-		expect(helperService.canWriteOnCalendar(accessToken, "default")).andReturn(true);
+		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
 
 
 		control.replay();
@@ -206,12 +206,12 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
-		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(true);
+		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
 		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
-		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/mine", 1)).returnResponse();
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/default", 1)).returnResponse();
 		control.verify();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
 	}
@@ -224,13 +224,13 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
-		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(false);
-		expect(helperService.canReadCalendar(accessToken, "mine")).andReturn(true);
+		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(false);
+		expect(helperService.canReadCalendar(accessToken, "joe")).andReturn(true);
 		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
-		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/mine", 1)).returnResponse();
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/default", 1)).returnResponse();
 		control.verify();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_MULTI_STATUS);
 	}
@@ -243,12 +243,12 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", null, "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
-		expect(helperService.canWriteOnCalendar(accessToken, "mine")).andReturn(false);
-		expect(helperService.canReadCalendar(accessToken, "mine")).andReturn(false);
+		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(false);
+		expect(helperService.canReadCalendar(accessToken, "joe")).andReturn(false);
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
-		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/mine", 1)).returnResponse();
+		HttpResponse response = executor.execute(propfind("/users/joe@my.domain/calendars/default", 1)).returnResponse();
 		control.verify();
 		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
 	}

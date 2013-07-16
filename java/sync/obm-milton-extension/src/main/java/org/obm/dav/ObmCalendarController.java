@@ -52,7 +52,6 @@ import io.milton.resource.AccessControlledResource;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -107,14 +106,15 @@ public class ObmCalendarController {
 	@ChildrenOf
 	@Calendars
 	public List<ObmUserCalendar> getCalendarsForUser(ObmUserCalendars userCalendarsHome) {
-		return Collections.EMPTY_LIST;
+		return ImmutableList.of(new ObmUserCalendar(userCalendarsHome.user, "default"));
 	}
 
-	@ChildOf
-	@Calendars
-	public ObmUserCalendar getCalendarForUser(ObmUserCalendars userCalendarsHome, String name) {
-		return new ObmUserCalendar(userCalendarsHome.user, name);
-	}
+	
+//	@ChildOf
+//	@Calendars
+//	public ObmUserCalendar getCalendarForUser(ObmUserCalendars userCalendarsHome, String name) {
+//		return new ObmUserCalendar(userCalendarsHome.user, name);
+//	}
 	
 	@ChildrenOf
 	public List<EventResource> getEvents(ObmUserCalendar cal) {
@@ -140,10 +140,10 @@ public class ObmCalendarController {
 		if (calendar != null) {
 			AccessToken token = requestAccessToken();
 			if (token != null) {
-				if (helperService.canWriteOnCalendar(token, calendar.getName())) {
+				if (helperService.canWriteOnCalendar(token, calendar.getUser().getLogin())) {
 					return AccessControlledResource.READ_WRITE;
 				}
-				if (helperService.canReadCalendar(token, calendar.getName())) {
+				if (helperService.canReadCalendar(token, calendar.getUser().getLogin())) {
 					return AccessControlledResource.READ_BROWSE;
 				}
 			}
