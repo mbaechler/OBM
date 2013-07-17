@@ -90,7 +90,6 @@ public class OptionsITTest extends AbstractObmDavIT {
 	@Inject
 	IMocksControl control;
 
-	@Ignore
 	@Test
 	public void testOptions() throws Exception {
 		HttpResponse response = options("/");

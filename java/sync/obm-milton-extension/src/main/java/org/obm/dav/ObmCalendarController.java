@@ -44,6 +44,7 @@ import io.milton.annotations.Get;
 import io.milton.annotations.ICalData;
 import io.milton.annotations.ModifiedDate;
 import io.milton.annotations.Name;
+import io.milton.annotations.Principal;
 import io.milton.annotations.PutChild;
 import io.milton.annotations.ResourceController;
 import io.milton.annotations.UniqueId;
@@ -96,7 +97,7 @@ public class ObmCalendarController {
 	}
 
 	@ChildrenOf
-	public ObmUserCalendars getUsers(ObmUser user) {
+	public ObmUserCalendars getUsers(@Principal ObmUser user) {
 		return new ObmUserCalendars(user);
 	}
 
