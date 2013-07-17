@@ -115,11 +115,11 @@ public class ObmCalendarController {
 //	}
 	
 	@ChildrenOf
-	public List<EventResource> getEvents(ObmUserCalendar cal) {
+	public List<EventResource> getEvents(ObmUserCalendar cal) throws ServerFault {
 		AccessToken requestAccessToken = requestAccessToken();
 		// TODO: Hack because milton sometimes tries to find if an event already exist without authentication
-		if (requestAccessToken != null) { 
-			return eventsToEventResources(calendarDao.findAllEvents(requestAccessToken, cal.user, EventType.VEVENT));
+		if (requestAccessToken != null) {
+			return eventsToEventResources(calendarService.getAllEvents(requestAccessToken, cal.user.getLogin(), EventType.VEVENT));
 		}
 		return ImmutableList.of();
 	}

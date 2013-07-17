@@ -133,7 +133,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken);
-		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(events);
+		expect(calendarService.getAllEvents(accessToken, "joe", EventType.VEVENT)).andReturn(events);
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
 
 		control.replay();
@@ -194,7 +194,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(calendarDao.doesEventExist(user, new EventExtId("event1"))).andReturn(false).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken);
-		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
+		expect(calendarService.getAllEvents(accessToken, user.getLogin(), EventType.VEVENT)).andReturn(ImmutableList.<Event>of()).anyTimes();
 		          
 		control.replay();
 		executor.auth("joe@my.domain", "password");
@@ -213,7 +213,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);
-		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
+		expect(calendarService.getAllEvents(accessToken, "joe", EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
@@ -232,7 +232,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken).anyTimes();
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(false);
 		expect(helperService.canReadCalendar(accessToken, "joe")).andReturn(true);
-		expect(calendarDao.findAllEvents(accessToken, user, EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
+		expect(calendarService.getAllEvents(accessToken, "joe", EventType.VEVENT)).andReturn(ImmutableList.<Event>of());
 
 		control.replay();
 		executor.auth("joe@my.domain", "password");
