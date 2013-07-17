@@ -57,6 +57,7 @@ import org.obm.sync.auth.AccessToken;
 import org.obm.sync.calendar.Event;
 import org.obm.sync.calendar.EventExtId;
 import org.obm.sync.calendar.EventType;
+import org.obm.sync.services.ICalendar;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -80,6 +81,8 @@ public class OptionsITTest extends AbstractObmDavIT {
 	private UserService userService;
 	@Inject
 	private CalendarDao calendarDao;
+	@Inject
+	private ICalendar calendarService;
 	@Inject
 	private Ical4jHelper ical4jHelper;
 	@Inject 
@@ -164,7 +167,7 @@ public class OptionsITTest extends AbstractObmDavIT {
 		expect(domainService.findDomainByName("my.domain") ).andReturn(domain).anyTimes();
 		expect(userService.getUserFromLogin("joe","my.domain") ).andReturn(user).anyTimes();
 		expect(calendarDao.doesEventExist(user, eventId)).andReturn(true).anyTimes();
-		expect(calendarDao.findEventByExtId(accessToken, user, eventId)).andReturn(event).anyTimes();
+		expect(calendarService.getEventFromExtId(accessToken, "joe", eventId)).andReturn(event).anyTimes();
 		expect(ical4jHelper.buildIcs(null, events, accessToken)).andReturn(ical).anyTimes();
 		expect(sessionManagement.login("joe", "password", "MiltonDav", "/context", "127.0.0.1", null, null, false)).andReturn(accessToken);
 		expect(helperService.canWriteOnCalendar(accessToken, "joe")).andReturn(true);

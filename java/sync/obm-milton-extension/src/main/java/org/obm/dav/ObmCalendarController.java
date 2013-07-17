@@ -151,7 +151,7 @@ public class ObmCalendarController {
 
 	@ICalData
 	@Get
-	public byte[] getEventData(EventResource eventResource) throws UnsupportedEncodingException {
+	public byte[] getEventData(EventResource eventResource) throws UnsupportedEncodingException, ServerFault, EventNotFoundException, NotAllowedException {
 		String ical = ical4jHelper.buildIcs(null, ImmutableList.of(eventResource.getEvent()), requestAccessToken());
 		return ical.getBytes("UTF-8");
 	}
@@ -162,12 +162,12 @@ public class ObmCalendarController {
 	}
 
 	@ModifiedDate
-	public Date getModifiedDateForEvent(EventResource eventResource) {
+	public Date getModifiedDateForEvent(EventResource eventResource) throws ServerFault, EventNotFoundException, NotAllowedException {
 		return eventResource.getEvent().getTimeUpdate();
 	}
 
 	@CreatedDate
-	public Date getCreatedDate(EventResource eventResource) {
+	public Date getCreatedDate(EventResource eventResource) throws ServerFault, EventNotFoundException, NotAllowedException {
 		return eventResource.getEvent().getTimeCreate();
 	}
 
@@ -207,7 +207,7 @@ public class ObmCalendarController {
 	}
 
 	@Delete
-	public void deleteEvent(EventResource eventResource, ObmUserCalendar calendar) throws ServerFault, NotAllowedException {
+	public void deleteEvent(EventResource eventResource, ObmUserCalendar calendar) throws ServerFault, NotAllowedException, EventNotFoundException {
 		AccessToken token = requestAccessToken();
 		calendarService.removeEventByExtId(token, calendar.getUser().getLogin(), eventResource.getExtId(), eventResource.getEvent().getSequence(), false);
 	}
@@ -266,9 +266,10 @@ public class ObmCalendarController {
 			this.event = event; 
 		}
 
-		public Event getEvent() {
+		public Event getEvent() throws ServerFault, EventNotFoundException, NotAllowedException {
+			
 			if (event == null) {
-				event = calendarDao.findEventByExtId(requestAccessToken(), user, eventExtId);
+				event = calendarService.getEventFromExtId(requestAccessToken(), user.getLogin(), eventExtId);
 			}
 			return event;
 		}
