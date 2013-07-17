@@ -99,6 +99,7 @@ public class ObmDavFilter implements Filter {
 			builder.setEnableDigestAuth(false);
 			builder.setMainResourceFactory(resourceFactory);
 			builder.setEnableCookieAuth(false);
+			builder.setEnableEarlyAuth(true);
 			
 			httpManager = builder.buildHttpManager();
 		} catch (Throwable e) {
