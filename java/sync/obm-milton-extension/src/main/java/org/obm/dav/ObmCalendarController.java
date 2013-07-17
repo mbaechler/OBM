@@ -94,10 +94,7 @@ public class ObmCalendarController {
 	private static AccessToken requestAccessToken() {
 		return ObmUsersController.getAccessToken();
 	}
-	private static ObmUser requestUser() {
-		return ObmUsersController.getUser();
-	}
-	
+
 	@ChildrenOf
 	public ObmUserCalendars getUsers(ObmUser user) {
 		return new ObmUserCalendars(user);
@@ -130,7 +127,7 @@ public class ObmCalendarController {
 	public EventResource getEvent(ObmUserCalendar cal, String eventName) throws SQLException {
 		EventExtId eventExtId = new EventExtId(eventName);
 		if (calendarDao.doesEventExist(cal.user, eventExtId)) {
-			return new EventResource(eventExtId);
+			return new EventResource(eventExtId, cal.user);
 		}
 		return null;
 	}
@@ -255,9 +252,11 @@ public class ObmCalendarController {
 		
 		private final EventExtId eventExtId;
 		private Event event;
+		private ObmUser user;
 		
-		public EventResource(final EventExtId eventExtId) {
+		public EventResource(EventExtId eventExtId, ObmUser user) {
 			this.eventExtId = eventExtId;
+			this.user = user;
 			this.event = null; 
 		}
 
@@ -268,7 +267,7 @@ public class ObmCalendarController {
 
 		public Event getEvent() {
 			if (event == null) {
-				event = calendarDao.findEventByExtId(requestAccessToken(), requestUser(), eventExtId);
+				event = calendarDao.findEventByExtId(requestAccessToken(), user, eventExtId);
 			}
 			return event;
 		}

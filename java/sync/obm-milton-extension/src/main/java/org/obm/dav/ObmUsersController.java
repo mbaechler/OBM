@@ -61,9 +61,6 @@ public class ObmUsersController {
 	public static AccessToken getAccessToken() {
 		return (AccessToken) HttpManager.request().getAttributes().get("accessToken");
 	}
-	public static ObmUser getUser() {
-		return (ObmUser) HttpManager.request().getAttributes().get("user");
-	}
 
 	@Inject
 	private UserService userService;
@@ -95,7 +92,7 @@ public class ObmUsersController {
 		
 		AccessToken accessToken = sessionManagement.login(user.getLogin(),
 				password, "MiltonDav", clientIp, remoteIp, null, null, false);
-		setLoggedUser(user, accessToken, request);
+		setLoggedUser(accessToken, request);
 		return accessToken != null;
 	}
 
@@ -107,8 +104,7 @@ public class ObmUsersController {
 		return ImmutableList.of();
 	}
 
-	private void setLoggedUser(ObmUser user, AccessToken accessToken, Request request) {
+	private void setLoggedUser(AccessToken accessToken, Request request) {
 		request.getAttributes().put("accessToken", accessToken);
-		request.getAttributes().put("user", user);
 	}
 }
